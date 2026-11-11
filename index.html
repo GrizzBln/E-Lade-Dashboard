@@ -148,6 +148,13 @@ tr.new td{animation:rowin 1.6s ease-out}
 @keyframes rowin{0%{background:rgba(198,242,58,.3)}100%{background:transparent}}
 #msg{min-height:1.2em;font-size:.88rem;color:var(--muted);margin:.5rem 0 0}
 
+/* Synchronisation */
+#b-sync[data-s="ok"]{border-color:rgba(198,242,58,.6);color:var(--lime)}
+#b-sync[data-s="busy"]{border-color:var(--lime)}
+#b-sync[data-s="err"]{border-color:var(--danger);color:var(--danger)}
+.syncstat{font-size:.88rem;color:var(--muted);min-height:1.2em;margin:0}
+.syncstat.err{color:var(--danger)}
+
 /* Lade-Effekt beim Speichern */
 #fx{position:fixed;inset:0;z-index:50;pointer-events:none;display:none}
 #fx.on{display:block}
@@ -184,9 +191,10 @@ tr.new td{animation:rowin 1.6s ease-out}
     <div class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M18 3 7 18h7l-2 11 11-15h-7z"/></svg></div>
     <div class="titles">
       <h1>Ladelog</h1>
-      <p>BYD Dolphin Surf gegen SEAT Ibiza: Was kosten 100 km wirklich?</p>
+      <p>BYD Dolphin Surf gegen Seat Ibiza: Was kosten 100 km wirklich?</p>
     </div>
     <div class="hbtns">
+      <button type="button" id="b-sync" data-s="off">Sync aus</button>
       <button type="button" id="b-sound" aria-pressed="true">Ton an</button>
       <a class="btn primary" href="#form-card">Ladung eintragen</a>
     </div>
@@ -227,7 +235,7 @@ tr.new td{animation:rowin 1.6s ease-out}
       <div class="vs">gegen</div>
       <div class="car fuel">
         <div class="pic" id="pic-fuel">
-          <svg viewBox="0 0 400 150" role="img" aria-label="SEAT Ibiza in Grau mit orangen Spiegeln">
+          <svg viewBox="0 0 400 150" role="img" aria-label="Seat Ibiza in Grau mit orangen Spiegeln">
             <defs>
               <linearGradient id="gIbi" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cdd4d8"/><stop offset=".55" stop-color="#97a1a6"/><stop offset="1" stop-color="#626c71"/></linearGradient>
               <linearGradient id="gGlI" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a3a42"/><stop offset="1" stop-color="#0a1217"/></linearGradient>
@@ -250,7 +258,7 @@ tr.new td{animation:rowin 1.6s ease-out}
             <g class="wheel"><circle cx="304" cy="114" r="24" fill="#0a0d0f"/><circle cx="304" cy="114" r="15" fill="#1b2529" stroke="#aeb9be" stroke-width="2"/><path d="M304 100v28M290 114h28M294 104l20 20M314 104l-20 20" stroke="#aeb9be" stroke-width="2"/><circle cx="304" cy="114" r="3.5" fill="#aeb9be"/></g>
           </svg>
         </div>
-        <div class="name">SEAT Ibiza<i class="dot"></i></div>
+        <div class="name">Seat Ibiza<i class="dot"></i></div>
         <div class="big" id="big-fuel">–</div>
         <div class="per">pro 100 km</div>
       </div>
@@ -311,7 +319,7 @@ tr.new td{animation:rowin 1.6s ease-out}
             <label>Verbrauch BYD Dolphin Surf (kWh pro 100 km)
               <input type="number" id="s-ev" min="0" step="0.1" inputmode="decimal">
             </label>
-            <label>Verbrauch SEAT Ibiza (Liter pro 100 km)
+            <label>Verbrauch Seat Ibiza (Liter pro 100 km)
               <input type="number" id="s-fuel" min="0" step="0.1" inputmode="decimal">
             </label>
             <label>Super E10, Durchschnittspreis Deutschland (€ pro Liter)
@@ -319,6 +327,31 @@ tr.new td{animation:rowin 1.6s ease-out}
             </label>
             <p class="hint">Der Spritpreis ist ein Richtwert nach den ADAC-Auswertungen der letzten Wochen. Die Seite kann ihn nicht selbst abrufen. Aktuelle Werte findest du unter <a href="https://www.adac.de/tanken" target="_blank" rel="noopener">adac.de/tanken</a>. Passe ihn hier an, wenn er sich deutlich ändert.</p>
             <div class="measured" id="measured"></div>
+          </form>
+        </details>
+      </section>
+
+      <section class="card" id="sync-card">
+        <details id="sync-details">
+          <summary>Automatisch synchronisieren (GitHub)</summary>
+          <form id="sync-form" autocomplete="off">
+            <p class="hint">Speichert deine Ladungen nach jeder Änderung in einem privaten GitHub-Repository und gleicht Handy und PC ab. Die Einrichtung machst du einmal pro Gerät.</p>
+            <label>GitHub-Benutzername
+              <input type="text" id="y-owner" autocapitalize="none" autocorrect="off" spellcheck="false">
+            </label>
+            <label>Name des privaten Daten-Repositorys
+              <input type="text" id="y-repo" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="z. B. ladelog-daten">
+            </label>
+            <label>Zugangsschlüssel (Token)
+              <input type="password" id="y-token" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="github_pat_...">
+            </label>
+            <p class="hint">Der Schlüssel bleibt nur in diesem Browser gespeichert. Erstelle ihn auf <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com</a> nur für das Daten-Repository, mit der Berechtigung „Contents: Read and write“.</p>
+            <div class="actions">
+              <button type="submit" class="primary" id="y-connect">Verbinden</button>
+              <button type="button" id="y-now">Jetzt synchronisieren</button>
+              <button type="button" id="y-off">Trennen</button>
+            </div>
+            <p class="syncstat" id="sync-status" role="status"></p>
           </form>
         </details>
       </section>
@@ -375,7 +408,7 @@ tr.new td{animation:rowin 1.6s ease-out}
   var DEFAULTS = { evKwh: 16, fuelL: 6.5, fuelPrice: 1.98 };
   var $ = function (s) { return document.querySelector(s); };
   var reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
-  var state = { charges: [], settings: Object.assign({}, DEFAULTS) };
+  var state = { charges: [], settings: Object.assign({}, DEFAULTS), deleted: {}, settingsUpdated: 0 };
   var editingId = null, newId = null;
 
   /* ---------- Speichern / Laden ---------- */
@@ -388,6 +421,8 @@ tr.new td{animation:rowin 1.6s ease-out}
         var s0 = p.settings || {};
         if (s0.evKwh === 18 && s0.fuelL === 7 && s0.fuelPrice === 1.85) s0 = {};
         state.settings = Object.assign({}, DEFAULTS, s0);
+        state.deleted = (p.deleted && typeof p.deleted === 'object') ? p.deleted : {};
+        state.settingsUpdated = p.settingsUpdated || 0;
       }
     }
   } catch (e) { /* leer starten */ }
@@ -699,7 +734,8 @@ tr.new td{animation:rowin 1.6s ease-out}
       kwh: parseFloat($('#f-kwh').value) || 0,
       cost: $('#f-free').checked ? 0 : (parseFloat($('#f-cost').value) || 0),
       odo: parseFloat($('#f-odo').value) || 0,
-      note: $('#f-note').value.trim()
+      note: $('#f-note').value.trim(),
+      updated: Date.now()
     };
     if (wasEdit) {
       state.charges = state.charges.map(function (c) { return c.id === editingId ? entry : c; });
@@ -709,6 +745,7 @@ tr.new td{animation:rowin 1.6s ease-out}
     newId = entry.id;
     save(); render(); resetForm();
     celebrate(entry, wasEdit);
+    scheduleSync(800);
   });
 
   $('#f-cancel').addEventListener('click', resetForm);
@@ -731,8 +768,10 @@ tr.new td{animation:rowin 1.6s ease-out}
     }
     if (del && confirm('Diese Ladung wirklich löschen?')) {
       state.charges = state.charges.filter(function (x) { return x.id !== del; });
+      state.deleted[del] = Date.now();
       newId = null;
       save(); render(); playDelete();
+      scheduleSync(800);
       if (editingId === del) resetForm();
     }
   });
@@ -747,13 +786,17 @@ tr.new td{animation:rowin 1.6s ease-out}
     state.settings.evKwh = parseFloat($('#s-ev').value) || 0;
     state.settings.fuelL = parseFloat($('#s-fuel').value) || 0;
     state.settings.fuelPrice = parseFloat($('#s-price').value) || 0;
+    state.settingsUpdated = Date.now();
     save(); renderCompare(); renderStats();
+    scheduleSync(2500);
   });
   $('#measured').addEventListener('click', function (e) {
     if (e.target.id !== 'b-adopt') return;
     var m = measuredConsumption(); if (!m) return;
     state.settings.evKwh = Math.round(m.value * 10) / 10;
+    state.settingsUpdated = Date.now();
     save(); fillSettings(); renderCompare(); renderStats();
+    scheduleSync(800);
   });
 
   /* ---------- Export / Import ---------- */
@@ -788,15 +831,200 @@ tr.new td{animation:rowin 1.6s ease-out}
         var p = JSON.parse(r.result);
         if (!p || !Array.isArray(p.charges)) throw new Error('Format');
         if (!confirm('Die aktuellen Einträge werden durch die Sicherung ersetzt. Fortfahren?')) return;
-        state.charges = p.charges;
+        state.charges = p.charges.map(function (c) { c.updated = c.updated || Date.now(); return c; });
         state.settings = Object.assign({}, DEFAULTS, p.settings || {});
+        state.deleted = (p.deleted && typeof p.deleted === 'object') ? p.deleted : {};
+        state.settingsUpdated = Date.now();
         newId = null;
-        save(); fillSettings(); render(); msg(p.charges.length + ' Ladungen geladen.');
+        save(); fillSettings(); render(); msg(p.charges.length + ' Ladungen geladen.'); scheduleSync(800);
       } catch (err) { msg('Diese Datei ist keine gültige Ladelog-Sicherung.'); }
       e.target.value = '';
     };
     r.readAsText(f);
   });
+
+  /* ---------- Synchronisation mit GitHub ---------- */
+  var SYNC_KEY = 'ladelog.sync';
+  var sync = { owner: '', repo: '', token: '', path: 'ladelog-daten.json', last: 0 };
+  try { var sr = localStorage.getItem(SYNC_KEY); if (sr) sync = Object.assign(sync, JSON.parse(sr)); } catch (e) {}
+  function syncSaveCfg() { try { localStorage.setItem(SYNC_KEY, JSON.stringify(sync)); } catch (e) {} }
+  function syncOn() { return !!(sync.owner && sync.repo && sync.token); }
+  var syncing = false, again = false, syncTimer = null, lastAttempt = 0;
+
+  function toB64(str) {
+    var bytes = new TextEncoder().encode(str), bin = '';
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+  function fromB64(b64) {
+    var bin = atob(b64.replace(/\s/g, '')), bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+  function stable(o) {
+    if (Array.isArray(o)) return '[' + o.map(stable).join(',') + ']';
+    if (o && typeof o === 'object') return '{' + Object.keys(o).sort().map(function (k) { return JSON.stringify(k) + ':' + stable(o[k]); }).join(',') + '}';
+    return JSON.stringify(o);
+  }
+  function snapshot(s) {
+    return {
+      version: 2,
+      charges: (s.charges || []).slice().sort(function (a, b) { return a.id < b.id ? -1 : 1; }),
+      deleted: s.deleted || {},
+      settings: s.settings || {},
+      settingsUpdated: s.settingsUpdated || 0
+    };
+  }
+  // Fuehrt zwei Staende zusammen: pro Eintrag gewinnt die neuere Aenderung, Loeschungen werden mitgefuehrt.
+  function mergeStates(a, b) {
+    var map = {}, del = {};
+    [a.deleted || {}, b.deleted || {}].forEach(function (d) {
+      Object.keys(d).forEach(function (k) { del[k] = Math.max(del[k] || 0, d[k]); });
+    });
+    [a.charges || [], b.charges || []].forEach(function (list) {
+      list.forEach(function (c) {
+        var cur = map[c.id];
+        if (!cur || (c.updated || 0) > (cur.updated || 0)) map[c.id] = c;
+      });
+    });
+    var charges = [];
+    Object.keys(map).forEach(function (id) {
+      var c = map[id];
+      if (del[id] && del[id] >= (c.updated || 0)) return;
+      charges.push(c);
+    });
+    var sA = a.settingsUpdated || 0, sB = b.settingsUpdated || 0;
+    return { charges: charges, deleted: del, settings: (sB > sA && b.settings) ? b.settings : a.settings, settingsUpdated: Math.max(sA, sB) };
+  }
+  /*END-PURE*/
+
+  function setSyncUI(s, text, detail) {
+    var b = $('#b-sync'); b.setAttribute('data-s', s); b.textContent = text;
+    var st = $('#sync-status'); st.textContent = detail || ''; st.className = 'syncstat' + (s === 'err' ? ' err' : '');
+  }
+  function idleUI() {
+    if (!syncOn()) { setSyncUI('off', 'Sync aus', 'Nicht verbunden.'); return; }
+    setSyncUI('ok', 'Synchronisiert', sync.last
+      ? 'Zuletzt synchronisiert: ' + new Date(sync.last).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' })
+      : 'Verbunden.');
+  }
+  function SyncError(code, text) { var e = new Error(text); e.code = code; return e; }
+  function repoUrl() { return 'https://api.github.com/repos/' + encodeURIComponent(sync.owner) + '/' + encodeURIComponent(sync.repo); }
+  function hdr(json) {
+    var h = { 'Authorization': 'Bearer ' + sync.token, 'Accept': 'application/vnd.github+json' };
+    if (json) h['Content-Type'] = 'application/json';
+    return h;
+  }
+  var AUTH_MSG = 'Der Zugangsschlüssel wird nicht akzeptiert. Er ist falsch oder abgelaufen.';
+  var PERM_MSG = 'Zugriff verweigert. Der Schlüssel braucht für dieses Repository die Berechtigung „Contents: Read and write“, oder das Anfragelimit ist erreicht.';
+
+  function readRemote() {
+    return fetch(repoUrl() + '/contents/' + sync.path + '?_=' + Date.now(), { headers: hdr(false), cache: 'no-store' }).then(function (r) {
+      if (r.status === 200) {
+        return r.json().then(function (j) {
+          var data = null;
+          try { data = JSON.parse(fromB64(j.content)); } catch (e) { data = null; }
+          if (!data || !Array.isArray(data.charges)) throw SyncError('format', 'Die Datei im Daten-Repository ist keine gültige Ladelog-Datei.');
+          return { sha: j.sha, data: data };
+        });
+      }
+      if (r.status === 404) {
+        return fetch(repoUrl() + '?_=' + Date.now(), { headers: hdr(false), cache: 'no-store' }).then(function (rr) {
+          if (rr.status === 200) return { sha: null, data: null };
+          throw SyncError('repo', 'Repository nicht gefunden oder kein Zugriff. Prüfe Benutzername, Repository-Name und die Rechte des Schlüssels.');
+        });
+      }
+      if (r.status === 401) throw SyncError('auth', AUTH_MSG);
+      if (r.status === 403) throw SyncError('perm', PERM_MSG);
+      throw SyncError('http', 'GitHub meldet einen Fehler (' + r.status + ').');
+    });
+  }
+  function writeRemote(data, sha) {
+    var body = { message: 'Ladelog ' + new Date().toISOString(), content: toB64(JSON.stringify(data, null, 2)) };
+    if (sha) body.sha = sha;
+    return fetch(repoUrl() + '/contents/' + sync.path, { method: 'PUT', headers: hdr(true), body: JSON.stringify(body) }).then(function (r) {
+      if (r.status === 200 || r.status === 201) return true;
+      if (r.status === 409 || r.status === 422) throw SyncError('conflict', 'Konflikt');
+      if (r.status === 401) throw SyncError('auth', AUTH_MSG);
+      if (r.status === 403 || r.status === 404) throw SyncError('perm', PERM_MSG);
+      throw SyncError('http', 'GitHub meldet einen Fehler (' + r.status + ').');
+    });
+  }
+  function runSync(attempt) {
+    return readRemote().then(function (rem) {
+      var remote = rem.data;
+      var merged = snapshot(remote ? mergeStates(state, remote) : state);
+      if (stable(snapshot(state)) !== stable(merged)) {
+        state.charges = merged.charges; state.deleted = merged.deleted;
+        state.settings = Object.assign({}, DEFAULTS, merged.settings); state.settingsUpdated = merged.settingsUpdated;
+        save(); newId = null; render(); fillSettings();
+      }
+      if (remote && stable(snapshot(remote)) === stable(merged)) return;
+      return writeRemote(merged, rem.sha);
+    }).catch(function (e) {
+      if (e && e.code === 'conflict' && attempt < 3) return runSync(attempt + 1);
+      throw e;
+    });
+  }
+  function syncNow() {
+    if (!syncOn()) { idleUI(); return Promise.resolve(); }
+    if (syncing) { again = true; return Promise.resolve(); }
+    if (navigator.onLine === false) {
+      setSyncUI('err', 'Offline', 'Du bist offline. Die Daten werden abgeglichen, sobald du wieder online bist.');
+      return Promise.resolve();
+    }
+    syncing = true; lastAttempt = Date.now();
+    setSyncUI('busy', 'Synchronisiere …', 'Synchronisiere …');
+    return runSync(0).then(function () {
+      sync.last = Date.now(); syncSaveCfg(); idleUI();
+    }).catch(function (e) {
+      setSyncUI('err', 'Sync-Fehler', (e && e.code) ? e.message : 'Keine Verbindung zu GitHub. Bist du online?');
+    }).then(function () {
+      syncing = false;
+      if (again) { again = false; scheduleSync(300); }
+    });
+  }
+  function scheduleSync(ms) {
+    if (!syncOn()) return;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(syncNow, ms);
+  }
+  function fillSyncFields() {
+    $('#y-owner').value = sync.owner || '';
+    $('#y-repo').value = sync.repo || '';
+    $('#y-token').value = '';
+    $('#y-token').placeholder = sync.token ? 'Gespeichert. Zum Ändern neu einfügen.' : 'github_pat_...';
+  }
+  $('#sync-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var owner = $('#y-owner').value.trim(), repo = $('#y-repo').value.trim();
+    if (repo.indexOf('/') > -1) { var parts = repo.split('/').filter(Boolean); repo = parts[parts.length - 1]; if (!owner && parts.length > 1) owner = parts[parts.length - 2]; }
+    var token = $('#y-token').value.trim() || sync.token;
+    if (!owner || !repo || !token) { setSyncUI('err', 'Sync-Fehler', 'Bitte Benutzername, Repository-Name und Zugangsschlüssel ausfüllen.'); return; }
+    sync.owner = owner; sync.repo = repo; sync.token = token;
+    syncSaveCfg(); fillSyncFields(); syncNow();
+  });
+  $('#y-now').addEventListener('click', function () { syncNow(); });
+  $('#y-off').addEventListener('click', function () {
+    if (!confirm('Verbindung trennen? Deine Daten bleiben in diesem Browser und im GitHub-Repository erhalten.')) return;
+    sync = { owner: '', repo: '', token: '', path: 'ladelog-daten.json', last: 0 };
+    try { localStorage.removeItem(SYNC_KEY); } catch (e) {}
+    fillSyncFields(); idleUI();
+  });
+  $('#b-sync').addEventListener('click', function () {
+    if (!syncOn()) {
+      $('#sync-details').open = true;
+      $('#sync-card').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    } else { syncNow(); }
+  });
+  function initSync() {
+    fillSyncFields(); idleUI();
+    window.addEventListener('online', function () { syncNow(); });
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible' && syncOn() && Date.now() - lastAttempt > 30000) syncNow();
+    });
+    if (syncOn()) syncNow();
+  }
 
   /* ---------- Eigene Fotos (optional) ---------- */
   // Liegt im Ordner "bilder" eine Datei dolphin.jpg bzw. ibiza.jpg (oder .jpeg, .png, .webp),
@@ -815,9 +1043,9 @@ tr.new td{animation:rowin 1.6s ease-out}
   }
 
   /* ---------- Start ---------- */
-  renderSound(); fillSettings(); resetForm(); render();
+  renderSound(); fillSettings(); resetForm(); render(); initSync();
   tryPhoto('#pic-ev', 'dolphin', 'BYD Dolphin Surf');
-  tryPhoto('#pic-fuel', 'ibiza', 'SEAT Ibiza');
+  tryPhoto('#pic-fuel', 'ibiza', 'Seat Ibiza');
 })();
 </script>
 </body>
