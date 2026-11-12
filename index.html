@@ -819,7 +819,7 @@ function persona(E){
 function renderPersona(){
   const el=$('#persona'),r=persona(state.charges);
   if(!r){el.innerHTML='<div class="empty">Ab 3 Ladungen verrate ich dir, was für ein Ladetyp du bist.</div>';return}
-  const rows=[['Zuhause',r.sh.home],['Wechselstrom unterwegs',r.sh.ac],['Schnellladen (DC)',r.sh.dc],['Gratis geladen',r.sh.free]];
+  const rows=[['Zuhause',r.sh.home],['Wechselstrom unterwegs (AC)',r.sh.ac],['Schnellladen (DC)',r.sh.dc],['Gratis geladen',r.sh.free]];
   el.innerHTML=`<div class="persona"><div class="em">${r.p.i}</div><div class="pn disp">${r.p.n}</div><p>${r.p.t}</p></div>`
    +rows.map(x=>`<div class="row" style="grid-template-columns:1fr auto"><div><div class="nm">${x[0]}</div><div class="bar"><i class="${x[0]==='Gratis geladen'?'free':''}" data-w="${Math.max(x[1]*100,x[1]>0?4:0)}"></i></div></div><div class="val">${nf(x[1]*100,0)} %</div></div>`).join('')
    +'<p class="note" style="margin-bottom:0">Reine Spielerei, abgeleitet aus deinen Ladearten (Anteil der Ladungen).</p>';
