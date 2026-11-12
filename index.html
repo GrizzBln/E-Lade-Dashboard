@@ -812,14 +812,14 @@ function persona(E){
   if(sh.free>=.35)p={i:'🎁',n:'Gratis-Jäger',t:'Wo es Strom umsonst gibt, bist du schon da. Der Zähler läuft, die Kasse schweigt.'};
   else if(sh.home>=.6)p={i:'🐹',n:'Heim-Hamster',t:'Dein Akku füllt sich am liebsten im eigenen Bau. Entspannt, günstig, planbar.'};
   else if(sh.dc>=.4)p={i:'🦅',n:'Autobahn-Falke',t:'Kurz andocken, volle Power, weiter. Du lädst, wenn andere noch den Kaffee bestellen.'};
-  else if(sh.ac>=.5)p={i:'🦉',n:'Gemütlicher Stromer',t:'Wechselstrom unterwegs, ohne Hektik. Du lädst gern nebenbei beim Einkaufen oder Arbeiten.'};
+  else if(sh.ac>=.5)p={i:'🦉',n:'Gemütlicher Stromer',t:'Wechselstrom unterwegs (AC), ohne Hektik. Du lädst gern nebenbei beim Einkaufen oder Arbeiten.'};
   else p={i:'🦝',n:'Allrounder-Waschbär',t:'Zuhause, Schnelllader, Supermarkt: du nimmst Strom, wo er gerade steht.'};
   return{p,sh};
 }
 function renderPersona(){
   const el=$('#persona'),r=persona(state.charges);
   if(!r){el.innerHTML='<div class="empty">Ab 3 Ladungen verrate ich dir, was für ein Ladetyp du bist.</div>';return}
-  const rows=[['Zuhause',r.sh.home],['Wechselstrom unterwegs',r.sh.ac],['Schnellladen (DC)',r.sh.dc],['Gratis geladen',r.sh.free]];
+  const rows=[['Zuhause',r.sh.home],['Wechselstrom unterwegs (AC)',r.sh.ac],['Schnellladen (DC)',r.sh.dc],['Gratis geladen',r.sh.free]];
   el.innerHTML=`<div class="persona"><div class="em">${r.p.i}</div><div class="pn disp">${r.p.n}</div><p>${r.p.t}</p></div>`
    +rows.map(x=>`<div class="row" style="grid-template-columns:1fr auto"><div><div class="nm">${x[0]}</div><div class="bar"><i class="${x[0]==='Gratis geladen'?'free':''}" data-w="${Math.max(x[1]*100,x[1]>0?4:0)}"></i></div></div><div class="val">${nf(x[1]*100,0)} %</div></div>`).join('')
    +'<p class="note" style="margin-bottom:0">Reine Spielerei, abgeleitet aus deinen Ladearten (Anteil der Ladungen).</p>';
