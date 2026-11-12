@@ -18,7 +18,7 @@
   --lime:#c6f23a; --lime-soft:rgba(198,242,58,.14); --orange:#ff7a1f; --grey:#9aa5aa; --danger:#ff7b7b;
 }
 *{box-sizing:border-box}
-html{scroll-padding-top:1rem}
+html{scroll-padding-top:1rem;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{
   margin:0; color:var(--ink); font:16px/1.5 "Chakra Petch","Segoe UI",system-ui,-apple-system,sans-serif;
   background-color:var(--bg);
@@ -26,6 +26,7 @@ body{
     radial-gradient(900px 520px at 8% -8%, rgba(198,242,58,.11), transparent 60%),
     radial-gradient(700px 420px at 100% 0%, rgba(255,122,31,.07), transparent 60%);
   background-attachment:fixed;
+  -webkit-tap-highlight-color:transparent;
   padding-left:env(safe-area-inset-left,0px); padding-right:env(safe-area-inset-right,0px);
 }
 body::before{
@@ -37,52 +38,53 @@ body::before{
   animation:drift 40s linear infinite;
 }
 @keyframes drift{to{background-position:44px 44px}}
-.wrap{max-width:1120px;margin:0 auto;padding:1.25rem 1rem 3.5rem}
 a{color:var(--lime)}
+[hidden]{display:none!important}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
+/* Seitengerüst: eine Spalte, alle Boxen gleich breit */
+.wrap{width:100%;max-width:880px;margin:0 auto;padding:1rem 1rem calc(3rem + env(safe-area-inset-bottom,0px))}
+main{display:grid;grid-template-columns:minmax(0,1fr);gap:1rem}
+
 /* Kopf */
-header{display:flex;align-items:center;gap:.9rem;margin-bottom:1.25rem;flex-wrap:wrap}
-.logo{width:46px;height:46px;border-radius:4px 14px 4px 14px;background:var(--lime-soft);border:1px solid rgba(198,242,58,.5);display:grid;place-items:center;box-shadow:0 0 22px rgba(198,242,58,.18)}
-.logo svg{width:24px;height:24px;fill:var(--lime);animation:pulse 3.2s ease-in-out infinite}
+header{display:flex;align-items:center;gap:.7rem .8rem;margin-bottom:1rem;flex-wrap:wrap}
+.logo{width:44px;height:44px;flex:none;border-radius:4px 14px 4px 14px;background:var(--lime-soft);border:1px solid rgba(198,242,58,.5);display:grid;place-items:center;box-shadow:0 0 22px rgba(198,242,58,.18)}
+.logo svg{width:23px;height:23px;fill:var(--lime);animation:pulse 3.2s ease-in-out infinite}
 @keyframes pulse{0%,100%{filter:drop-shadow(0 0 0 rgba(198,242,58,0));transform:scale(1)}50%{filter:drop-shadow(0 0 8px var(--lime));transform:scale(1.12)}}
-.titles{flex:1;min-width:200px}
-h1{font-size:1.9rem;line-height:1.1;margin:0;letter-spacing:.02em}
-.titles p{margin:.15rem 0 0;color:var(--muted);font-size:.95rem}
-.hbtns{display:flex;gap:.5rem;flex-wrap:wrap}
-h2{font-size:1.1rem;margin:0 0 .8rem;letter-spacing:.02em}
+.titles{flex:1 1 140px;min-width:0}
+h1{font-size:clamp(1.5rem,6vw,1.9rem);line-height:1.1;margin:0;letter-spacing:.02em}
+.titles p{margin:.1rem 0 0;color:var(--muted);font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbtns{display:flex;gap:.5rem}
+@media(max-width:480px){.hbtns{width:100%}.hbtns>*{flex:0 1 auto;min-width:0;padding-left:.7rem;padding-right:.7rem}.hbtns>.primary{flex:1 1 auto}}
+h2{font-size:1.05rem;margin:0 0 .75rem;letter-spacing:.02em}
 
 /* Karten */
-.card{position:relative;background:linear-gradient(160deg,var(--panel2),var(--panel));border:1px solid var(--line);
-  border-radius:3px 20px 3px 20px;padding:1.2rem}
-.hero{border-color:rgba(198,242,58,.4);box-shadow:0 0 46px rgba(198,242,58,.08);margin-bottom:1rem}
+.card{position:relative;container-type:inline-size;min-width:0;background:linear-gradient(160deg,var(--panel2),var(--panel));border:1px solid var(--line);
+  border-radius:3px 20px 3px 20px;padding:1.1rem}
+.hero{border-color:rgba(198,242,58,.4);box-shadow:0 0 46px rgba(198,242,58,.08)}
 .hero::before{content:"";position:absolute;top:-1px;left:22px;width:84px;height:3px;background:var(--lime);box-shadow:0 0 14px var(--lime)}
 .hero.charging{animation:heroglow 2.2s ease-out}
 @keyframes heroglow{0%{box-shadow:0 0 0 rgba(198,242,58,0)}20%{box-shadow:0 0 80px rgba(198,242,58,.35)}100%{box-shadow:0 0 46px rgba(198,242,58,.08)}}
-.layout{display:grid;gap:1rem}
-@media(min-width:900px){.layout{grid-template-columns:350px 1fr;align-items:start}.side{position:sticky;top:1rem}}
-.stack{display:grid;gap:1rem}
 
-/* Duell */
-.duel{display:grid;grid-template-columns:1fr auto 1fr;gap:.5rem 1rem;align-items:end;margin-bottom:1rem}
-@media(max-width:560px){.duel{grid-template-columns:1fr 1fr}.vs{display:none}}
-.pic{margin-bottom:.35rem}
-.pic svg,.pic img{display:block;width:100%;height:auto}
-.pic img.photo{border-radius:3px 16px 3px 16px;aspect-ratio:16/9;object-fit:cover}
-.car .pic{transition:transform .3s}
-.car:hover .pic{transform:translateY(-4px)}
+/* Duell: beide Fahrzeuge exakt gleich groß */
+.duel{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:.3rem .7rem;align-items:start;margin-bottom:.9rem}
+@media(max-width:560px){.duel{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.vs{display:none}}
+.car{min-width:0;text-align:center}
+.pic{width:100%;max-width:300px;margin:0 auto .3rem;aspect-ratio:2/1;display:grid;place-items:center;transition:transform .3s}
+.pic svg{display:block;width:100%;height:auto}
+.pic img.photo{display:block;width:100%;height:100%;object-fit:cover;border-radius:3px 14px 3px 14px}
+.car:hover .pic{transform:translateY(-3px)}
 .car.fuel .pic svg{transform:scaleX(-1)}
-.car .name{display:flex;align-items:center;gap:.5rem;font-weight:600;font-size:.98rem}
-.dot{width:12px;height:12px;border-radius:50%;flex:none}
+.name{display:flex;align-items:center;justify-content:center;gap:.4rem;font-weight:600;white-space:nowrap;font-size:clamp(.72rem,3.7cqi,1rem)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
 .car.ev .dot{background:var(--lime);box-shadow:0 0 10px var(--lime)}
 .car.fuel .dot{background:var(--orange);box-shadow:0 0 10px var(--orange)}
-.big{font-size:clamp(2.1rem,7.5vw,4.1rem);font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums;margin-top:.15rem}
+.big{font-weight:700;line-height:1.1;white-space:nowrap;font-variant-numeric:tabular-nums;margin-top:.1rem;
+  font-size:clamp(1.45rem,7vw,2.6rem);font-size:clamp(1.45rem,8.6cqi,2.6rem)}
 .car.ev .big{color:var(--lime);text-shadow:0 0 28px rgba(198,242,58,.4)}
 .car.fuel .big{color:var(--orange);text-shadow:0 0 28px rgba(255,122,31,.3)}
-.car .per{color:var(--muted);font-size:.9rem}
-.vs{color:var(--muted);font-size:.95rem;padding-bottom:1.6rem}
-.car.fuel{text-align:right}
-.car.fuel .name{justify-content:flex-end}
+.per{color:var(--muted);white-space:nowrap;font-size:clamp(.68rem,3cqi,.88rem)}
+.vs{color:var(--muted);font-size:.9rem;align-self:center;padding-bottom:1.5rem}
 .hl{animation:hl 3s ease-in-out infinite;filter:drop-shadow(0 0 4px #fff)}
 @keyframes hl{0%,100%{opacity:.75}50%{opacity:1}}
 .wheel{transform-box:fill-box;transform-origin:center}
@@ -94,66 +96,103 @@ h2{font-size:1.1rem;margin:0 0 .8rem;letter-spacing:.02em}
 .hero.charging .zap{animation:zapflick 2s steps(1,end) 1}
 @keyframes zapflick{0%{opacity:0}8%{opacity:1}16%{opacity:.15}24%{opacity:1}40%{opacity:.3}52%{opacity:1}70%{opacity:.2}82%{opacity:1}100%{opacity:0}}
 
-.bars{display:grid;gap:.6rem;margin-bottom:1rem}
-.track{height:14px;background:rgba(154,165,170,.14);border-radius:2px 8px 2px 8px;overflow:hidden}
+.bars{display:grid;gap:.5rem;margin-bottom:.8rem}
+.track{height:12px;background:rgba(154,165,170,.14);border-radius:2px 8px 2px 8px;overflow:hidden}
 .fill{height:100%;width:0;border-radius:2px 8px 2px 8px;transition:width .9s cubic-bezier(.2,.8,.2,1)}
 .fill.ev{background:var(--lime);box-shadow:0 0 14px rgba(198,242,58,.6)}
 .fill.fuel{background:var(--orange);box-shadow:0 0 14px rgba(255,122,31,.5)}
-.verdict{font-size:1.25rem;font-weight:700;margin:0 0 .35rem}
+.verdict{font-size:clamp(.95rem,4.4cqi,1.2rem);font-weight:700;margin:0 0 .3rem}
 .verdict.good{color:var(--lime)} .verdict.bad{color:var(--orange)}
-.note{color:var(--muted);font-size:.86rem;margin:.3rem 0 0}
+.note{color:var(--muted);font-size:.82rem;margin:.25rem 0 0}
 
-/* Kennzahlen */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:.6rem}
-.stat{border:1px solid var(--line);border-radius:2px 12px 2px 12px;padding:.7rem .8rem;background:rgba(7,10,12,.35)}
-.stat b{display:block;font-size:1.3rem;font-variant-numeric:tabular-nums;line-height:1.2}
-.stat span{color:var(--muted);font-size:.84rem}
+/* Kennzahlen: gleichmäßiges Raster */
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem}
+@container (min-width:560px){.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.stat{min-width:0;border:1px solid var(--line);border-radius:2px 12px 2px 12px;padding:.6rem .7rem;background:rgba(7,10,12,.35)}
+.stat b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:clamp(.92rem,5cqi,1.3rem);line-height:1.25;font-variant-numeric:tabular-nums}
+.stat span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);font-size:clamp(.68rem,3cqi,.84rem)}
 .stat.hi{border-color:rgba(198,242,58,.45)} .stat.hi b{color:var(--lime)}
 
 /* Formulare */
-form{display:grid;gap:.75rem}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
-label{display:grid;gap:.25rem;font-size:.88rem;color:var(--muted)}
+.formgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:.7rem}
+@container (min-width:560px){.formgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem .9rem}.span2{grid-column:1/-1}}
+label{display:grid;gap:.25rem;font-size:.88rem;color:var(--muted);min-width:0}
 input,select{font:inherit;color:var(--ink);background:rgba(7,10,12,.6);border:1px solid var(--line);
-  border-radius:2px 10px 2px 10px;padding:.55rem .7rem;width:100%;min-width:0}
+  border-radius:2px 10px 2px 10px;padding:.5rem .7rem;width:100%;max-width:100%;min-width:0;min-height:44px;display:block}
+input[type="datetime-local"]{-webkit-appearance:none;appearance:none;text-align:left}
 input::placeholder{color:#55666d}
 input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
 input:focus{border-color:var(--lime)}
 input:disabled{opacity:.5}
 select option{background:#0e1417}
-.check{display:flex;align-items:center;gap:.55rem;color:var(--ink);font-size:.92rem}
-.check input{width:18px;height:18px;accent-color:var(--lime);padding:0}
-button,.btn{font:inherit;cursor:pointer;border-radius:3px 14px 3px 14px;border:1px solid var(--line);background:transparent;color:var(--ink);padding:.55rem 1rem;text-decoration:none;display:inline-block}
+.check{display:flex;align-items:center;gap:.55rem;color:var(--ink);font-size:.92rem;min-height:44px}
+.check input{width:20px;height:20px;min-height:0;accent-color:var(--lime);padding:0;flex:none}
+.freecheck{align-self:end}
+button,.btn{font:inherit;font-size:.92rem;cursor:pointer;border-radius:3px 14px 3px 14px;border:1px solid var(--line);background:transparent;color:var(--ink);
+  padding:.5rem 1rem;min-height:44px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
 button:hover,.btn:hover{border-color:var(--lime)}
 button.primary,.btn.primary{background:var(--lime);border-color:var(--lime);color:#0a1000;font-weight:700;box-shadow:0 0 20px rgba(198,242,58,.25)}
-button.link{border:none;padding:.2rem .45rem;color:var(--lime);border-radius:4px}
+button.link{border:none;padding:.2rem .45rem;min-height:36px;color:var(--lime);border-radius:4px}
 button.link.del{color:var(--danger)}
+#b-sync{border-color:var(--danger);color:var(--danger)}
 .actions{display:flex;gap:.5rem;flex-wrap:wrap}
-.hint{font-size:.8rem;color:var(--muted)}
-details summary{cursor:pointer;font-weight:600;border-radius:4px}
-details[open] summary{margin-bottom:.8rem}
-.measured{margin-top:.3rem;padding:.6rem .7rem;border:1px dashed rgba(198,242,58,.45);border-radius:2px 10px 2px 10px;font-size:.88rem}
+.hint{font-size:.8rem;color:var(--muted);margin:0}
+.card details>summary{cursor:pointer;font-weight:600;font-size:1.05rem;border-radius:4px;min-height:32px}
+details[open]>summary{margin-bottom:.8rem}
+.measured{padding:.6rem .7rem;border:1px dashed rgba(198,242,58,.45);border-radius:2px 10px 2px 10px;font-size:.86rem}
 .measured:empty{display:none}
 
 /* Tabellen */
 .scroll{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:.92rem}
-th,td{text-align:left;padding:.55rem .6rem;border-bottom:1px solid var(--line);white-space:nowrap}
-th{font-weight:600;color:var(--muted);font-size:.84rem}
-td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
-td.wrap-cell{white-space:normal;min-width:160px}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{text-align:left;padding:.5rem .45rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:.8rem;white-space:nowrap}
+td.n,th.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tbl-list .when{white-space:nowrap}
+.tbl-list .where{min-width:130px}
+.where .hint{display:block}
+.tbl-prov td:first-child{white-space:normal;word-break:break-word}
 .free{color:var(--lime);font-weight:600}
 .empty{color:var(--muted);margin:.3rem 0}
 tr.new td{animation:rowin 1.6s ease-out}
 @keyframes rowin{0%{background:rgba(198,242,58,.3)}100%{background:transparent}}
-#msg{min-height:1.2em;font-size:.88rem;color:var(--muted);margin:.5rem 0 0}
+@container (max-width:420px){table{font-size:.8rem}th,td{padding:.45rem .3rem}}
+/* Liste als Karten, sobald es zu eng für die Tabelle wird */
+@container (max-width:780px){
+  .tbl-list,.tbl-list tbody{display:block}
+  .tbl-list thead{display:none}
+  .tbl-list tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.45rem .6rem;padding:.8rem 0;border-bottom:1px solid var(--line)}
+  .tbl-list td{display:block;border:0;padding:0;min-width:0}
+  .tbl-list td.n{text-align:left}
+  .tbl-list td.n::before{content:attr(data-label);display:block;color:var(--muted);font-size:.7rem;white-space:nowrap}
+  .tbl-list .when{grid-column:1/-1;font-weight:600}
+  .tbl-list .where{grid-column:1/-1;min-width:0}
+  .tbl-list .act{grid-column:1/-1;display:flex;gap:.25rem;margin-left:-.45rem}
+}
 
-/* Synchronisation */
-#b-sync[data-s="ok"]{border-color:rgba(198,242,58,.6);color:var(--lime)}
-#b-sync[data-s="busy"]{border-color:var(--lime)}
-#b-sync[data-s="err"]{border-color:var(--danger);color:var(--danger)}
-.syncstat{font-size:.88rem;color:var(--muted);min-height:1.2em;margin:0}
+/* Weitere Optionen: bewusst dezent am Ende */
+.more{margin-top:1.8rem;padding-top:.3rem;border-top:1px solid var(--line)}
+.more .mini{font-size:.78rem;font-weight:500;color:var(--muted);margin:.6rem 0 .1rem;letter-spacing:.02em}
+.more details{border-bottom:1px solid var(--line);padding:.15rem 0}
+.more details>summary{display:flex;align-items:center;justify-content:space-between;gap:.6rem;list-style:none;min-height:44px;
+  font-size:.88rem;font-weight:500;color:var(--muted);cursor:pointer}
+.more details>summary::-webkit-details-marker{display:none}
+.more details>summary::after{content:"+";font-size:1.1rem;color:var(--muted)}
+.more details[open]>summary::after{content:"–"}
+.more details>summary small{margin-left:auto;font-size:.78rem;opacity:.8}
+.more details[open]>summary{margin-bottom:.4rem}
+.more details[open]{padding-bottom:.8rem}
+.syncstat{font-size:.85rem;color:var(--muted);min-height:1.2em;margin:0}
 .syncstat.err{color:var(--danger)}
+#msg{min-height:1.2em;font-size:.85rem;color:var(--muted);margin:.5rem 0 0}
+
+/* Zwei Bildschirme (z. B. Surface Duo aufgeklappt): zwei gleich breite Spalten, Scharnier bleibt frei */
+@media (horizontal-viewport-segments:2){
+  .wrap{max-width:none;padding-left:0;padding-right:0}
+  header,.more{margin-left:.9rem;margin-right:.9rem}
+  main{display:block;column-count:2;column-gap:calc(env(viewport-segment-left 1 0) - env(viewport-segment-right 0 0))}
+  main>.card{break-inside:avoid;margin:0 .75rem 1rem}
+}
 
 /* Lade-Effekt beim Speichern */
 #fx{position:fixed;inset:0;z-index:50;pointer-events:none;display:none}
@@ -171,7 +210,7 @@ tr.new td{animation:rowin 1.6s ease-out}
 #burst svg{width:120px;height:120px;fill:var(--lime);filter:drop-shadow(0 0 24px var(--lime));display:block;margin:0 auto}
 .ring{position:absolute;left:50%;top:60px;width:120px;height:120px;margin:-60px 0 0 -60px;border:3px solid var(--lime);border-radius:50%;animation:ring 1.2s ease-out both}
 @keyframes ring{from{transform:scale(.5);opacity:.9}to{transform:scale(3.4);opacity:0}}
-.burst-text b{display:block;font-size:2.4rem;line-height:1.15;color:var(--lime);text-shadow:0 0 26px rgba(198,242,58,.6)}
+.burst-text b{display:block;font-size:2.2rem;line-height:1.15;color:var(--lime);text-shadow:0 0 26px rgba(198,242,58,.6)}
 .burst-text span{display:block;color:var(--ink);font-size:1rem;text-shadow:0 2px 12px #000}
 
 @media(prefers-reduced-motion:reduce){
@@ -191,21 +230,22 @@ tr.new td{animation:rowin 1.6s ease-out}
     <div class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M18 3 7 18h7l-2 11 11-15h-7z"/></svg></div>
     <div class="titles">
       <h1>Ladelog</h1>
-      <p>BYD Dolphin Surf gegen Seat Ibiza: Was kosten 100 km wirklich?</p>
+      <p>Dolphin Surf gegen Ibiza</p>
     </div>
     <div class="hbtns">
-      <button type="button" id="b-sync" data-s="off">Sync aus</button>
+      <button type="button" id="b-sync" data-s="off" hidden>Sync-Fehler</button>
       <button type="button" id="b-sound" aria-pressed="true">Ton an</button>
       <a class="btn primary" href="#form-card">Ladung eintragen</a>
     </div>
   </header>
 
-  <section class="card hero" aria-labelledby="cmp-title">
-    <h2 id="cmp-title">Kosten pro 100 km</h2>
-    <div class="duel">
-      <div class="car ev">
-        <div class="pic" id="pic-ev">
-          <svg viewBox="0 0 400 150" role="img" aria-label="BYD Dolphin Surf in Lime Green">
+  <main>
+    <section class="card hero" aria-labelledby="cmp-title">
+      <h2 id="cmp-title">Kosten pro 100 km</h2>
+      <div class="duel">
+        <div class="car ev">
+          <div class="pic" id="pic-ev">
+            <svg viewBox="0 0 400 150" role="img" aria-label="BYD Dolphin Surf in Lime Green">
             <defs>
               <linearGradient id="gDol" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2ff6a"/><stop offset=".55" stop-color="#c6f23a"/><stop offset="1" stop-color="#93bb14"/></linearGradient>
               <linearGradient id="gGlD" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#23444f"/><stop offset="1" stop-color="#08141a"/></linearGradient>
@@ -227,15 +267,15 @@ tr.new td{animation:rowin 1.6s ease-out}
             <g class="wheel"><circle cx="298" cy="114" r="23" fill="#0a0d0f"/><circle cx="298" cy="114" r="14.5" fill="#1b2529" stroke="#aeb9be" stroke-width="2"/><path d="M298 101v26M285 114h26M289 105l18 18M307 105l-18 18" stroke="#aeb9be" stroke-width="2"/><circle cx="298" cy="114" r="3.5" fill="#aeb9be"/></g>
             <path class="zap" d="M216 58 L196 90 h12 l-6 24 24-38 h-14 l7-18z" fill="#ffffff" stroke="#c6f23a" stroke-width="2"/>
           </svg>
+          </div>
+          <div class="name"><i class="dot"></i>BYD Dolphin Surf</div>
+          <div class="big" id="big-ev">–</div>
+          <div class="per">pro 100 km</div>
         </div>
-        <div class="name"><i class="dot"></i>BYD Dolphin Surf</div>
-        <div class="big" id="big-ev">–</div>
-        <div class="per">pro 100 km</div>
-      </div>
-      <div class="vs">gegen</div>
-      <div class="car fuel">
-        <div class="pic" id="pic-fuel">
-          <svg viewBox="0 0 400 150" role="img" aria-label="Seat Ibiza in Grau mit orangen Spiegeln">
+        <div class="vs">gegen</div>
+        <div class="car fuel">
+          <div class="pic" id="pic-fuel">
+            <svg viewBox="0 0 400 150" role="img" aria-label="Seat Ibiza in Grau mit orangen Spiegeln">
             <defs>
               <linearGradient id="gIbi" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cdd4d8"/><stop offset=".55" stop-color="#97a1a6"/><stop offset="1" stop-color="#626c71"/></linearGradient>
               <linearGradient id="gGlI" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a3a42"/><stop offset="1" stop-color="#0a1217"/></linearGradient>
@@ -257,137 +297,129 @@ tr.new td{animation:rowin 1.6s ease-out}
             <g class="wheel"><circle cx="96" cy="114" r="24" fill="#0a0d0f"/><circle cx="96" cy="114" r="15" fill="#1b2529" stroke="#aeb9be" stroke-width="2"/><path d="M96 100v28M82 114h28M86 104l20 20M106 104l-20 20" stroke="#aeb9be" stroke-width="2"/><circle cx="96" cy="114" r="3.5" fill="#aeb9be"/></g>
             <g class="wheel"><circle cx="304" cy="114" r="24" fill="#0a0d0f"/><circle cx="304" cy="114" r="15" fill="#1b2529" stroke="#aeb9be" stroke-width="2"/><path d="M304 100v28M290 114h28M294 104l20 20M314 104l-20 20" stroke="#aeb9be" stroke-width="2"/><circle cx="304" cy="114" r="3.5" fill="#aeb9be"/></g>
           </svg>
+          </div>
+          <div class="name">Seat Ibiza<i class="dot"></i></div>
+          <div class="big" id="big-fuel">–</div>
+          <div class="per">pro 100 km</div>
         </div>
-        <div class="name">Seat Ibiza<i class="dot"></i></div>
-        <div class="big" id="big-fuel">–</div>
-        <div class="per">pro 100 km</div>
       </div>
-    </div>
-    <div id="compare"></div>
-  </section>
+      <div id="compare"></div>
+    </section>
 
-  <div class="layout">
-    <div class="side stack">
-      <section class="card" id="form-card">
-        <h2 id="form-title">Ladung eintragen</h2>
-        <form id="charge-form" autocomplete="off">
-          <label>Datum und Uhrzeit
-            <input type="datetime-local" id="f-date" required>
+    <section class="card" id="form-card">
+      <h2 id="form-title">Ladung eintragen</h2>
+      <form id="charge-form" class="formgrid" autocomplete="off">
+        <label>Datum und Uhrzeit
+          <input type="datetime-local" id="f-date" required>
+        </label>
+        <label>Art des Ladens
+          <select id="f-type">
+            <option>Wechselstrom (AC)</option>
+            <option>Schnellladen (DC)</option>
+            <option>Wallbox zu Hause</option>
+            <option>Haushaltssteckdose</option>
+          </select>
+        </label>
+        <label>Ort
+          <input type="text" id="f-place" list="places" placeholder="z. B. Zuhause, Supermarkt" required>
+          <datalist id="places"></datalist>
+        </label>
+        <label>Anbieter
+          <input type="text" id="f-provider" list="providers" placeholder="z. B. EnBW, Ionity, Wallbox" required>
+          <datalist id="providers"></datalist>
+        </label>
+        <label>Geladene kWh
+          <input type="number" id="f-kwh" min="0" step="0.01" inputmode="decimal" placeholder="z. B. 24,5">
+        </label>
+        <label>Kosten in €
+          <input type="number" id="f-cost" min="0" step="0.01" inputmode="decimal" placeholder="z. B. 12,80" required>
+        </label>
+        <label>Kilometerstand
+          <input type="number" id="f-odo" min="0" step="1" inputmode="numeric" placeholder="z. B. 4120" required>
+        </label>
+        <label class="check freecheck"><input type="checkbox" id="f-free"> Kostenlos geladen</label>
+        <label class="span2">Notiz (optional)
+          <input type="text" id="f-note" placeholder="z. B. von 20 % auf 80 %">
+        </label>
+        <div class="actions span2">
+          <button type="submit" class="primary" id="f-submit">Ladung speichern</button>
+          <button type="button" id="f-cancel" hidden>Abbrechen</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Gesamtübersicht</h2>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <section class="card">
+      <h2>Alle Ladungen</h2>
+      <div class="scroll" id="list"></div>
+    </section>
+
+    <section class="card">
+      <h2>Nach Anbieter</h2>
+      <div class="scroll" id="by-provider"></div>
+    </section>
+
+    <section class="card">
+      <details>
+        <summary>Vergleichswerte</summary>
+        <form id="settings-form" class="formgrid" autocomplete="off">
+          <label class="check span2"><input type="checkbox" id="s-measured"> Verbrauch aus meinen Kilometerständen berechnen</label>
+          <label>Ersatzwert Dolphin Surf (kWh pro 100 km)
+            <input type="number" id="s-ev" min="0" step="0.1" inputmode="decimal">
           </label>
-          <label>Ort
-            <input type="text" id="f-place" list="places" placeholder="z. B. Zuhause, Supermarkt Musterstraße" required>
-            <datalist id="places"></datalist>
+          <label>Verbrauch Seat Ibiza (l pro 100 km)
+            <input type="number" id="s-fuel" min="0" step="0.1" inputmode="decimal">
           </label>
-          <label>Anbieter
-            <input type="text" id="f-provider" list="providers" placeholder="z. B. EnBW, Ionity, Wallbox" required>
-            <datalist id="providers"></datalist>
+          <label class="span2">Super E10, Durchschnittspreis Deutschland (€ pro Liter)
+            <input type="number" id="s-price" min="0" step="0.001" inputmode="decimal">
           </label>
-          <label>Art des Ladens
-            <select id="f-type">
-              <option>Wechselstrom (AC)</option>
-              <option>Schnellladen (DC)</option>
-              <option>Wallbox zu Hause</option>
-              <option>Haushaltssteckdose</option>
-            </select>
-          </label>
-          <div class="row2">
-            <label>Geladene kWh
-              <input type="number" id="f-kwh" min="0" step="0.01" inputmode="decimal" placeholder="z. B. 24,5">
-            </label>
-            <label>Kosten in €
-              <input type="number" id="f-cost" min="0" step="0.01" inputmode="decimal" placeholder="z. B. 12,80" required>
-            </label>
-          </div>
-          <label class="check"><input type="checkbox" id="f-free"> Kostenlos geladen</label>
-          <label>Kilometerstand (optional)
-            <input type="number" id="f-odo" min="0" step="1" inputmode="numeric" placeholder="z. B. 4120">
-          </label>
-          <label>Notiz (optional)
-            <input type="text" id="f-note" placeholder="z. B. von 20 % auf 80 %">
-          </label>
-          <div class="actions">
-            <button type="submit" class="primary" id="f-submit">Ladung speichern</button>
-            <button type="button" id="f-cancel" hidden>Abbrechen</button>
-          </div>
+          <p class="hint span2">Der Spritpreis ist ein Richtwert nach den ADAC-Auswertungen der letzten Wochen. Die Seite kann ihn nicht selbst abrufen. Aktuelle Werte findest du unter <a href="https://www.adac.de/tanken" target="_blank" rel="noopener">adac.de/tanken</a>. Der Ersatzwert gilt nur, solange noch keine zwei Ladungen mit Kilometerstand vorliegen oder die Berechnung ausgeschaltet ist.</p>
+          <div class="measured span2" id="measured"></div>
         </form>
-      </section>
+      </details>
+    </section>
+  </main>
 
-      <section class="card">
-        <details>
-          <summary>Vergleichswerte einstellen</summary>
-          <form id="settings-form" autocomplete="off">
-            <label>Verbrauch BYD Dolphin Surf (kWh pro 100 km)
-              <input type="number" id="s-ev" min="0" step="0.1" inputmode="decimal">
-            </label>
-            <label>Verbrauch Seat Ibiza (Liter pro 100 km)
-              <input type="number" id="s-fuel" min="0" step="0.1" inputmode="decimal">
-            </label>
-            <label>Super E10, Durchschnittspreis Deutschland (€ pro Liter)
-              <input type="number" id="s-price" min="0" step="0.001" inputmode="decimal">
-            </label>
-            <p class="hint">Der Spritpreis ist ein Richtwert nach den ADAC-Auswertungen der letzten Wochen. Die Seite kann ihn nicht selbst abrufen. Aktuelle Werte findest du unter <a href="https://www.adac.de/tanken" target="_blank" rel="noopener">adac.de/tanken</a>. Passe ihn hier an, wenn er sich deutlich ändert.</p>
-            <div class="measured" id="measured"></div>
-          </form>
-        </details>
-      </section>
-
-      <section class="card" id="sync-card">
-        <details id="sync-details">
-          <summary>Automatisch synchronisieren (GitHub)</summary>
-          <form id="sync-form" autocomplete="off">
-            <p class="hint">Speichert deine Ladungen nach jeder Änderung in einem privaten GitHub-Repository und gleicht Handy und PC ab. Die Einrichtung machst du einmal pro Gerät.</p>
-            <label>GitHub-Benutzername
-              <input type="text" id="y-owner" autocapitalize="none" autocorrect="off" spellcheck="false">
-            </label>
-            <label>Name des privaten Daten-Repositorys
-              <input type="text" id="y-repo" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="z. B. ladelog-daten">
-            </label>
-            <label>Zugangsschlüssel (Token)
-              <input type="password" id="y-token" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="github_pat_...">
-            </label>
-            <p class="hint">Der Schlüssel bleibt nur in diesem Browser gespeichert. Erstelle ihn auf <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com</a> nur für das Daten-Repository, mit der Berechtigung „Contents: Read and write“.</p>
-            <div class="actions">
-              <button type="submit" class="primary" id="y-connect">Verbinden</button>
-              <button type="button" id="y-now">Jetzt synchronisieren</button>
-              <button type="button" id="y-off">Trennen</button>
-            </div>
-            <p class="syncstat" id="sync-status" role="status"></p>
-          </form>
-        </details>
-      </section>
-
-      <section class="card">
-        <details>
-          <summary>Daten sichern</summary>
-          <p class="hint">Deine Einträge liegen nur in diesem Browser. Sichere sie regelmäßig oder übertrage sie so auf ein anderes Gerät.</p>
-          <div class="actions">
-            <button type="button" id="b-json">Sichern (JSON)</button>
-            <button type="button" id="b-csv">Export für Excel (CSV)</button>
-            <button type="button" id="b-import">Sicherung laden</button>
-          </div>
-          <input type="file" id="file-import" accept="application/json,.json" hidden>
-          <p id="msg" role="status"></p>
-        </details>
-      </section>
-    </div>
-
-    <div class="stack">
-      <section class="card">
-        <h2>Gesamtübersicht</h2>
-        <div class="stats" id="stats"></div>
-      </section>
-
-      <section class="card">
-        <h2>Nach Anbieter</h2>
-        <div class="scroll" id="by-provider"></div>
-      </section>
-
-      <section class="card">
-        <h2>Alle Ladungen</h2>
-        <div class="scroll" id="list"></div>
-      </section>
-    </div>
-  </div>
+  <footer class="more" id="more">
+    <h2 class="mini">Weitere Optionen</h2>
+    <details id="sync-details">
+      <summary>Synchronisation <small id="sync-sum">aus</small></summary>
+      <form id="sync-form" class="formgrid" autocomplete="off">
+        <p class="hint span2">Speichert deine Ladungen nach jeder Änderung in einem privaten GitHub-Repository und gleicht Handy und PC ab. Die Einrichtung machst du einmal pro Gerät.</p>
+        <label>GitHub-Benutzername
+          <input type="text" id="y-owner" autocapitalize="none" autocorrect="off" spellcheck="false">
+        </label>
+        <label>Privates Daten-Repository
+          <input type="text" id="y-repo" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="z. B. ladelog-daten">
+        </label>
+        <label class="span2">Zugangsschlüssel (Token)
+          <input type="password" id="y-token" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="github_pat_...">
+        </label>
+        <p class="hint span2">Der Schlüssel bleibt nur in diesem Browser gespeichert. Erstelle ihn auf <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com</a> nur für das Daten-Repository, mit der Berechtigung „Contents: Read and write“.</p>
+        <div class="actions span2">
+          <button type="submit" class="primary" id="y-connect">Verbinden</button>
+          <button type="button" id="y-now">Jetzt synchronisieren</button>
+          <button type="button" id="y-off">Trennen</button>
+        </div>
+        <p class="syncstat span2" id="sync-status" role="status"></p>
+      </form>
+    </details>
+    <details id="backup-details">
+      <summary>Datensicherung</summary>
+      <p class="hint">Deine Einträge liegen in diesem Browser. Mit einer Sicherungsdatei kannst du sie zusätzlich ablegen oder auf ein anderes Gerät übertragen.</p>
+      <div class="actions" style="margin-top:.6rem">
+        <button type="button" id="b-json">Sichern (JSON)</button>
+        <button type="button" id="b-csv">Export für Excel (CSV)</button>
+        <button type="button" id="b-import">Sicherung laden</button>
+      </div>
+      <input type="file" id="file-import" accept="application/json,.json" hidden>
+      <p id="msg" role="status"></p>
+    </details>
+  </footer>
 </div>
 
 <div id="fx" aria-hidden="true">
@@ -405,7 +437,7 @@ tr.new td{animation:rowin 1.6s ease-out}
 (function () {
   'use strict';
   var KEY = 'ladelog.v1', SOUND_KEY = 'ladelog.sound';
-  var DEFAULTS = { evKwh: 16, fuelL: 6.5, fuelPrice: 1.98 };
+  var DEFAULTS = { evKwh: 16, fuelL: 6.5, fuelPrice: 1.98, useMeasured: true };
   var $ = function (s) { return document.querySelector(s); };
   var reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
   var state = { charges: [], settings: Object.assign({}, DEFAULTS), deleted: {}, settingsUpdated: 0 };
@@ -525,16 +557,19 @@ tr.new td{animation:rowin 1.6s ease-out}
 
   function derived() {
     var s = state.settings, t = totals(state.charges);
-    var d = { t: t, fuel100: s.fuelL * s.fuelPrice, ok: false };
-    if (t.kwhWithCost > 0 && s.evKwh > 0 && d.fuel100 > 0) {
+    var m = measuredConsumption();
+    var useM = s.useMeasured !== false && !!m;
+    var evKwh = useM ? m.value : s.evKwh;
+    var d = { t: t, fuel100: s.fuelL * s.fuelPrice, ok: false, evKwh: evKwh, measured: useM, mm: m };
+    if (t.kwhWithCost > 0 && evKwh > 0 && d.fuel100 > 0) {
       d.ok = true;
       d.avg = t.costWithKwh / t.kwhWithCost;
-      d.ev100 = d.avg * s.evKwh;
-      d.km = t.kwhWithCost / s.evKwh * 100;
+      d.ev100 = d.avg * evKwh;
+      d.km = t.kwhWithCost / evKwh * 100;
       d.saved = d.km / 100 * d.fuel100 - t.costWithKwh;
       var pk = 0, pc = 0;
       state.charges.forEach(function (c) { if (c.cost > 0 && c.kwh > 0) { pk += c.kwh; pc += c.cost; } });
-      d.evPaid100 = pk > 0 ? (pc / pk) * s.evKwh : null;
+      d.evPaid100 = pk > 0 ? (pc / pk) * evKwh : null;
     }
     return d;
   }
@@ -586,8 +621,9 @@ tr.new td{animation:rowin 1.6s ease-out}
     if (d.evPaid100 !== null && state.charges.some(function (c) { return !c.cost && c.kwh > 0; })) {
       html += '<p class="note">Nur mit bezahlten Ladungen gerechnet: ' + eur(d.evPaid100) + ' pro 100 km mit dem Dolphin Surf.</p>';
     }
-    html += '<p class="note">Strom: dein Durchschnitt von ' + eur(d.avg) + ' pro kWh × ' + num(state.settings.evKwh) + ' kWh pro 100 km. Benzin: ' +
-      num(state.settings.fuelL) + ' l × ' + eur(state.settings.fuelPrice) + ' (Super E10, Durchschnitt Deutschland). Ladungen ohne kWh-Angabe zählen nicht mit.</p>';
+    html += '<p class="note">Strom: Ø ' + eur(d.avg) + ' pro kWh × ' + num(d.evKwh) + ' kWh pro 100 km (' +
+      (d.measured ? 'aus deinen Kilometerständen berechnet' : 'Ersatzwert aus den Vergleichswerten') + '). Benzin: ' +
+      num(state.settings.fuelL) + ' l × ' + eur(state.settings.fuelPrice) + ' (Super E10, Ø Deutschland).</p>';
     el.innerHTML = html;
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
@@ -600,10 +636,10 @@ tr.new td{animation:rowin 1.6s ease-out}
     var d = derived(), t = d.t;
     function st(v, l, hi) { return '<div class="stat' + (hi ? ' hi' : '') + '"><b>' + v + '</b><span>' + l + '</span></div>'; }
     var html = st(t.count, 'Ladungen') + st(eur(t.cost), 'Gesamtkosten') + st(num(t.kwh) + ' kWh', 'Geladen') +
-      st(d.ok ? eur(d.avg) : '–', 'Ø pro kWh') + st(t.free, 'Kostenlose Ladungen');
+      st(d.ok ? eur(d.avg) : '–', 'Ø pro kWh') + st(d.measured ? num(d.evKwh) : '–', 'kWh pro 100 km') + st(t.free, 'Kostenlos');
     if (d.ok) {
-      html += st(num(d.km, 0) + ' km', 'Strecke, die diese Ladungen ergeben') +
-        st((d.saved >= 0 ? '' : '−') + eur(Math.abs(d.saved)), d.saved >= 0 ? 'Bisher gespart gegenüber dem Ibiza' : 'Bisher mehr bezahlt als beim Ibiza', true);
+      html += st(num(d.km, 0) + ' km', 'Strecke') +
+        st((d.saved >= 0 ? '' : '−') + eur(Math.abs(d.saved)), d.saved >= 0 ? 'Gespart vs. Ibiza' : 'Mehr als Ibiza', true);
     }
     $('#stats').innerHTML = html;
   }
@@ -619,24 +655,40 @@ tr.new td{animation:rowin 1.6s ease-out}
       return '<tr><td>' + esc(k) + '</td><td class="n">' + t.count + '</td><td class="n">' + num(t.kwh) + '</td><td class="n">' + eur(t.cost) +
         '</td><td class="n">' + (perKwh === null ? '–' : (perKwh === 0 ? '<span class="free">kostenlos</span>' : eur(perKwh))) + '</td></tr>';
     }).join('');
-    el.innerHTML = '<table><thead><tr><th>Anbieter</th><th class="n">Ladungen</th><th class="n">kWh</th><th class="n">Kosten</th><th class="n">pro kWh</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    el.innerHTML = '<table class="tbl-prov"><thead><tr><th>Anbieter</th><th class="n">Anz.</th><th class="n">kWh</th><th class="n">Kosten</th><th class="n">pro kWh</th></tr></thead><tbody>' + rows + '</tbody></table>';
   }
 
   function renderList() {
     var el = $('#list');
-    var list = state.charges.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; });
-    if (!list.length) { el.innerHTML = '<p class="empty">Noch keine Ladungen. Trage deine erste Ladung im Formular ein.</p>'; return; }
-    var rows = list.map(function (c) {
-      var perKwh = c.kwh > 0 && c.cost > 0 ? (c.cost / c.kwh) : null;
-      return '<tr' + (c.id === newId ? ' class="new"' : '') + '><td>' + esc(fmtDate(c.date)) + '</td>' +
-        '<td class="wrap-cell">' + esc(c.place) + '<br><span class="hint">' + esc(c.provider) + (c.odo > 0 ? ', ' + num(c.odo, 0) + ' km' : '') + (c.note ? ', ' + esc(c.note) : '') + '</span></td>' +
-        '<td>' + esc(c.type) + '</td>' +
-        '<td class="n">' + (c.kwh > 0 ? num(c.kwh) : '–') + '</td>' +
-        '<td class="n">' + (c.cost > 0 ? eur(c.cost) : '<span class="free">kostenlos</span>') + '</td>' +
-        '<td class="n">' + (perKwh === null ? '–' : eur(perKwh)) + '</td>' +
-        '<td><button class="link" data-edit="' + c.id + '">Bearbeiten</button><button class="link del" data-del="' + c.id + '">Löschen</button></td></tr>';
+    if (!state.charges.length) { el.innerHTML = '<p class="empty">Noch keine Ladungen. Trage deine erste Ladung im Formular ein.</p>'; return; }
+    var asc = state.charges.slice().sort(function (a, b) { return a.date < b.date ? -1 : (a.date > b.date ? 1 : 0); });
+    // Strecke und Verbrauch: von der vorherigen zur aktuellen Ladung anhand des Kilometerstands
+    var info = {}, prevOdo = null;
+    asc.forEach(function (c) {
+      var seg = null, cons = null;
+      if (c.odo > 0 && prevOdo !== null && c.odo > prevOdo) {
+        seg = c.odo - prevOdo;
+        if (c.kwh > 0) cons = c.kwh / seg * 100;
+      }
+      info[c.id] = { seg: seg, cons: cons };
+      if (c.odo > 0) prevOdo = c.odo;
+    });
+    var rows = asc.slice().reverse().map(function (c) {
+      var perKwh = c.kwh > 0 && c.cost > 0 ? (c.cost / c.kwh) : null, i = info[c.id];
+      var sub = [c.provider, c.type].concat(c.note ? [c.note] : []).map(esc).join(', ');
+      return '<tr' + (c.id === newId ? ' class="new"' : '') + '>' +
+        '<td class="when">' + esc(fmtDate(c.date)) + '</td>' +
+        '<td class="where">' + esc(c.place) + '<span class="hint">' + sub + '</span></td>' +
+        '<td class="n" data-label="Geladen">' + (c.kwh > 0 ? num(c.kwh) + ' kWh' : '–') + '</td>' +
+        '<td class="n" data-label="Kosten">' + (c.cost > 0 ? eur(c.cost) : '<span class="free">kostenlos</span>') + '</td>' +
+        '<td class="n" data-label="Pro kWh">' + (perKwh === null ? '–' : eur(perKwh)) + '</td>' +
+        '<td class="n" data-label="Kilometerstand">' + (c.odo > 0 ? num(c.odo, 0) + ' km' : '–') + '</td>' +
+        '<td class="n" data-label="Strecke">' + (i.seg === null ? '–' : num(i.seg, 0) + ' km') + '</td>' +
+        '<td class="n" data-label="Verbrauch/100 km">' + (i.cons === null ? '–' : num(i.cons) + ' kWh') + '</td>' +
+        '<td class="act"><button class="link" data-edit="' + c.id + '">Bearbeiten</button><button class="link del" data-del="' + c.id + '">Löschen</button></td></tr>';
     }).join('');
-    el.innerHTML = '<table><thead><tr><th>Wann</th><th>Wo</th><th>Art</th><th class="n">kWh</th><th class="n">Kosten</th><th class="n">pro kWh</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>';
+    el.innerHTML = '<table class="tbl-list"><thead><tr><th>Wann</th><th>Wo</th><th class="n">Geladen</th><th class="n">Kosten</th><th class="n">pro kWh</th>' +
+      '<th class="n">km-Stand</th><th class="n">Strecke</th><th class="n">Verbrauch/100 km</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>';
   }
 
   function renderSuggestions() {
@@ -647,9 +699,9 @@ tr.new td{animation:rowin 1.6s ease-out}
 
   function renderMeasured() {
     var m = measuredConsumption(), el = $('#measured');
-    if (!m) { el.innerHTML = ''; return; }
-    el.innerHTML = 'Aus deinen Einträgen berechnet: ca. ' + num(m.value) + ' kWh pro 100 km (über ' + num(m.km, 0) + ' km). ' +
-      '<button type="button" class="link" id="b-adopt">Als Verbrauch übernehmen</button>';
+    el.innerHTML = m
+      ? 'Gemessen aus deinen Kilometerständen: ca. ' + num(m.value) + ' kWh pro 100 km über ' + num(m.km, 0) + ' km. Das stimmt am genauesten, wenn du jeweils bis zum gleichen Ladestand lädst.'
+      : 'Sobald du mindestens zwei Ladungen mit Kilometerstand hast, wird der Verbrauch hier berechnet.';
   }
 
   function render() { renderCompare(); renderStats(); renderProviders(); renderList(); renderSuggestions(); renderMeasured(); }
@@ -724,6 +776,8 @@ tr.new td{animation:rowin 1.6s ease-out}
   $('#charge-form').addEventListener('submit', function (e) {
     e.preventDefault();
     if (soundOn) actx(); // Audio im Klick freischalten (iPhone)
+    var odoErr = odoProblem($('#f-date').value, parseFloat($('#f-odo').value), editingId);
+    if (odoErr) { var oe = $('#f-odo'); oe.setCustomValidity(odoErr); oe.reportValidity(); return; }
     var wasEdit = !!editingId;
     var entry = {
       id: editingId || uid(),
@@ -747,6 +801,21 @@ tr.new td{animation:rowin 1.6s ease-out}
     celebrate(entry, wasEdit);
     scheduleSync(800);
   });
+
+  function odoProblem(date, odo, ignoreId) {
+    if (!(odo > 0)) return 'Bitte den Kilometerstand eintragen.';
+    var prev = null, next = null;
+    state.charges.forEach(function (c) {
+      if (c.id === ignoreId || !(c.odo > 0)) return;
+      if (c.date < date) { if (!prev || c.date > prev.date) prev = c; }
+      else if (c.date > date) { if (!next || c.date < next.date) next = c; }
+    });
+    if (prev && odo < prev.odo) return 'Der Kilometerstand ist kleiner als bei der Ladung davor (' + num(prev.odo, 0) + ' km).';
+    if (next && odo > next.odo) return 'Der Kilometerstand ist größer als bei der Ladung danach (' + num(next.odo, 0) + ' km).';
+    return '';
+  }
+  $('#f-odo').addEventListener('input', function () { this.setCustomValidity(''); });
+  $('#f-date').addEventListener('input', function () { $('#f-odo').setCustomValidity(''); });
 
   $('#f-cancel').addEventListener('click', resetForm);
 
@@ -781,24 +850,17 @@ tr.new td{animation:rowin 1.6s ease-out}
     $('#s-ev').value = state.settings.evKwh;
     $('#s-fuel').value = state.settings.fuelL;
     $('#s-price').value = state.settings.fuelPrice;
+    $('#s-measured').checked = state.settings.useMeasured !== false;
   }
   $('#settings-form').addEventListener('input', function () {
     state.settings.evKwh = parseFloat($('#s-ev').value) || 0;
+    state.settings.useMeasured = $('#s-measured').checked;
     state.settings.fuelL = parseFloat($('#s-fuel').value) || 0;
     state.settings.fuelPrice = parseFloat($('#s-price').value) || 0;
     state.settingsUpdated = Date.now();
     save(); renderCompare(); renderStats();
     scheduleSync(2500);
   });
-  $('#measured').addEventListener('click', function (e) {
-    if (e.target.id !== 'b-adopt') return;
-    var m = measuredConsumption(); if (!m) return;
-    state.settings.evKwh = Math.round(m.value * 10) / 10;
-    state.settingsUpdated = Date.now();
-    save(); fillSettings(); renderCompare(); renderStats();
-    scheduleSync(800);
-  });
-
   /* ---------- Export / Import ---------- */
   function download(name, text, type) {
     var a = document.createElement('a');
@@ -899,8 +961,9 @@ tr.new td{animation:rowin 1.6s ease-out}
   /*END-PURE*/
 
   function setSyncUI(s, text, detail) {
-    var b = $('#b-sync'); b.setAttribute('data-s', s); b.textContent = text;
-    var st = $('#sync-status'); st.textContent = detail || ''; st.className = 'syncstat' + (s === 'err' ? ' err' : '');
+    var b = $('#b-sync'); b.setAttribute('data-s', s); b.textContent = text; b.hidden = (s !== 'err');
+    var st = $('#sync-status'); st.textContent = detail || ''; st.className = 'syncstat span2' + (s === 'err' ? ' err' : '');
+    $('#sync-sum').textContent = s === 'err' ? 'Fehler' : (s === 'busy' ? 'läuft' : (s === 'ok' ? 'aktiv' : 'aus'));
   }
   function idleUI() {
     if (!syncOn()) { setSyncUI('off', 'Sync aus', 'Nicht verbunden.'); return; }
@@ -1012,10 +1075,8 @@ tr.new td{animation:rowin 1.6s ease-out}
     fillSyncFields(); idleUI();
   });
   $('#b-sync').addEventListener('click', function () {
-    if (!syncOn()) {
-      $('#sync-details').open = true;
-      $('#sync-card').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
-    } else { syncNow(); }
+    $('#sync-details').open = true;
+    $('#sync-details').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
   });
   function initSync() {
     fillSyncFields(); idleUI();
