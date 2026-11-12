@@ -12,7 +12,7 @@
 <style>
 :root{
   --lime:#b6ff00; --lime2:#7dff3a; --orange:#ff7a1a; --bg:#06080a; --panel:rgba(18,26,16,.62);
-  --ink:#eaffd2; --mute:#7f9772; --line:rgba(182,255,0,.18); --pink:#ff3df2; --cyan:#27f0ff;
+  --ink:#eaffd2; --mute:#7f9772; --line:rgba(182,255,0,.18); --pink:#ff3df2; --cyan:#27f0ff; --danger:#ff7b7b;
   --safe-b:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -20,6 +20,7 @@ html{background:var(--bg);color-scheme:dark}
 body{margin:0;min-height:100vh;color:var(--ink);font-family:ui-rounded,"SF Pro Rounded",system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:hidden;padding-bottom:calc(110px + var(--safe-b))}
 .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
 .disp{font-family:"Arial Narrow","Helvetica Neue",Impact,sans-serif;font-weight:900;font-style:italic;letter-spacing:.02em;text-transform:uppercase}
+[hidden]{display:none!important}
 
 /* ---------- Hintergrund ---------- */
 #fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60}
@@ -30,9 +31,7 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:ui-rounded,"SF Pro R
 .aurora i:nth-child(3){width:45vmax;height:45vmax;left:20vmax;bottom:-25vmax;background:radial-gradient(circle,#00ffd055,transparent 65%);animation-duration:27s}
 @keyframes drift{to{transform:translate(8vmax,6vmax) scale(1.2)}}
 .floor{position:fixed;left:-60%;right:-60%;bottom:0;height:55vh;z-index:-2;pointer-events:none;
-  background:
-   linear-gradient(var(--line) 2px,transparent 2px) 0 0/100% 60px,
-   linear-gradient(90deg,var(--line) 2px,transparent 2px) 0 0/80px 100%;
+  background:linear-gradient(var(--line) 2px,transparent 2px) 0 0/100% 60px,linear-gradient(90deg,var(--line) 2px,transparent 2px) 0 0/80px 100%;
   transform:perspective(380px) rotateX(62deg);transform-origin:50% 100%;animation:run 2.4s linear infinite;
   -webkit-mask-image:linear-gradient(to top,#000 10%,transparent 85%);mask-image:linear-gradient(to top,#000 10%,transparent 85%)}
 @keyframes run{to{background-position:0 60px,0 0}}
@@ -41,13 +40,17 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:ui-rounded,"SF Pro R
 /* ---------- Layout ---------- */
 .wrap{max-width:980px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 0}
 .top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0 10px}
-.logo{font-size:clamp(26px,6vw,38px);line-height:1;display:flex;align-items:baseline;gap:8px}
+.logo{font-size:clamp(26px,6vw,38px);line-height:1;display:flex;align-items:baseline;gap:8px;cursor:pointer;user-select:none;-webkit-user-select:none}
 .logo b{color:var(--lime);text-shadow:0 0 18px var(--lime)}
 .logo small{font:700 11px ui-monospace,Menlo,monospace;color:var(--bg);background:var(--lime);padding:2px 6px;border-radius:5px;transform:skew(-10deg);font-style:normal}
 .tools{display:flex;gap:8px}
 .chip{appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);height:40px;min-width:40px;padding:0 12px;border-radius:12px;font:700 12px ui-monospace,Menlo,monospace;letter-spacing:.08em;cursor:pointer;backdrop-filter:blur(10px);transition:.2s}
 .chip:hover{border-color:var(--lime);box-shadow:0 0 14px #b6ff0055}
 .chip.on{background:var(--lime);color:#000;box-shadow:0 0 18px #b6ff0099}
+.chip.s-ok{border-color:#3dffa0;color:#3dffa0}
+.chip.s-err{border-color:var(--danger);color:var(--danger);box-shadow:0 0 14px #ff7b7b55}
+.chip.s-busy{border-color:var(--cyan);color:var(--cyan);animation:blink 1s ease-in-out infinite}
+@keyframes blink{50%{opacity:.4}}
 .card{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:18px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .15s ease-out,border-color .3s}
 .card:hover{border-color:rgba(182,255,0,.5)}
@@ -85,8 +88,10 @@ body.hyper .spin1{animation-duration:6s}body.hyper .spin2{animation-duration:3s}
 
 /* ---------- Duell ---------- */
 .lane{position:relative;margin:12px 0 4px}
-.lane .lab{display:flex;justify-content:space-between;align-items:baseline;font:700 12px ui-monospace,Menlo,monospace;letter-spacing:.1em;margin-bottom:6px}
+.lane .lab{display:flex;justify-content:space-between;align-items:center;font:700 12px ui-monospace,Menlo,monospace;letter-spacing:.1em;margin-bottom:6px}
 .lane .lab b{font-size:20px;letter-spacing:0}
+.lane .lab span{display:flex;align-items:center}
+.av{width:34px;height:34px;border-radius:10px;object-fit:cover;margin-right:8px;border:1px solid var(--line)}
 .track{position:relative;height:46px;border-radius:14px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 2px,transparent 2px 22px),rgba(0,0,0,.4);border:1px solid var(--line);overflow:hidden}
 .pod{position:absolute;left:0;top:0;bottom:0;width:0%;border-radius:14px;display:flex;align-items:center;justify-content:flex-end;padding-right:10px;transition:width 1.8s cubic-bezier(.15,.85,.15,1)}
 .pod.ev{background:linear-gradient(90deg,transparent,#b6ff0033 40%,var(--lime));box-shadow:0 0 28px #b6ff0066}
@@ -95,6 +100,7 @@ body.hyper .spin1{animation-duration:6s}body.hyper .spin2{animation-duration:3s}
 .flag{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:22px}
 .verdict{margin-top:14px;padding:12px 14px;border-radius:14px;background:rgba(182,255,0,.08);border:1px dashed var(--line);font-size:14px;line-height:1.45}
 .verdict b{color:var(--lime)}
+.verdict button{margin-top:8px}
 
 /* ---------- Anbieter-Liga ---------- */
 .row{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(182,255,0,.08)}
@@ -111,7 +117,7 @@ body.hyper .spin1{animation-duration:6s}body.hyper .spin2{animation-duration:3s}
 .row .val{font:700 15px ui-monospace,Menlo,monospace;text-align:right}
 .free-t{color:var(--pink);text-shadow:0 0 10px var(--pink)}
 
-/* ---------- Monatsbalken ---------- */
+/* ---------- Monate ---------- */
 .months{display:flex;align-items:flex-end;gap:8px;height:130px;padding-top:6px}
 .mcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px}
 .mcol .b{width:100%;max-width:54px;border-radius:10px 10px 4px 4px;background:linear-gradient(180deg,var(--lime),#2f6b00);box-shadow:0 0 16px #b6ff0044;height:0;transition:height 1.2s cubic-bezier(.2,.9,.2,1)}
@@ -130,26 +136,26 @@ body.hyper .spin1{animation-duration:6s}body.hyper .spin2{animation-duration:3s}
 .log{display:grid;gap:8px}
 .entry{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:12px 14px;border-radius:16px;background:rgba(0,0,0,.35);border:1px solid var(--line);position:relative;overflow:hidden;animation:pop .5s cubic-bezier(.2,1.4,.4,1) both}
 @keyframes pop{from{opacity:0;transform:translateY(14px) scale(.96)}}
+.entry.new{border-color:var(--lime);box-shadow:0 0 22px #b6ff0044}
 .entry .cell{grid-column:1/-1;height:6px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}
 .entry .cell i{display:block;height:100%;background:repeating-linear-gradient(90deg,var(--lime) 0 8px,transparent 8px 10px)}
-.entry .t{font-weight:700}
-.entry .d{font:11px ui-monospace,Menlo,monospace;color:var(--mute)}
-.entry .r{text-align:right;font:700 16px ui-monospace,Menlo,monospace}
-.entry .r small{display:block;font-size:11px;color:var(--mute);font-weight:400}
+.entry .t{font-weight:700;padding-right:96px}
+.entry .d{font:11px ui-monospace,Menlo,monospace;color:var(--mute);grid-column:1/-1}
+.entry .r{text-align:right;font:700 16px ui-monospace,Menlo,monospace;grid-column:1/-1;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.entry .r small{font-size:12px;color:var(--mute);font-weight:400}
 .tag{display:inline-block;font:700 9px ui-monospace,Menlo,monospace;padding:2px 6px;border-radius:5px;letter-spacing:.1em;margin-left:6px;vertical-align:middle}
 .tag.eco{background:#3dffa0;color:#000}.tag.grid{background:#667;color:#fff}
+.tag.dc{background:var(--orange);color:#000}.tag.ac{background:var(--cyan);color:#000}.tag.home{background:var(--lime);color:#000}.tag.free{background:var(--pink);color:#000}
+.acts{position:absolute;right:8px;top:8px;display:flex;gap:6px}
+.acts button{font:700 10px ui-monospace,Menlo,monospace;background:#000a;border:1px solid var(--line);border-radius:8px;padding:5px 8px;cursor:pointer;color:var(--lime);min-height:28px}
+.acts button.del{color:#ff8a8a;border-color:#ff8a8a55}
+.more{width:100%;margin-top:10px}
+.empty{text-align:center;padding:26px 6px;color:var(--mute);font-size:14px}
+.empty button{margin-top:10px}
 .srcs a,.prov a{color:var(--lime);text-decoration:none;border-bottom:1px dotted var(--lime)}
-details{margin:0 0 14px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:rgba(0,0,0,.3)}
-summary{cursor:pointer;font:700 12px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:var(--lime);text-transform:uppercase}
 .prov>div{padding:8px 0;border-bottom:1px solid rgba(182,255,0,.08);font-size:13px}
 .prov .hd{display:flex;gap:8px;align-items:center;justify-content:space-between}
 .prov .sub{font:11px/1.4 ui-monospace,Menlo,monospace;color:var(--mute);margin-top:3px}
-.tag.dc{background:var(--orange);color:#000}.tag.ac{background:var(--cyan);color:#000}.tag.home{background:var(--lime);color:#000}.tag.free{background:var(--pink);color:#000}
-.del{position:absolute;right:8px;top:8px;opacity:0;transition:.2s;font:700 10px ui-monospace,Menlo,monospace;background:#000a;color:#ff8a8a;border:1px solid #ff8a8a55;border-radius:8px;padding:3px 7px;cursor:pointer}
-.entry:hover .del,.entry:focus-within .del{opacity:1}
-@media(hover:none){.del{opacity:.55}}
-.more{width:100%;margin-top:10px}
-.empty{text-align:center;padding:26px 6px;color:var(--mute);font-size:14px}
 
 /* ---------- FAB ---------- */
 .fab{position:fixed;left:50%;bottom:calc(18px + var(--safe-b));transform:translateX(-50%);z-index:40;border:0;cursor:pointer;height:64px;padding:0 30px 0 22px;border-radius:99px;
@@ -160,7 +166,7 @@ summary{cursor:pointer;font:700 12px ui-monospace,Menlo,monospace;letter-spacing
 @keyframes fabp{50%{box-shadow:0 0 0 1px #fff4 inset,0 10px 60px #b6ff00cc,0 0 120px #b6ff0066}}
 
 /* ---------- Dialoge ---------- */
-dialog{border:1px solid var(--lime);background:rgba(10,16,8,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);color:var(--ink);border-radius:26px;padding:0;width:min(94vw,520px);max-height:92vh;box-shadow:0 0 80px #b6ff0044}
+dialog{border:1px solid var(--lime);background:rgba(10,16,8,.94);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);color:var(--ink);border-radius:26px;padding:0;width:min(94vw,520px);max-height:92vh;box-shadow:0 0 80px #b6ff0044}
 dialog::backdrop{background:rgba(0,0,0,.7);backdrop-filter:blur(4px)}
 dialog[open]{animation:dlg .35s cubic-bezier(.2,1.3,.4,1)}
 @keyframes dlg{from{opacity:0;transform:translateY(40px) scale(.94)}}
@@ -169,11 +175,10 @@ dialog[open]{animation:dlg .35s cubic-bezier(.2,1.3,.4,1)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 label{display:block;font:700 10px ui-monospace,Menlo,monospace;letter-spacing:.14em;color:var(--mute);text-transform:uppercase;margin-bottom:10px}
 input,select{display:block;width:100%;margin-top:5px;height:46px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.5);color:var(--ink);padding:0 12px;font-size:16px;font-family:inherit;outline:none;transition:.2s}
+input[type=datetime-local]{-webkit-appearance:none;appearance:none;text-align:left}
 input:focus,select:focus{border-color:var(--lime);box-shadow:0 0 16px #b6ff0055}
 input:disabled{opacity:.35}
-.seg{display:flex;gap:6px;margin-top:5px}
-.seg button{flex:1;height:46px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.5);color:var(--ink);font:700 13px ui-monospace,Menlo,monospace;cursor:pointer}
-.seg button.on{background:var(--lime);color:#000;box-shadow:0 0 16px #b6ff0088}
+select option{background:#0e1417}
 .sw{display:flex;align-items:center;gap:10px;margin-top:5px;height:46px;cursor:pointer}
 .sw input{display:none}
 .sw i{width:52px;height:30px;border-radius:99px;background:#222;border:1px solid var(--line);position:relative;transition:.25s;flex:none}
@@ -183,11 +188,19 @@ input:disabled{opacity:.35}
 .sw span{font-size:14px;color:var(--ink);letter-spacing:0;text-transform:none;font-family:inherit;font-weight:600}
 .preview{margin:4px 0 14px;padding:12px;border-radius:14px;background:rgba(182,255,0,.08);border:1px dashed var(--line);font:13px/1.5 ui-monospace,Menlo,monospace;min-height:56px}
 .preview b{color:var(--lime)}
-.btns{display:flex;gap:10px}
-.btn{flex:1;height:52px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.5);color:var(--ink);font-weight:800;font-size:15px;cursor:pointer}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn{flex:1;min-width:0;height:52px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.5);color:var(--ink);font-weight:800;font-size:15px;cursor:pointer;padding:0 12px}
+.btn.sm{height:44px;font-size:13px}
 .btn.pri{background:linear-gradient(135deg,var(--lime),var(--lime2));color:#041000;border:0;box-shadow:0 0 30px #b6ff0066}
 .btn.warn{color:#ff9a9a;border-color:#ff9a9a55}
 .note{font-size:12px;color:var(--mute);line-height:1.5;margin:6px 0 14px}
+details{margin:0 0 12px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:rgba(0,0,0,.3)}
+summary{cursor:pointer;font:700 12px ui-monospace,Menlo,monospace;letter-spacing:.1em;color:var(--lime);text-transform:uppercase;display:flex;justify-content:space-between;gap:8px}
+summary small{color:var(--mute);letter-spacing:0;text-transform:none}
+details[open]>summary{margin-bottom:10px}
+.syncstat{font-size:13px;color:var(--mute);min-height:1.2em;margin:10px 0 0}
+.syncstat.err{color:var(--danger)}
+.msg2{font-size:13px;color:var(--mute);min-height:1.2em;margin:8px 0 0}
 
 /* ---------- Blitz ---------- */
 .bolt{position:fixed;inset:0;z-index:70;display:none;place-items:center;pointer-events:none}
@@ -209,6 +222,7 @@ body.rainbow main,body.rainbow .aurora{animation:hue 3s linear infinite}
 .toast{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-140%);z-index:80;background:var(--lime);color:#000;font:700 13px ui-monospace,Menlo,monospace;padding:10px 16px;border-radius:12px;transition:.4s cubic-bezier(.2,1.3,.4,1);max-width:90vw;text-align:center}
 .toast.show{transform:translate(-50%,0)}
 footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute);padding:30px 0 10px;line-height:1.7}
+@media(hover:none){.acts button{opacity:.9}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
 </style>
 </head>
@@ -222,19 +236,20 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
   <svg viewBox="0 0 64 64"><path d="M37 2 12 37h15l-5 25 30-38H36z" fill="#b6ff00" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
   <div class="msg disp" id="boltMsg">Geladen!</div>
 </div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status"></div>
 
 <main class="wrap">
   <div class="top">
-    <div class="logo disp"><span>Lade<b>log</b></span><small>2.0</small></div>
+    <div class="logo disp" id="logo"><span>Lade<b>log</b></span><small>2.0</small></div>
     <div class="tools">
+      <button class="chip" id="bSync" title="Synchronisation">SYNC</button>
       <button class="chip" id="bSound" title="Sound">SND</button>
       <button class="chip" id="bHyper" title="Hyperdrive">HYPER</button>
-      <button class="chip" id="bSet" title="Einstellungen">⚙</button>
+      <button class="chip" id="bSet" title="Einstellungen" aria-label="Einstellungen">⚙</button>
     </div>
   </div>
 
-  <div id="demoBanner"></div>
+  <div id="banner"></div>
 
   <section class="hero">
     <div class="reactor" id="reactor" role="button" aria-label="Einheit wechseln">
@@ -290,36 +305,44 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
     <div class="log" id="log"></div>
   </section>
 
-  <footer>LADELOG 2.0 · Daten liegen nur auf diesem Gerät (Export in den Einstellungen)<br>Tipp: Tippe 3× aufs Logo … oder kenn den alten Cheat-Code.</footer>
+  <footer>LADELOG 2.0 · Daten liegen in diesem Browser und, wenn verbunden, im privaten GitHub-Repo (⚙ → Synchronisation)</footer>
 </main>
 
 <button class="fab disp" id="fab" aria-label="Ladung loggen">
   <svg viewBox="0 0 64 64"><path d="M37 3 12 37h15l-5 24 30-37H36z" fill="#041000"/></svg>Laden loggen
 </button>
 
-<!-- Ladung erfassen -->
+<!-- Ladung erfassen / bearbeiten -->
 <dialog id="dAdd">
   <form class="dlg" id="fAdd" autocomplete="off">
-    <h3 class="disp">Neue Ladung</h3>
+    <h3 class="disp" id="fTitle">Neue Ladung</h3>
     <div class="grid2">
-      <label>Wann<input type="datetime-local" id="fDate" required></label>
-      <label>kWh geladen<input type="number" id="fKwh" step="0.01" min="0.1" inputmode="decimal" placeholder="z. B. 23,4" required></label>
+      <label>Datum &amp; Uhrzeit<input type="datetime-local" id="fDate" required></label>
+      <label>Art des Ladens
+        <select id="fType">
+          <option>Wechselstrom (AC)</option>
+          <option>Schnellladen (DC)</option>
+          <option>Wallbox zu Hause</option>
+          <option>Haushaltssteckdose</option>
+        </select>
+      </label>
     </div>
     <div class="grid2">
-      <label>Ort<input type="text" id="fPlace" list="dlPlace" placeholder="z. B. Lidl Musterstadt" required></label>
-      <label>Anbieter<input type="text" id="fProv" list="dlProv" placeholder="z. B. EnBW"></label>
+      <label>Ort<input type="text" id="fPlace" list="dlPlace" placeholder="z. B. Zuhause, Lidl" required></label>
+      <label>Anbieter<input type="text" id="fProv" list="dlProv" placeholder="z. B. EnBW, Ionity" required></label>
     </div>
     <datalist id="dlPlace"></datalist><datalist id="dlProv"></datalist>
-    <label>Art
-      <div class="seg" id="fType"><button type="button" data-v="ac" class="on">AC</button><button type="button" data-v="dc">DC · Schnell</button><button type="button" data-v="home">Zuhause</button></div>
-    </label>
     <div class="grid2">
-      <label>Kosten gesamt (€)<input type="number" id="fCost" step="0.01" min="0" inputmode="decimal" placeholder="0,00"></label>
+      <label>Geladene kWh<input type="number" id="fKwh" step="0.01" min="0" inputmode="decimal" placeholder="z. B. 24,5"></label>
+      <label>Kosten in €<input type="number" id="fCost" step="0.01" min="0" inputmode="decimal" placeholder="z. B. 12,80"></label>
+    </div>
+    <div class="grid2">
+      <label>Kilometerstand<input type="number" id="fOdo" step="1" min="0" inputmode="numeric" placeholder="z. B. 4120" required></label>
       <label>Gratis?<span class="sw"><input type="checkbox" id="fFree"><i></i><span>Kostenlos geladen</span></span></label>
     </div>
-    <label>Gefahrene km seit letzter Ladung (optional · für echten Verbrauch)<input type="number" id="fKm" min="0" step="1" inputmode="numeric" placeholder="z. B. 142"></label>
+    <label>Notiz (optional)<input type="text" id="fNote" placeholder="z. B. von 20 % auf 80 %"></label>
     <div class="preview" id="fPrev">Gib kWh &amp; Kosten ein …</div>
-    <div class="btns"><button type="button" class="btn" id="fCancel">Abbrechen</button><button class="btn pri" type="submit">⚡ Speichern</button></div>
+    <div class="btns"><button type="button" class="btn" id="fCancel">Abbrechen</button><button class="btn pri" type="submit" id="fSubmit">⚡ Speichern</button></div>
   </form>
 </dialog>
 
@@ -327,25 +350,64 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
 <dialog id="dSet">
   <div class="dlg">
     <h3 class="disp">Reaktor-Setup</h3>
-    <div class="grid2">
-      <label>Super E10 (€/l)<input type="number" id="sE10" step="0.001" inputmode="decimal"></label>
-      <label>Ibiza (l/100 km)<input type="number" id="sIbiza" step="0.1" inputmode="decimal"></label>
-    </div>
-    <label>Dolphin Surf Verbrauch (kWh/100 km)<input type="number" id="sEv" step="0.1" inputmode="decimal"></label>
-    <div class="grid2">
-      <label>Netzmix (g CO₂/kWh)<input type="number" id="sGrid" step="1" inputmode="decimal"></label>
-      <label>Ökostrom (g CO₂/kWh)<input type="number" id="sGreen" step="1" inputmode="decimal"></label>
-    </div>
-    <label>Benzin (g CO₂ pro Liter)<input type="number" id="sPetrol" step="10" inputmode="decimal"></label>
-    <label>Heimstrom<span class="sw"><input type="checkbox" id="sHomeGreen"><i></i><span>Zuhause mit Ökostrom-Tarif</span></span></label>
-    <details><summary>So rechnet Ladelog · Quellen</summary>
-      <div class="prov" id="provTbl"></div>
+    <form id="setForm" onsubmit="return false">
+      <label>Verbrauch<span class="sw"><input type="checkbox" id="sMeasured"><i></i><span>aus Kilometerständen berechnen</span></span></label>
+      <div class="grid2">
+        <label>Ersatzwert Dolphin Surf (kWh/100 km)<input type="number" id="sEv" step="0.1" inputmode="decimal"></label>
+        <label>Ibiza (l/100 km)<input type="number" id="sFuel" step="0.1" inputmode="decimal"></label>
+      </div>
+      <label>Super E10, Ø Deutschland (€/l)<input type="number" id="sPrice" step="0.001" inputmode="decimal"></label>
+      <p class="note" id="measured"></p>
+      <div class="grid2">
+        <label>Netzmix (g CO₂/kWh)<input type="number" id="sGrid" step="1" inputmode="decimal"></label>
+        <label>Ökostrom (g CO₂/kWh)<input type="number" id="sGreen" step="1" inputmode="decimal"></label>
+      </div>
+      <label>Benzin (g CO₂ pro Liter)<input type="number" id="sPetrol" step="10" inputmode="decimal"></label>
+      <label>Heimstrom<span class="sw"><input type="checkbox" id="sHomeGreen"><i></i><span>Zuhause mit Ökostrom-Tarif</span></span></label>
+    </form>
+    <details><summary>So rechnet das CO₂ · Quellen</summary><div class="prov" id="provTbl"></div></details>
+
+    <details id="syncDet">
+      <summary>Synchronisation <small id="syncSum">aus</small></summary>
+      <p class="note">Speichert deine Ladungen nach jeder Änderung in einem privaten GitHub-Repository und gleicht Handy und PC ab. Einrichten musst du das einmal pro Gerät.</p>
+      <form id="syncForm" autocomplete="off">
+        <div class="grid2">
+          <label>GitHub-Benutzername<input type="text" id="yOwner" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
+          <label>Privates Daten-Repository<input type="text" id="yRepo" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="z. B. ladelog-daten"></label>
+        </div>
+        <label>Zugangsschlüssel (Token)<input type="password" id="yToken" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="github_pat_..."></label>
+        <p class="note">Der Schlüssel bleibt nur in diesem Browser. Erstelle ihn auf <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener" style="color:var(--lime)">github.com</a> nur für das Daten-Repository mit „Contents: Read and write“.</p>
+        <div class="btns">
+          <button type="submit" class="btn pri sm">Verbinden</button>
+          <button type="button" class="btn sm" id="yNow">Jetzt abgleichen</button>
+          <button type="button" class="btn sm warn" id="yOff">Trennen</button>
+        </div>
+        <p class="syncstat" id="syncStat" role="status"></p>
+      </form>
     </details>
-    <p class="note">Sobald du bei mind. 30 km Fahrstrecke die „km seit letzter Ladung“ mitgeloggt hast, rechnet Ladelog automatisch mit deinem echten Verbrauch statt mit diesem Wert. Den E10-Preis bitte selbst aktuell halten (ADAC-Durchschnitt).</p>
-    <div class="btns" style="margin-bottom:10px"><button class="btn" id="sExport">⬇ Export</button><button class="btn" id="sImport">⬆ Import</button><button class="btn" id="sCopy">⧉ Kopieren</button></div>
-    <input type="file" id="fileIn" accept="application/json,.json" hidden>
-    <div class="btns" style="margin-bottom:10px"><button class="btn warn" id="sDemo">Demo-Daten löschen</button><button class="btn warn" id="sReset">Alles löschen</button></div>
+
+    <details>
+      <summary>Datensicherung</summary>
+      <p class="note">Sicherungsdatei zum Ablegen oder für ein anderes Gerät. „Sicherung laden“ ersetzt die aktuellen Einträge.</p>
+      <div class="btns">
+        <button type="button" class="btn sm" id="bJson">Sichern (JSON)</button>
+        <button type="button" class="btn sm" id="bCsv">Excel (CSV)</button>
+        <button type="button" class="btn sm" id="bImport">Sicherung laden</button>
+      </div>
+      <input type="file" id="fileIn" accept="application/json,.json" hidden>
+      <p class="msg2" id="msg2" role="status"></p>
+    </details>
+
     <div class="btns"><button class="btn pri" id="sClose">Fertig</button></div>
+  </div>
+</dialog>
+
+<!-- Rückfrage -->
+<dialog id="dAsk">
+  <div class="dlg">
+    <h3 class="disp" id="askT">Sicher?</h3>
+    <p class="note" id="askP" style="font-size:14px"></p>
+    <div class="btns"><button class="btn" id="askNo">Abbrechen</button><button class="btn pri" id="askYes">OK</button></div>
   </div>
 </dialog>
 
@@ -354,46 +416,63 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
 "use strict";
 const $=(s,r=document)=>r.querySelector(s);
 const nf=(n,d=2)=>new Intl.NumberFormat('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d}).format(n);
+const eur=n=>new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(n);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const sum=(a,k)=>a.reduce((t,e)=>t+(+e[k]||0),0);
-const KEY='ladelog2';
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
-/* ---------- State ---------- */
-const def={entries:[],settings:{e10:1.75,ibiza:6.5,ev:15,sound:true,hyper:false,grid:344,green:20,petrol:2320,homeGreen:false,co2mode:'markt'},seeded:false};
-let state=load();
-function load(){
-  try{const raw=localStorage.getItem(KEY)||localStorage.getItem('ladelog');
-    if(raw){const o=JSON.parse(raw);return {entries:Array.isArray(o.entries)?o.entries:[],settings:{...def.settings,...(o.settings||{})},seeded:!!o.seeded}}}catch(e){}
-  return JSON.parse(JSON.stringify(def));
+/* ---------- Datenmodell (kompatibel zu Ladelog 1.0) ---------- */
+const KEY='ladelog.v1',SOUND_KEY='ladelog.sound',HYPER_KEY='ladelog.hyper',SYNC_KEY='ladelog.sync';
+const DEFAULTS={evKwh:16,fuelL:6.5,fuelPrice:1.98,useMeasured:true,grid:344,green:20,petrol:2320,homeGreen:false,co2mode:'markt'};
+let demo=false,state=loadReal(),newId=null,editingId=null;
+function loadReal(){
+  const st={charges:[],settings:{...DEFAULTS},deleted:{},settingsUpdated:0};
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(raw){const p=JSON.parse(raw);
+      if(p&&Array.isArray(p.charges)){
+        st.charges=p.charges;st.settings={...DEFAULTS,...(p.settings||{})};
+        st.deleted=(p.deleted&&typeof p.deleted==='object')?p.deleted:{};st.settingsUpdated=p.settingsUpdated||0;
+      }}
+  }catch(e){}
+  return st;
 }
-function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+function save(){
+  if(demo)return;
+  try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){toast('Speichern im Browser nicht möglich – bitte Sicherung anlegen')}
+}
+const typeKey=l=>/schnell|\bdc\b|\(dc\)/i.test(l||'')?'dc':/wallbox|haushalt|zuhause/i.test(l||'')?'home':'ac';
+const TLAB={ac:'AC',dc:'DC',home:'HOME'};
+const ts=c=>{const t=new Date(c.date).getTime();return isNaN(t)?0:t};
 
-/* ---------- Demo-Daten ---------- */
-function seed(){
-  const P=[['Zuhause','Wallbox','home',.32],['Lidl Zentrum','Lidl','ac',0],['EnBW Autobahn','EnBW','dc',.59],['Kaufland','Kaufland','ac',0],['Raststätte Süd','Ionity','dc',.79],['Zuhause','Wallbox','home',.32],['Aral pulse','Aral pulse','dc',.69],['Arbeit','Arbeitgeber','ac',0]];
-  const out=[];const now=Date.now();
-  for(let i=0;i<16;i++){
-    const p=P[i%P.length];const kwh=+(8+((i*7)%22)+(i%3)*.7).toFixed(1);
-    const cost=+(kwh*p[3]).toFixed(2);const km=Math.round(kwh/(.138+((i*3)%5)*.004));
-    out.push({id:'d'+i,demo:true,ts:now-(16-i)*5.4*864e5,place:p[0],prov:p[1],type:p[2],kwh,cost,free:cost===0,km});
+/* ---------- Auswertung (gleiche Formeln wie 1.0) ---------- */
+function totals(list){
+  const t={count:list.length,cost:0,kwh:0,free:0,kwhWithCost:0,costWithKwh:0};
+  list.forEach(c=>{t.cost+=c.cost||0;t.kwh+=c.kwh||0;if(!c.cost)t.free++;if(c.kwh>0){t.costWithKwh+=c.cost||0;t.kwhWithCost+=c.kwh}});
+  return t;
+}
+function measuredConsumption(){
+  const list=state.charges.slice().sort((a,b)=>a.date<b.date?-1:1);
+  let a=-1,b=-1;
+  list.forEach((c,i)=>{if(c.odo>0){if(a<0)a=i;b=i}});
+  if(a<0||b<=a||!(list[b].odo>list[a].odo))return null;
+  let kwh=0;for(let i=a+1;i<=b;i++)kwh+=list[i].kwh||0;
+  if(!(kwh>0))return null;
+  return{value:kwh/(list[b].odo-list[a].odo)*100,km:list[b].odo-list[a].odo};
+}
+function derived(){
+  const s=state.settings,t=totals(state.charges),m=measuredConsumption();
+  const useM=s.useMeasured!==false&&!!m,evKwh=useM?m.value:s.evKwh;
+  const d={t,fuel100:s.fuelL*s.fuelPrice,ok:false,evKwh,measured:useM,mm:m};
+  if(t.kwhWithCost>0&&evKwh>0&&d.fuel100>0){
+    d.ok=true;d.avg=t.costWithKwh/t.kwhWithCost;d.ev100=d.avg*evKwh;
+    d.km=t.kwhWithCost/evKwh*100;d.saved=d.km/100*d.fuel100-t.costWithKwh;
   }
-  return out;
+  return d;
 }
-if(!state.seeded&&!state.entries.length){state.entries=seed();state.seeded=true;save()}
-
-/* ---------- Auswertung ---------- */
 function calc(){
-  const E=state.entries,s=state.settings;
-  const kwh=sum(E,'kwh'),cost=sum(E,'cost');
-  const wk=E.filter(e=>e.km>0),kmS=sum(wk,'km');
-  const real=kmS>=30?sum(wk,'kwh')/kmS*100:null;
-  const cons=real??s.ev;
-  const kmEq=kwh?kwh/cons*100:0;
-  const litres=kmEq*s.ibiza/100;
-  const petrol=litres*s.e10;
-  const saved=petrol-cost;
-  return{kwh,cost,real,cons,kmEq,litres,petrol,saved,avg:kwh?cost/kwh:0,
-    evPer100:kwh?(cost/kwh)*cons:0,icePer100:s.ibiza*s.e10,n:E.length};
+  const d=derived(),s=state.settings,t=d.t,km=d.ok?d.km:0;
+  return{kwh:t.kwh,cost:t.cost,cons:d.evKwh,kmEq:km,litres:km*s.fuelL/100,saved:d.ok?d.saved:0,avg:d.ok?d.avg:0,
+    evPer100:d.ok?d.ev100:0,icePer100:d.fuel100,n:t.count,ok:d.ok,measured:d.measured};
 }
 
 /* ---------- CO2: Stromherkunft je Anbieter (recherchiert Nov 2026) ---------- */
@@ -401,31 +480,33 @@ const PROV=[
  {k:['ionity'],n:'IONITY',g:'green',s:'100 % erneuerbar, belegt über Herkunftsnachweise.',u:'https://ionity.eu/en/about.html'},
  {k:['enbw'],n:'EnBW (eigene Ladestationen)',g:'green',s:'Eigene Schnellladestandorte laufen laut EnBW mit 100 % Ökostrom.',u:'https://www.enbw.com/elektromobilitaet/unterwegs-laden'},
  {k:['lidl','kaufland','schwarz'],n:'Lidl / Kaufland',g:'green',s:'Lidl wirbt mit Ladesäulen mit 100 % Ökostrom; Kaufland ebenfalls.',u:'https://lidl.de/de/echarge-app/s7381845'},
+ {k:['ikea'],n:'IKEA',g:'green',s:'IKEA und Mer betreiben die Ladeparks laut IKEA mit 100 % Ökostrom.',u:'https://www.electrive.net/2025/07/31/ikea-und-mer-eroeffnen-grossen-schnellladepark-in-freiburg/'},
  {k:['aral'],n:'Aral pulse',g:'green',s:'Zertifizierter Ökostrom, Herkunftsnachweise für die geladene Menge.',u:'https://electroverse.com/de-DE/community/interviews/die-volle-ladung-15-fragen-an-aral-pulse'},
  {k:['fastned'],n:'Fastned',g:'green',s:'100 % Solar und Wind, Herkunftsnachweise, extern bestätigt.',u:'https://fastned.nl/en/about/sustainability-and-community/sustainability-reporting-and-compliance'},
  {k:['shell'],n:'Shell Recharge',g:'green',s:'Schnelllader laut Shell zu 100 % aus erneuerbaren Quellen.',u:'https://www.shell.de/ueber-uns/newsroom/pressemitteilungen-2025/shell-fuehrt-dynamisches-preismodell-fuer-ultraschnellladen-ein.html'},
  {k:['ewe'],n:'EWE Go',g:'green',s:'Tarif mit 100 % Ökostrom laut App-Beschreibung.',u:'https://apps.apple.com/DE/app/id1632031984'},
  {k:['aldi'],n:'Aldi Süd',g:'green',s:'Ältere Angaben (2017/18): PV vom Dach, sonst Ökostrom aus dem Netz. Nicht aktuell geprüft.',u:'https://www.elektroauto-news.net/news/55000-ladevorgaenge-aldi-sued-2017'},
+ {k:['50five','50 five'],n:'50five',g:'grid',s:'Betreiber und Installateur von Ladeinfrastruktur. Eine Angabe zur Stromherkunft habe ich nicht gefunden, daher Netzmix.',u:'https://50five.com/gb/en/about'},
  {k:['tesla','supercharger'],n:'Tesla Supercharger',g:'grid',s:'Keine aktuelle Herkunftsangabe gefunden, daher Netzmix.',u:'https://ecomento.de/2017/06/13/supercharger-ladenetz-tesla-will-fast-komplett-auf-oekostrom-setzen'}
 ];
-PROV.forEach(p=>p.re=new RegExp('(^|[^a-zäöüß])('+p.k.join('|')+')'));
+PROV.forEach(p=>p.re=new RegExp('(^|[^a-zäöüß0-9])('+p.k.join('|')+')'));
 function ef(e,mode){
   const s=state.settings;mode=mode||s.co2mode;
   if(mode==='netz')return{g:s.grid,t:'grid'};
-  const txt=((e.prov||'')+' '+(e.place||'')).toLowerCase();
-  if(e.type==='home'||/zuhause|wallbox|daheim|\bhome\b/.test(txt))return s.homeGreen?{g:s.green,t:'eco'}:{g:s.grid,t:'grid'};
+  const txt=((e.provider||'')+' '+(e.place||'')).toLowerCase();
+  if(typeKey(e.type)==='home'||/zuhause|wallbox|daheim|\bhome\b/.test(txt))return s.homeGreen?{g:s.green,t:'eco'}:{g:s.grid,t:'grid'};
   for(const p of PROV)if(p.re.test(txt))return p.g==='green'?{g:s.green,t:'eco',p}:{g:s.grid,t:'grid',p};
   return{g:s.grid,t:'grid'};
 }
 function co2(mode){
   const s=state.settings,c=calc();let ev=0,eco=0,kwh=0;
-  state.entries.forEach(e=>{const f=ef(e,mode);ev+=e.kwh*f.g;kwh+=+e.kwh;if(f.t==='eco')eco+=+e.kwh});
-  const ice=c.kmEq*s.ibiza/100*s.petrol;
+  state.charges.forEach(e=>{if(!(e.kwh>0))return;const f=ef(e,mode);ev+=e.kwh*f.g;kwh+=+e.kwh;if(f.t==='eco')eco+=+e.kwh});
+  const ice=c.kmEq*s.fuelL/100*s.petrol;
   return{ev:ev/1000,ice:ice/1000,saved:(ice-ev)/1000,eco:kwh?eco/kwh:0,avg:kwh?ev/kwh:0};
 }
 
 /* ---------- Render ---------- */
-let unitIdx=0,lastSaved=0;
+let unitIdx=0;
 const UNITS=[
  {u:'€ gespart vs. Ibiza',f:c=>c.saved,fmt:v=>nf(v,0)},
  {u:'kg CO₂ gespart',f:()=>co2().saved,fmt:v=>nf(v,Math.abs(v)<100?1:0)},
@@ -436,7 +517,7 @@ const UNITS=[
 ];
 const MS=[50,100,250,500,1000,2500,5000,10000];
 function tickInit(){
-  let h='';for(let i=0;i<72;i++){const a=i*5,l=i%6===0?12:6;h+=`<line x1="150" y1="${150-142}" x2="150" y2="${150-142+l}" stroke="#b6ff00" stroke-opacity="${i%6===0?.8:.35}" stroke-width="${i%6===0?2:1}" transform="rotate(${a} 150 150)"/>`}
+  let h='';for(let i=0;i<72;i++){const a=i*5,l=i%6===0?12:6;h+=`<line x1="150" y1="8" x2="150" y2="${8+l}" stroke="#b6ff00" stroke-opacity="${i%6===0?.8:.35}" stroke-width="${i%6===0?2:1}" transform="rotate(${a} 150 150)"/>`}
   $('#ticks').innerHTML=h;
 }
 function countTo(el,to,fmt,dur=1300,from=0){
@@ -444,84 +525,84 @@ function countTo(el,to,fmt,dur=1300,from=0){
   (function step(t){const p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,4);el.textContent=fmt(from+(to-from)*e);if(p<1)requestAnimationFrame(step)})(t0);
 }
 function renderHero(c,animate){
-  const U=UNITS[unitIdx],v=U.f(c);
-  const big=$('#coreBig');
+  const U=UNITS[unitIdx],v=U.f(c),big=$('#coreBig');
   big.classList.toggle('neg',c.saved<0);
   $('#coreUnit').textContent=U.u;
   if(animate)countTo(big,v,U.fmt,1400,0);else big.textContent=U.fmt(v);
-  const s=Math.max(c.saved,0);
-  let prev=0,next=MS[0];for(const m of MS){if(s>=m){prev=m}else{next=m;break}}
+  const s=Math.max(c.saved,0);let prev=0,next=MS[0];
+  for(const m of MS){if(s>=m){prev=m}else{next=m;break}}
   if(s>=MS[MS.length-1]){prev=MS[MS.length-2];next=MS[MS.length-1]}
   const frac=Math.max(0,Math.min(1,(s-prev)/(next-prev)));
   $('#ring').style.strokeDashoffset=741.4*(1-frac);
   $('#ring').style.stroke=c.saved<0?'#ff7a1a':'url(#rg)';
-  $('#milestone').innerHTML=c.n?`Nächster Meilenstein: <b>${nf(next,0)} € Ersparnis</b> · noch ${nf(Math.max(next-s,0),0)} €`:'Noch keine Ladung – drück den Knopf unten ⚡';
-  const real=c.real?`<em>echt</em>`:`<em>Annahme</em>`;
+  $('#milestone').innerHTML=c.ok?`Nächster Meilenstein: <b>${nf(next,0)} € Ersparnis</b> · noch ${nf(Math.max(next-s,0),0)} €`:'Noch keine Ladung mit kWh – drück den Knopf unten ⚡';
   $('#kpis').innerHTML=`
    <div class="kpi"><span>Geladen</span><b>${nf(c.kwh,1)}<em>kWh</em></b></div>
    <div class="kpi"><span>Ausgegeben</span><b>${nf(c.cost)}<em>€</em></b></div>
-   <div class="kpi"><span>Ø Preis</span><b>${nf(c.avg*100,1)}<em>ct/kWh</em></b></div>
-   <div class="kpi"><span>Verbrauch</span><b>${nf(c.cons,1)}<em>kWh/100</em></b></div>`;
+   <div class="kpi"><span>Ø Preis</span><b>${c.ok?nf(c.avg*100,1):'–'}<em>ct/kWh</em></b></div>
+   <div class="kpi"><span>Verbrauch</span><b>${c.cons>0?nf(c.cons,1):'–'}<em>${c.measured?'kWh/100 · echt':'kWh/100 · Annahme'}</em></b></div>`;
 }
+const PHOTO={ev:null,fuel:null};
+const avatar=k=>PHOTO[k]?`<img class="av" alt="" src="${PHOTO[k]}">`:'';
 function renderDuel(c){
-  const a=c.evPer100,b=c.icePer100,mx=Math.max(a,b,.01);
-  const evW=a?Math.max(8,a/mx*100):8,iceW=Math.max(8,b/mx*100);
-  // Pod-Länge: günstiger = länger (vorne)
-  const evPos=a<=b?100:(b/a*100),icePos=b<=a?100:(a/b*100);
-  const evWin=a<=b;
-  const pod=(col)=>`<svg viewBox="0 0 40 40"><path d="M4 26c0-5 3-8 8-9l5-6c1-1 2-1 3-1h8c2 0 4 1 5 3l4 6c1 1 2 2 2 4v3H4z" fill="${col}" stroke="#000" stroke-width="2" stroke-linejoin="round"/><circle cx="13" cy="30" r="4.5" fill="#111" stroke="${col}" stroke-width="2"/><circle cx="31" cy="30" r="4.5" fill="#111" stroke="${col}" stroke-width="2"/></svg>`;
+  const a=c.evPer100,b=c.icePer100,hasEv=c.ok;
+  const evWin=hasEv&&a<=b;
+  const evPos=!hasEv?0:(a<=b?100:(b/a*100)),icePos=!hasEv?100:(b<=a?100:(a/b*100));
+  const pod=col=>`<svg viewBox="0 0 40 40"><path d="M4 26c0-5 3-8 8-9l5-6c1-1 2-1 3-1h8c2 0 4 1 5 3l4 6c1 1 2 2 2 4v3H4z" fill="${col}" stroke="#000" stroke-width="2" stroke-linejoin="round"/><circle cx="13" cy="30" r="4.5" fill="#111" stroke="${col}" stroke-width="2"/><circle cx="31" cy="30" r="4.5" fill="#111" stroke="${col}" stroke-width="2"/></svg>`;
   $('#duel').innerHTML=`
-   <div class="lane"><div class="lab"><span style="color:var(--lime)">DOLPHIN SURF ⚡</span><b>${c.n?nf(a):'–'} €</b></div>
-     <div class="track"><div class="pod ev" data-w="${c.n?evPos:0}">${pod('#b6ff00')}</div>${evWin&&c.n?'<span class="flag">🏁</span>':''}</div></div>
-   <div class="lane"><div class="lab"><span style="color:var(--orange)">SEAT IBIZA ⛽</span><b>${nf(b)} €</b></div>
-     <div class="track"><div class="pod ice" data-w="${icePos}">${pod('#ff7a1a')}</div>${!evWin&&c.n?'<span class="flag">🏁</span>':''}</div></div>
-   <div class="verdict">${c.n?(evWin
-      ?`Pro 100 km zahlst du elektrisch <b>${nf(b-a)} €</b> weniger – das sind <b>${nf((1-a/b)*100,0)} %</b> Rabatt. Auf den bisher ${nf(c.kmEq,0)} E-Kilometern: <b>${nf(c.saved)} €</b> im Plus.`
-      :`Aktuell ist der Ibiza pro 100 km <b>${nf(a-b)} €</b> günstiger – zu viele Schnelllader-Stopps? Mehr Gratis- &amp; Heimladungen drehen das.`)
-      :'Sobald die erste Ladung drin ist, startet das Rennen.'}</div>`;
+   <div class="lane"><div class="lab"><span style="color:var(--lime)">${avatar('ev')}DOLPHIN SURF ⚡</span><b>${hasEv?eur(a):'–'}</b></div>
+     <div class="track"><div class="pod ev" data-w="${evPos}">${pod('#b6ff00')}</div>${evWin?'<span class="flag">🏁</span>':''}</div></div>
+   <div class="lane"><div class="lab"><span style="color:var(--orange)">${avatar('fuel')}SEAT IBIZA ⛽</span><b>${b>0?eur(b):'–'}</b></div>
+     <div class="track"><div class="pod ice" data-w="${icePos}">${pod('#ff7a1a')}</div>${hasEv&&!evWin?'<span class="flag">🏁</span>':''}</div></div>
+   <div class="verdict">${hasEv?(evWin
+      ?`Pro 100 km zahlst du elektrisch <b>${eur(b-a)}</b> weniger – das sind <b>${nf((1-a/b)*100,0)} %</b> Rabatt. Auf den bisher ${nf(c.kmEq,0)} E-Kilometern: <b>${eur(c.saved)}</b> im Plus.`
+      :`Aktuell ist der Ibiza pro 100 km <b>${eur(a-b)}</b> günstiger – mehr Gratis- &amp; Heimladungen drehen das.`)
+      +`<br><span style="color:var(--mute);font-size:12px">Strom: Ø ${eur(c.avg)}/kWh × ${nf(c.cons,1)} kWh/100 km (${c.measured?'aus deinen Kilometerständen':'Ersatzwert'}). Benzin: ${nf(state.settings.fuelL,1)} l × ${eur(state.settings.fuelPrice)}.</span>`
+      :'Sobald die erste Ladung mit kWh drin ist, startet das Rennen.'}</div>`;
   requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('.pod').forEach(p=>p.style.width=p.dataset.w+'%')));
 }
 function renderCo2(c){
   const s=state.settings,m=s.co2mode,A=co2(m),mk=co2('markt'),nz=co2('netz');
-  const evKm=A.avg*c.cons/100,iceKm=s.ibiza*s.petrol/100,mx=Math.max(evKm,iceKm,1);
-  const el=$('#co2');
-  if(!c.n){el.innerHTML='<div class="empty">Sobald die erste Ladung drin ist, rechne ich dir das CO₂ aus.</div>';return}
+  const evKm=A.avg*c.cons/100,iceKm=s.fuelL*s.petrol/100,mx=Math.max(evKm,iceKm,1),el=$('#co2');
+  if(!c.ok){el.innerHTML='<div class="empty">Sobald die erste Ladung mit kWh drin ist, rechne ich dir das CO₂ aus.</div>';return}
   el.innerHTML=`
    <div style="text-align:center;margin:2px 0 12px">
      <div class="disp" id="co2Big" style="font-size:clamp(44px,13vw,72px);line-height:1;color:#fff;text-shadow:0 0 22px var(--lime),0 0 60px var(--lime)">0</div>
      <div class="mono" style="font-size:11px;letter-spacing:.2em;color:var(--lime);margin-top:4px">KG CO₂ GESPART VS. IBIZA</div>
    </div>
-   <div class="seg" id="co2m" style="margin-bottom:12px"><button data-m="markt" class="${m==='markt'?'on':''}">Anbieter-Angabe</button><button data-m="netz" class="${m==='netz'?'on':''}">Netzmix streng</button></div>
+   <div class="grid2" id="co2m" style="margin-bottom:12px">
+     <button class="btn sm ${m==='markt'?'pri':''}" data-m="markt">Anbieter-Angabe</button><button class="btn sm ${m==='netz'?'pri':''}" data-m="netz">Netzmix streng</button></div>
    <div class="row" style="grid-template-columns:1fr auto"><div><div class="nm" style="color:var(--lime)">Dolphin Surf</div><div class="sub">Ø ${nf(A.avg,0)} g CO₂/kWh · ${nf(A.ev,1)} kg gesamt</div><div class="bar"><i data-w="${Math.max(4,evKm/mx*100)}"></i></div></div><div class="val">${nf(evKm,0)} g/km</div></div>
-   <div class="row" style="grid-template-columns:1fr auto"><div><div class="nm" style="color:var(--orange)">Seat Ibiza</div><div class="sub">${nf(s.ibiza,1)} l/100 km · ${nf(A.ice,1)} kg auf deinen E-km</div><div class="bar"><i class="hot" data-w="${Math.max(4,iceKm/mx*100)}"></i></div></div><div class="val">${nf(iceKm,0)} g/km</div></div>
+   <div class="row" style="grid-template-columns:1fr auto"><div><div class="nm" style="color:var(--orange)">Seat Ibiza</div><div class="sub">${nf(s.fuelL,1)} l/100 km · ${nf(A.ice,1)} kg auf deinen E-km</div><div class="bar"><i class="hot" data-w="${Math.max(4,iceKm/mx*100)}"></i></div></div><div class="val">${nf(iceKm,0)} g/km</div></div>
    <div class="verdict"><b>${nf(A.eco*100,0)} %</b> deiner geladenen kWh stammen laut Anbieter aus Ökostrom.<br>
      Anbieter-Angabe: <b>${nf(mk.saved,1)} kg</b> gespart · Netzmix streng: <b>${nf(nz.saved,1)} kg</b> gespart.</div>
-   <p class="note" style="margin-bottom:0">„Ökostrom“ heißt: Der Anbieter kauft Herkunftsnachweise für die Menge, die du lädst. Physikalisch fließt trotzdem Netzstrom, deshalb zeigt „Netzmix streng“ die vorsichtige Zahl. Ökostrom rechne ich mit ${nf(s.green,0)} g/kWh (Herstellung von Wind und PV), den deutschen Netzmix mit ${nf(s.grid,0)} g/kWh (UBA 2025, nur direkte Erzeugung), Benzin mit ${nf(s.petrol/1000,2)} kg/l. Welche Anbieter wie gewertet werden, steht unter ⚙ → „So rechnet Ladelog“. Zuhause und unbekannte Orte zählen als Netzmix.</p>
+   <p class="note" style="margin-bottom:0">„Ökostrom“ heißt: Der Anbieter kauft Herkunftsnachweise für die Menge, die du lädst. Physikalisch fließt trotzdem Netzstrom, deshalb zeigt „Netzmix streng“ die vorsichtige Zahl. Ökostrom rechne ich mit ${nf(s.green,0)} g/kWh (Herstellung von Wind und PV), den deutschen Netzmix mit ${nf(s.grid,0)} g/kWh (UBA 2025, nur direkte Erzeugung), Benzin mit ${nf(s.petrol/1000,2)} kg/l. Welcher Anbieter wie gewertet wird, steht unter ⚙ → „So rechnet das CO₂“. Zuhause und unbekannte Orte zählen als Netzmix.</p>
    <p class="note srcs" style="margin-bottom:0">Quellen: <a href="https://www.umweltbundesamt.de/en/node/307525" target="_blank" rel="noopener">UBA Strommix 2025</a> · <a href="https://www.energiezukunft.eu/erneuerbare-energien/solarenergie/aktuelle-oekobilanzen-von-wind-und-solarstrom" target="_blank" rel="noopener">UBA Ökobilanz Wind/PV</a> · <a href="https://www.deutsche-handwerks-zeitung.de/kraftstoffverbrauch-so-viel-co2-stoesst-ihr-auto-aus-149402/" target="_blank" rel="noopener">Benzin-Faktor</a></p>`;
   countTo($('#co2Big'),A.saved,v=>nf(v,Math.abs(v)<100?1:0),1300,0);
   requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('#co2 .bar i').forEach(i=>i.style.width=i.dataset.w+'%')));
 }
 function provTable(){
-  $('#provTbl').innerHTML=PROV.map(p=>`<div><div class="hd"><b>${p.n}</b><span><span class="tag ${p.g==='green'?'eco':'grid'}">${p.g==='green'?'ÖKO':'NETZ'}</span> <a href="${p.u}" target="_blank" rel="noopener">Quelle</a></span></div><div class="sub">${p.s}</div></div>`).join('')
-   +'<div><div class="hd"><b>Zuhause / Wallbox</b><span class="tag grid">NETZ</span></div><div class="sub">Netzmix, außer du aktivierst „Zuhause mit Ökostrom-Tarif“. Hat dein Tarif Ökostrom (z. B. EnBW), gilt der Ökostromwert.</div></div>'
-   +'<div><div class="hd"><b>Alles andere</b><span class="tag grid">NETZ</span></div><div class="sub">Unbekannter Anbieter oder Ort: vorsichtshalber Netzmix. Steht ein bekannter Name im Feld „Anbieter“ oder „Ort“, erkennt ihn Ladelog automatisch.</div></div>';
+  $('#provTbl').innerHTML=PROV.map(p=>`<div><div class="hd"><b>${esc(p.n)}</b><span><span class="tag ${p.g==='green'?'eco':'grid'}">${p.g==='green'?'ÖKO':'NETZ'}</span> <a href="${p.u}" target="_blank" rel="noopener">Quelle</a></span></div><div class="sub">${esc(p.s)}</div></div>`).join('')
+   +'<div><div class="hd"><b>Zuhause / Wallbox</b><span class="tag grid">NETZ</span></div><div class="sub">Netzmix, außer du aktivierst „Zuhause mit Ökostrom-Tarif“.</div></div>'
+   +'<div><div class="hd"><b>Alles andere</b><span class="tag grid">NETZ</span></div><div class="sub">Unbekannter Anbieter: vorsichtshalber Netzmix. Steht ein bekannter Name im Feld „Anbieter“ oder „Ort“, erkennt Ladelog ihn automatisch.</div></div>';
 }
 function renderLeague(){
   const m={};
-  state.entries.forEach(e=>{const k=(e.prov||'Sonstige').trim()||'Sonstige';(m[k]??={kwh:0,cost:0,n:0,free:0});m[k].kwh+=+e.kwh;m[k].cost+=+e.cost;m[k].n++;if(!(+e.cost>0))m[k].free++});
-  const L=Object.entries(m).map(([k,v])=>({k,...v,ppk:v.kwh?v.cost/v.kwh:0})).sort((a,b)=>a.ppk-b.ppk||b.kwh-a.kwh);
+  state.charges.forEach(e=>{const k=(e.provider||'–').trim()||'–';(m[k]=m[k]||[]).push(e)});
+  const L=Object.entries(m).map(([k,v])=>{const t=totals(v);return{k,n:t.count,kwh:t.kwh,ppk:t.kwhWithCost>0?t.costWithKwh/t.kwhWithCost:null}})
+    .sort((a,b)=>(a.ppk===null)-(b.ppk===null)||(a.ppk||0)-(b.ppk||0)||b.kwh-a.kwh);
   if(!L.length){$('#league').innerHTML='<div class="empty">Noch keine Anbieter.</div>';return}
-  const mx=Math.max(...L.map(x=>x.ppk),.01);
+  const mx=Math.max(...L.map(x=>x.ppk||0),.01);
   $('#league').innerHTML=L.map((x,i)=>{
     const free=x.ppk===0;
-    return `<div class="row"><div class="rank">${i+1}</div><div><div class="nm">${esc(x.k)}</div><div class="sub">${x.n}× · ${nf(x.kwh,1)} kWh</div><div class="bar"><i class="${free?'free':x.ppk/mx>.7?'hot':''}" data-w="${free?100:Math.max(6,x.ppk/mx*100)}"></i></div></div>
-    <div class="val ${free?'free-t':''}">${free?'GRATIS':nf(x.ppk*100,1)+' ct'}</div></div>`}).join('');
+    return `<div class="row"><div class="rank">${i+1}</div><div><div class="nm">${esc(x.k)}</div><div class="sub">${x.n}× · ${nf(x.kwh,1)} kWh</div><div class="bar"><i class="${free?'free':x.ppk!==null&&x.ppk/mx>.7?'hot':''}" data-w="${free?100:x.ppk===null?0:Math.max(6,x.ppk/mx*100)}"></i></div></div>
+    <div class="val ${free?'free-t':''}">${x.ppk===null?'–':free?'GRATIS':nf(x.ppk*100,1)+' ct'}</div></div>`}).join('');
   requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('#league .bar i').forEach(i=>i.style.width=i.dataset.w+'%')));
 }
 function renderMonths(){
   const now=new Date(),arr=[];
   for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);arr.push({y:d.getFullYear(),m:d.getMonth(),kwh:0})}
-  state.entries.forEach(e=>{const d=new Date(e.ts);const t=arr.find(a=>a.y===d.getFullYear()&&a.m===d.getMonth());if(t)t.kwh+=+e.kwh});
+  state.charges.forEach(e=>{const d=new Date(e.date);const t=arr.find(a=>a.y===d.getFullYear()&&a.m===d.getMonth());if(t)t.kwh+=+e.kwh||0});
   const mx=Math.max(...arr.map(a=>a.kwh),1);
   $('#months').innerHTML=arr.map(a=>`<div class="mcol"><em>${a.kwh?nf(a.kwh,0):''}</em><div class="b" data-h="${a.kwh/mx*100}"></div><span>${new Date(a.y,a.m,1).toLocaleDateString('de-DE',{month:'short'})}</span></div>`).join('');
   requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('.mcol .b').forEach(b=>b.style.height=Math.max(+b.dataset.h,2)+'%')));
@@ -532,76 +613,80 @@ const BADGES=[
  {i:'🔋',n:'100-kWh-Club',d:'100 kWh geladen',t:c=>c.kwh>=100},
  {i:'🌋',n:'Strom-Titan',d:'500 kWh geladen',t:c=>c.kwh>=500},
  {i:'🎁',n:'Schnorrer',d:'Gratis geladen',t:(c,E)=>E.some(e=>!(+e.cost>0))},
- {i:'🚀',n:'Blitzlader',d:'DC-Schnellladung',t:(c,E)=>E.some(e=>e.type==='dc')},
+ {i:'🚀',n:'Blitzlader',d:'DC-Schnellladung',t:(c,E)=>E.some(e=>typeKey(e.type)==='dc')},
  {i:'💶',n:'Hunni gespart',d:'100 € gespart',t:c=>c.saved>=100},
  {i:'🧭',n:'Entdecker',d:'5 Orte',t:(c,E)=>new Set(E.map(e=>(e.place||'').toLowerCase())).size>=5},
- {i:'🏡',n:'Home-Hero',d:'5× Zuhause',t:(c,E)=>E.filter(e=>e.type==='home').length>=5},
- {i:'🍃',n:'Sparfuchs',d:'< 10 ct/kWh Ø',t:(c,E)=>E.length>=3&&c.avg<.10},
+ {i:'🏡',n:'Home-Hero',d:'5× Zuhause',t:(c,E)=>E.filter(e=>typeKey(e.type)==='home').length>=5},
+ {i:'🍃',n:'Sparfuchs',d:'< 10 ct/kWh Ø',t:(c,E)=>E.length>=3&&c.ok&&c.avg<.10},
+ {i:'🌍',n:'Klima-Held',d:'50 kg CO₂ gespart',t:()=>co2().saved>=50},
 ];
-function renderBadges(c){
-  const E=state.entries;
-  $('#badges').innerHTML=BADGES.map(b=>`<div class="badge ${b.t(c,E)?'on':''}"><span class="ic">${b.i}</span><b>${b.n}</b><small>${b.d}</small></div>`).join('');
-}
+function renderBadges(c){const E=state.charges;$('#badges').innerHTML=BADGES.map(b=>`<div class="badge ${b.t(c,E)?'on':''}"><span class="ic">${b.i}</span><b>${b.n}</b><small>${b.d}</small></div>`).join('')}
 let showAll=false;
 function renderLog(){
-  const E=[...state.entries].sort((a,b)=>b.ts-a.ts);
-  if(!E.length){$('#log').innerHTML='<div class="empty">Noch nichts geloggt. Tipp auf den grünen Knopf ⚡</div>';return}
-  const mx=Math.max(...E.map(e=>+e.kwh),1);
-  const list=showAll?E:E.slice(0,12);
+  const asc=state.charges.slice().sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+  if(!asc.length){$('#log').innerHTML='<div class="empty">Noch nichts geloggt. Tipp auf den grünen Knopf ⚡<br><button class="btn sm" id="bDemo">Demo ansehen</button></div>';return}
+  const info={};let prevOdo=null;
+  asc.forEach(c=>{let seg=null,cons=null;if(c.odo>0&&prevOdo!==null&&c.odo>prevOdo){seg=c.odo-prevOdo;if(c.kwh>0)cons=c.kwh/seg*100}info[c.id]={seg,cons};if(c.odo>0)prevOdo=c.odo});
+  const E=asc.slice().reverse(),mx=Math.max(...E.map(e=>+e.kwh||0),1),list=showAll?E:E.slice(0,12);
   const cc=calc(),sp=state.settings;
   $('#log').innerHTML=list.map((e,i)=>{
-    const d=new Date(e.ts),free=!(+e.cost>0);
-    const f=ef(e),sv=(e.kwh/cc.cons*100*sp.ibiza/100*sp.petrol-e.kwh*f.g)/1000;
-    const tag=e.type==='dc'?'<span class="tag dc">DC</span>':e.type==='home'?'<span class="tag home">HOME</span>':'<span class="tag ac">AC</span>';
-    return `<div class="entry" style="animation-delay:${Math.min(i,10)*40}ms">
-      <button class="del" data-id="${esc(e.id)}">LÖSCHEN</button>
-      <div><div class="t">${esc(e.place)}${tag}${free?'<span class="tag free">GRATIS</span>':''}<span class="tag ${f.t}">${f.t==='eco'?'ÖKO':'NETZ'}</span></div>
-      <div class="d">${d.toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'2-digit'})} · ${d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}${e.prov?' · '+esc(e.prov):''}${e.demo?' · DEMO':''} · ${nf(sv,1)} kg CO₂ gespart</div></div>
-      <div class="r">${nf(e.kwh,1)} kWh<small>${free?'0,00 €':nf(e.cost)+' € · '+nf(e.cost/e.kwh*100,0)+' ct'}</small></div>
-      <div class="cell"><i style="width:${e.kwh/mx*100}%"></i></div></div>`}).join('')
+    const d=new Date(e.date),free=!(+e.cost>0),f=ef(e),k=typeKey(e.type),I=info[e.id]||{};
+    const sv=e.kwh>0&&cc.cons>0?(e.kwh/cc.cons*sp.fuelL*sp.petrol-e.kwh*f.g)/1000:0;
+    const meta=[e.odo>0?nf(e.odo,0)+' km':null,I.seg?'Strecke '+nf(I.seg,0)+' km':null,I.cons?nf(I.cons,1)+' kWh/100 km':null].filter(Boolean).join(' · ');
+    return `<div class="entry${e.id===newId?' new':''}" style="animation-delay:${Math.min(i,10)*40}ms">
+      <div class="acts"><button data-edit="${esc(e.id)}">EDIT</button><button class="del" data-del="${esc(e.id)}">LÖSCHEN</button></div>
+      <div class="t">${esc(e.place)}<span class="tag ${k}">${TLAB[k]}</span>${free?'<span class="tag free">GRATIS</span>':''}<span class="tag ${f.t}">${f.t==='eco'?'ÖKO':'NETZ'}</span></div>
+      <div class="d">${esc(isNaN(d)?e.date:d.toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'2-digit'})+' · '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}))}${e.provider?' · '+esc(e.provider):''}${e.note?' · '+esc(e.note):''}</div>
+      <div class="r"><span>${e.kwh>0?nf(e.kwh,1)+' kWh':'– kWh'}</span><span>${free?'0,00 €':eur(e.cost)}${e.kwh>0&&!free?'<small> · '+nf(e.cost/e.kwh*100,0)+' ct/kWh</small>':''}</span></div>
+      <div class="cell"><i style="width:${(+e.kwh||0)/mx*100}%"></i></div>
+      <div class="d">${meta?meta+' · ':''}${e.kwh>0?nf(sv,1)+' kg CO₂ gespart':''}</div></div>`}).join('')
     +(E.length>12?`<button class="chip more" id="bMore">${showAll?'WENIGER':'ALLE '+E.length+' ANZEIGEN'}</button>`:'');
 }
 function renderBanner(){
-  const has=state.entries.some(e=>e.demo);
-  $('#demoBanner').innerHTML=has?`<div class="verdict" style="margin-bottom:6px">🧪 <b>Demo-Daten</b> – damit du siehst, was passiert. Bei deiner ersten echten Ladung räume ich sie automatisch weg.</div>`:'';
-}
-function render(animate=true){
-  const c=calc();renderBanner();renderHero(c,animate);renderDuel(c);renderCo2(c);renderLeague();renderMonths();renderBadges(c);renderLog();
-  datalists();
-  $('#bSound').classList.toggle('on',state.settings.sound);
-  $('#bHyper').classList.toggle('on',state.settings.hyper);
-  document.body.classList.toggle('hyper',state.settings.hyper);
+  const el=$('#banner');
+  if(demo)el.innerHTML=`<div class="verdict" style="margin:0 0 6px">🧪 <b>Demo-Ansicht</b> – nichts wird gespeichert oder synchronisiert.<br><button class="btn sm" id="bDemoOff">Demo beenden</button></div>`;
+  else if(!state.charges.length)el.innerHTML=`<div class="verdict" style="margin:0 0 6px">Noch keine Ladungen auf diesem Gerät. Wenn du die Synchronisation einrichtest (⚙), holt Ladelog deine Historie aus dem privaten Repo.</div>`;
+  else el.innerHTML='';
 }
 function datalists(){
-  const uniq=k=>[...new Set(state.entries.filter(e=>!e.demo).map(e=>e[k]).filter(Boolean))];
+  const uniq=k=>[...new Set(state.charges.map(e=>e[k]).filter(Boolean))];
   $('#dlPlace').innerHTML=uniq('place').map(v=>`<option value="${esc(v)}">`).join('');
-  $('#dlProv').innerHTML=uniq('prov').map(v=>`<option value="${esc(v)}">`).join('');
+  $('#dlProv').innerHTML=uniq('provider').map(v=>`<option value="${esc(v)}">`).join('');
+}
+function renderMeasured(){
+  const m=measuredConsumption();
+  $('#measured').textContent=m?`Gemessen aus deinen Kilometerständen: ca. ${nf(m.value,1)} kWh pro 100 km über ${nf(m.km,0)} km.`:'Sobald du mindestens zwei Ladungen mit Kilometerstand hast, wird der Verbrauch berechnet. Bis dahin gilt der Ersatzwert.';
+}
+let hyper=false,soundOn=true;
+try{hyper=localStorage.getItem(HYPER_KEY)==='on';soundOn=localStorage.getItem(SOUND_KEY)!=='off'}catch(e){}
+function render(animate=true){
+  const c=calc();renderBanner();renderHero(c,animate);renderDuel(c);renderCo2(c);renderLeague();renderMonths();renderBadges(c);renderLog();datalists();renderMeasured();
+  $('#bSound').classList.toggle('on',soundOn);$('#bHyper').classList.toggle('on',hyper);document.body.classList.toggle('hyper',hyper);
 }
 
 /* ---------- Sound & FX ---------- */
 let ac;
+function actx(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();return ac}catch(e){return null}}
 function zap(){
-  if(!state.settings.sound)return;
+  if(!soundOn)return;const a=actx();if(!a)return;
   try{
-    ac=ac||new (window.AudioContext||window.webkitAudioContext)();
-    if(ac.state==='suspended')ac.resume();
-    const t=ac.currentTime;
+    const t=a.currentTime;
     [0,4,7,12,16,19].forEach((n,i)=>{
-      const o=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();
+      const o=a.createOscillator(),g=a.createGain(),f=a.createBiquadFilter();
       o.type='sawtooth';o.frequency.value=220*Math.pow(2,n/12)*2;f.type='lowpass';f.frequency.setValueAtTime(600,t+i*.065);f.frequency.exponentialRampToValueAtTime(7000,t+i*.065+.2);
       g.gain.setValueAtTime(0,t+i*.065);g.gain.linearRampToValueAtTime(.13,t+i*.065+.01);g.gain.exponentialRampToValueAtTime(.001,t+i*.065+.35);
-      o.connect(f).connect(g).connect(ac.destination);o.start(t+i*.065);o.stop(t+i*.065+.4);
+      o.connect(f).connect(g).connect(a.destination);o.start(t+i*.065);o.stop(t+i*.065+.4);
     });
-    const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(35,t+.5);
-    g.gain.setValueAtTime(.5,t);g.gain.exponentialRampToValueAtTime(.001,t+.55);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+.6);
-    const buf=ac.createBuffer(1,ac.sampleRate*.25,ac.sampleRate),d=buf.getChannelData(0);
+    const o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(35,t+.5);
+    g.gain.setValueAtTime(.5,t);g.gain.exponentialRampToValueAtTime(.001,t+.55);o.connect(g).connect(a.destination);o.start(t);o.stop(t+.6);
+    const buf=a.createBuffer(1,a.sampleRate*.25,a.sampleRate),d=buf.getChannelData(0);
     for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3);
-    const ns=ac.createBufferSource(),ng=ac.createGain();ns.buffer=buf;ng.gain.value=.25;ns.connect(ng).connect(ac.destination);ns.start(t);
+    const ns=a.createBufferSource(),ng=a.createGain();ns.buffer=buf;ng.gain.value=.25;ns.connect(ng).connect(a.destination);ns.start(t);
   }catch(e){}
 }
 function tick(){
-  if(!state.settings.sound)return;
-  try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=880;g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.001,t+.06);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+.07)}catch(e){}
+  if(!soundOn)return;const a=actx();if(!a)return;
+  try{const t=a.currentTime,o=a.createOscillator(),g=a.createGain();o.type='square';o.frequency.value=880;g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.001,t+.06);o.connect(g).connect(a.destination);o.start(t);o.stop(t+.07)}catch(e){}
 }
 const cv=$('#fx'),cx=cv.getContext('2d');let P=[],raf=0;
 function fit(){cv.width=innerWidth*devicePixelRatio;cv.height=innerHeight*devicePixelRatio}
@@ -612,129 +697,305 @@ function burst(x,y,n=140){
   if(!raf)loop();
 }
 function loop(){
-  cx.clearRect(0,0,cv.width,cv.height);const k=devicePixelRatio;
-  P=P.filter(p=>p.l>0);
+  cx.clearRect(0,0,cv.width,cv.height);const k=devicePixelRatio;P=P.filter(p=>p.l>0);
   P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.22;p.vx*=.985;p.l-=p.d;cx.globalAlpha=Math.max(p.l,0);cx.fillStyle=p.c;cx.shadowColor=p.c;cx.shadowBlur=12*k;
     if(p.sq)cx.fillRect(p.x*k,p.y*k,p.r*k*1.6,p.r*k*.6);else{cx.beginPath();cx.arc(p.x*k,p.y*k,p.r*k,0,7);cx.fill()}});
-  cx.globalAlpha=1;
-  raf=P.length?requestAnimationFrame(loop):0;
-  if(!raf)cx.clearRect(0,0,cv.width,cv.height);
+  cx.globalAlpha=1;raf=P.length?requestAnimationFrame(loop):0;if(!raf)cx.clearRect(0,0,cv.width,cv.height);
 }
 function megaFx(msg){
-  zap();
-  const b=$('#bolt');$('#boltMsg').textContent=msg;b.classList.remove('go');void b.offsetWidth;b.classList.add('go');
+  zap();const b=$('#bolt');$('#boltMsg').textContent=msg;b.classList.remove('go');void b.offsetWidth;b.classList.add('go');
   setTimeout(()=>b.classList.remove('go'),950);
   document.body.classList.add('shake');setTimeout(()=>document.body.classList.remove('shake'),520);
-  const w=innerWidth,h=innerHeight;
-  burst(w/2,h/2,200);setTimeout(()=>burst(w*.2,h*.4,80),150);setTimeout(()=>burst(w*.8,h*.4,80),260);
+  const w=innerWidth,h=innerHeight;burst(w/2,h/2,200);setTimeout(()=>burst(w*.2,h*.4,80),150);setTimeout(()=>burst(w*.8,h*.4,80),260);
   try{navigator.vibrate&&navigator.vibrate([40,30,90])}catch(e){}
 }
-let toastT;function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),2600)}
+let toastT;function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),2800)}
 
-/* ---------- Dialog Laden ---------- */
-const dAdd=$('#dAdd');let fType='ac';
+/* ---------- Rückfrage-Dialog ---------- */
+const dAsk=$('#dAsk');let askFn=null;
+function ask(title,text,yes,fn){$('#askT').textContent=title;$('#askP').textContent=text;$('#askYes').textContent=yes||'OK';askFn=fn;dAsk.showModal()}
+$('#askNo').onclick=()=>{askFn=null;dAsk.close()};
+$('#askYes').onclick=()=>{const f=askFn;askFn=null;dAsk.close();if(f)f()};
+
+/* ---------- Ladung erfassen / bearbeiten ---------- */
+const dAdd=$('#dAdd');
 function nowLocal(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)}
+function setFree(on){$('#fFree').checked=on;$('#fCost').disabled=on;if(on)$('#fCost').value=''}
 function prev(){
   const kwh=parseFloat($('#fKwh').value),free=$('#fFree').checked,cost=free?0:parseFloat($('#fCost').value);
   if(!(kwh>0)||(!free&&!(cost>=0))){$('#fPrev').innerHTML='Gib kWh &amp; Kosten ein …';return}
-  const c=calc(),kmEq=kwh/c.cons*100,sv=kmEq*state.settings.ibiza/100*state.settings.e10-cost;
-  const f=ef({prov:$('#fProv').value,place:$('#fPlace').value,type:fType}),csv=(kmEq*state.settings.ibiza/100*state.settings.petrol-kwh*f.g)/1000;
-  $('#fPrev').innerHTML=`= <b>${nf(cost/kwh*100,1)} ct/kWh</b> · reicht ca. <b>${nf(kmEq,0)} km</b><br>Im Ibiza hätte das <b>${nf(kmEq*state.settings.ibiza/100*state.settings.e10)} €</b> gekostet → <b style="color:${sv>=0?'var(--lime)':'var(--orange)'}">${sv>=0?'+':''}${nf(sv)} €</b><br>CO₂: <b>${nf(csv,2)} kg</b> gespart <span class="tag ${f.t}">${f.t==='eco'?'ÖKO':'NETZ'}</span>`;
+  const c=calc(),s=state.settings,cons=c.cons>0?c.cons:(s.evKwh||16),kmEq=kwh/cons*100;
+  const sv=kmEq/100*s.fuelL*s.fuelPrice-cost;
+  const f=ef({provider:$('#fProv').value,place:$('#fPlace').value,type:$('#fType').value}),csv=(kmEq/100*s.fuelL*s.petrol-kwh*f.g)/1000;
+  $('#fPrev').innerHTML=`= <b>${nf(cost/kwh*100,1)} ct/kWh</b> · reicht ca. <b>${nf(kmEq,0)} km</b><br>Im Ibiza hätte das <b>${eur(kmEq/100*s.fuelL*s.fuelPrice)}</b> gekostet → <b style="color:${sv>=0?'var(--lime)':'var(--orange)'}">${sv>=0?'+':''}${eur(sv)}</b><br>CO₂: <b>${nf(csv,2)} kg</b> gespart <span class="tag ${f.t}">${f.t==='eco'?'ÖKO':'NETZ'}</span>`;
 }
-function openAdd(){
-  $('#fAdd').reset();$('#fDate').value=nowLocal();fType='ac';
-  document.querySelectorAll('#fType button').forEach(b=>b.classList.toggle('on',b.dataset.v==='ac'));
-  $('#fCost').disabled=false;prev();tick();dAdd.showModal();
+function openAdd(id){
+  if(demo)exitDemo();
+  editingId=id||null;$('#fAdd').reset();
+  if(id){
+    const c=state.charges.find(x=>x.id===id);if(!c){editingId=null}
+    else{$('#fDate').value=c.date;$('#fType').value=c.type;$('#fPlace').value=c.place;$('#fProv').value=c.provider||'';
+      $('#fKwh').value=c.kwh||'';setFree(!(c.cost>0));if(c.cost>0)$('#fCost').value=c.cost;$('#fOdo').value=c.odo||'';$('#fNote').value=c.note||''}
+  }
+  if(!editingId){$('#fDate').value=nowLocal();setFree(false)}
+  $('#fTitle').textContent=editingId?'Ladung bearbeiten':'Neue Ladung';
+  $('#fSubmit').textContent=editingId?'⚡ Änderungen speichern':'⚡ Speichern';
+  prev();tick();dAdd.showModal();
 }
-$('#fab').onclick=openAdd;
+$('#fab').onclick=()=>openAdd();
 $('#fCancel').onclick=()=>dAdd.close();
-document.querySelectorAll('#fType button').forEach(b=>b.onclick=()=>{
-  fType=b.dataset.v;document.querySelectorAll('#fType button').forEach(x=>x.classList.toggle('on',x===b));tick();
-  if(fType==='home'&&!$('#fPlace').value)$('#fPlace').value='Zuhause';
-  prev();
-});
-$('#fFree').onchange=e=>{$('#fCost').disabled=e.target.checked;if(e.target.checked)$('#fCost').value='';prev()};
+$('#fFree').onchange=e=>{setFree(e.target.checked);prev()};
 ['fKwh','fCost','fProv','fPlace'].forEach(i=>$('#'+i).addEventListener('input',prev));
+$('#fType').addEventListener('change',()=>{if(typeKey($('#fType').value)==='home'&&!$('#fPlace').value)$('#fPlace').value='Zuhause';prev();tick()});
+$('#fOdo').addEventListener('input',function(){this.setCustomValidity('')});
+$('#fDate').addEventListener('input',()=>$('#fOdo').setCustomValidity(''));
+function odoProblem(date,odo,ignoreId){
+  if(!(odo>0))return 'Bitte den Kilometerstand eintragen.';
+  let prevC=null,nextC=null;
+  state.charges.forEach(c=>{
+    if(c.id===ignoreId||!(c.odo>0))return;
+    if(c.date<date){if(!prevC||c.date>prevC.date)prevC=c}else if(c.date>date){if(!nextC||c.date<nextC.date)nextC=c}
+  });
+  if(prevC&&odo<prevC.odo)return 'Der Kilometerstand ist kleiner als bei der Ladung davor ('+nf(prevC.odo,0)+' km).';
+  if(nextC&&odo>nextC.odo)return 'Der Kilometerstand ist größer als bei der Ladung danach ('+nf(nextC.odo,0)+' km).';
+  return '';
+}
 $('#fAdd').onsubmit=e=>{
-  e.preventDefault();
-  const kwh=parseFloat($('#fKwh').value),free=$('#fFree').checked,cost=free?0:parseFloat($('#fCost').value||'0');
-  if(!(kwh>0))return;
-  if(state.entries.some(x=>x.demo)){state.entries=state.entries.filter(x=>!x.demo)}
-  const before=new Set(BADGES.filter(b=>b.t(calc(),state.entries)).map(b=>b.n));
-  state.entries.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),ts:new Date($('#fDate').value).getTime()||Date.now(),
-    place:$('#fPlace').value.trim()||'Unbekannt',prov:$('#fProv').value.trim(),type:fType,kwh,cost:+cost.toFixed(2),free,km:parseInt($('#fKm').value)||0});
-  save();dAdd.close();
-  const c=calc(),after=BADGES.filter(b=>b.t(c,state.entries));
-  const nw=after.find(b=>!before.has(b.n));
-  const msgs=['Geladen!','Volle Power!','Zack, im Kasten!','Saft getankt!'];
-  megaFx(free?'Gratis-Strom!':msgs[Math.floor(Math.random()*msgs.length)]);
-  render(true);
-  scrollTo({top:0,behavior:'smooth'});
-  if(nw)setTimeout(()=>{toast(`🏆 Neue Trophäe: ${nw.n}`);burst(innerWidth/2,innerHeight*.3,90)},1100);
+  e.preventDefault();actx();
+  const odo=parseFloat($('#fOdo').value),err=odoProblem($('#fDate').value,odo,editingId);
+  if(err){const o=$('#fOdo');o.setCustomValidity(err);o.reportValidity();return}
+  const free=$('#fFree').checked,wasEdit=!!editingId;
+  const beforeB=new Set(BADGES.filter(b=>b.t(calc(),state.charges)).map(b=>b.n));
+  const entry={id:editingId||uid(),date:$('#fDate').value,place:$('#fPlace').value.trim()||'Unbekannt',provider:$('#fProv').value.trim(),type:$('#fType').value,
+    kwh:parseFloat($('#fKwh').value)||0,cost:free?0:(parseFloat($('#fCost').value)||0),odo:odo||0,note:$('#fNote').value.trim(),updated:Date.now()};
+  if(wasEdit)state.charges=state.charges.map(c=>c.id===editingId?entry:c);else state.charges.push(entry);
+  newId=entry.id;save();dAdd.close();
+  const c=calc(),nw=BADGES.filter(b=>b.t(c,state.charges)).find(b=>!beforeB.has(b.n));
+  megaFx(wasEdit?'Aktualisiert':!(entry.cost>0)?'Gratis-Strom!':['Geladen!','Volle Power!','Zack, im Kasten!','Saft getankt!'][Math.floor(Math.random()*4)]);
+  render(true);scrollTo({top:0,behavior:'smooth'});
+  if(nw)setTimeout(()=>{toast('🏆 Neue Trophäe: '+nw.n);burst(innerWidth/2,innerHeight*.3,90)},1100);
+  scheduleSync(800);
 };
+$('#log').addEventListener('click',e=>{
+  const ed=e.target.closest('[data-edit]'),del=e.target.closest('[data-del]');
+  if(ed){openAdd(ed.dataset.edit);return}
+  if(del){
+    if(demo){toast('In der Demo nicht möglich');return}
+    const id=del.dataset.del;
+    ask('Ladung löschen?','Diese Ladung wird gelöscht und beim Abgleich auch aus dem GitHub-Repo entfernt.','Löschen',()=>{
+      state.charges=state.charges.filter(x=>x.id!==id);state.deleted[id]=Date.now();newId=null;save();render(false);scheduleSync(800);toast('Gelöscht');
+    });return;
+  }
+  if(e.target.id==='bMore'){showAll=!showAll;renderLog()}
+  if(e.target.id==='bDemo')enterDemo();
+});
+$('#banner').addEventListener('click',e=>{if(e.target.id==='bDemoOff')exitDemo()});
+
+/* ---------- Demo (nur Ansicht, nie gespeichert) ---------- */
+function enterDemo(){
+  const P=[['Zuhause','Wallbox','Wallbox zu Hause',.32],['Lidl Zentrum','Lidl','Schnellladen (DC)',0],['EnBW Autobahn','EnBW','Schnellladen (DC)',.59],['Kaufland','Kaufland','Wechselstrom (AC)',0],['Raststätte Süd','Ionity','Schnellladen (DC)',.79],['Zuhause','Wallbox','Wallbox zu Hause',.32],['Aral pulse','Aral pulse','Schnellladen (DC)',.69],['Arbeit','50Five','Wechselstrom (AC)',.33]];
+  const ch=[];let odo=1000;
+  for(let i=0;i<16;i++){
+    const p=P[i%P.length],kwh=+(8+((i*7)%22)+(i%3)*.7).toFixed(1);odo+=Math.round(kwh/(.138+((i*3)%5)*.004));
+    const d=new Date(Date.now()-(16-i)*5.4*864e5);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+    ch.push({id:'demo'+i,date:d.toISOString().slice(0,16),place:p[0],provider:p[1],type:p[2],kwh,cost:+(kwh*p[3]).toFixed(2),odo,note:'',updated:0});
+  }
+  demo=true;state={charges:ch,settings:{...DEFAULTS},deleted:{},settingsUpdated:0};render(true);
+}
+function exitDemo(){demo=false;state=loadReal();render(true);fillSettings()}
 
 /* ---------- Einstellungen ---------- */
 const dSet=$('#dSet');
-$('#bSet').onclick=()=>{const s=state.settings;$('#sE10').value=s.e10;$('#sIbiza').value=s.ibiza;$('#sEv').value=s.ev;$('#sGrid').value=s.grid;$('#sGreen').value=s.green;$('#sPetrol').value=s.petrol;$('#sHomeGreen').checked=!!s.homeGreen;provTable();tick();dSet.showModal()};
-$('#sClose').onclick=()=>{
-  const g=(id,d)=>{const v=parseFloat($(id).value);return v>0?v:d};
-  state.settings.e10=g('#sE10',state.settings.e10);state.settings.ibiza=g('#sIbiza',state.settings.ibiza);state.settings.ev=g('#sEv',state.settings.ev);
-  state.settings.grid=g('#sGrid',state.settings.grid);state.settings.green=g('#sGreen',state.settings.green);state.settings.petrol=g('#sPetrol',state.settings.petrol);state.settings.homeGreen=$('#sHomeGreen').checked;
-  save();dSet.close();render(true);
-};
-function payload(){return JSON.stringify({app:'ladelog2',exported:new Date().toISOString(),entries:state.entries.filter(e=>!e.demo),settings:state.settings},null,2)}
-$('#sExport').onclick=()=>{
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([payload()],{type:'application/json'}));
-  a.download='ladelog-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);toast('Export gespeichert');
-};
-$('#sCopy').onclick=async()=>{try{await navigator.clipboard.writeText(payload());toast('In die Zwischenablage kopiert')}catch(e){toast('Kopieren nicht erlaubt – nutze Export')}};
-$('#sImport').onclick=()=>$('#fileIn').click();
-$('#fileIn').onchange=async e=>{
-  const f=e.target.files[0];if(!f)return;
-  try{
-    const o=JSON.parse(await f.text());const inc=Array.isArray(o)?o:o.entries;
-    if(!Array.isArray(inc))throw 0;
-    state.entries=state.entries.filter(x=>!x.demo);
-    const ids=new Set(state.entries.map(x=>x.id));
-    inc.forEach(x=>{if(x&&x.kwh>0&&!ids.has(x.id)){state.entries.push({id:x.id||Date.now().toString(36)+Math.random().toString(36).slice(2,6),ts:+x.ts||Date.parse(x.date)||Date.now(),place:x.place||'Unbekannt',prov:x.prov||'',type:x.type||'ac',kwh:+x.kwh,cost:+x.cost||0,free:!(+x.cost>0),km:+x.km||0})}});
-    if(o.settings&&!Array.isArray(o))state.settings={...state.settings,...o.settings};
-    save();render(true);dSet.close();toast('Import fertig: '+inc.length+' Einträge geprüft');
-  }catch(err){toast('Datei nicht lesbar')}
-  e.target.value='';
-};
-let armed={};
-function twoStep(btn,key,fn,label){
-  btn.onclick=()=>{if(armed[key]){clearTimeout(armed[key]);armed[key]=0;btn.textContent=label;fn();return}
-    btn.textContent='SICHER? NOCHMAL TIPPEN';armed[key]=setTimeout(()=>{armed[key]=0;btn.textContent=label},3000)}
+function fillSettings(){
+  const s=state.settings;
+  $('#sMeasured').checked=s.useMeasured!==false;$('#sEv').value=s.evKwh;$('#sFuel').value=s.fuelL;$('#sPrice').value=s.fuelPrice;
+  $('#sGrid').value=s.grid;$('#sGreen').value=s.green;$('#sPetrol').value=s.petrol;$('#sHomeGreen').checked=!!s.homeGreen;
 }
-twoStep($('#sDemo'),'demo',()=>{state.entries=state.entries.filter(e=>!e.demo);save();render(false);toast('Demo-Daten gelöscht')},'Demo-Daten löschen');
-twoStep($('#sReset'),'reset',()=>{state.entries=[];state.seeded=true;save();render(false);dSet.close();toast('Alles gelöscht')},'Alles löschen');
-
-/* ---------- Sonstiges ---------- */
-$('#bSound').onclick=()=>{state.settings.sound=!state.settings.sound;save();render(false);if(state.settings.sound)tick()};
-$('#bHyper').onclick=()=>{state.settings.hyper=!state.settings.hyper;save();render(false);tick();if(state.settings.hyper)toast('HYPERDRIVE AKTIV')};
-$('#reactor').onclick=()=>{unitIdx=(unitIdx+1)%UNITS.length;tick();renderHero(calc(),true)};
-$('#log').addEventListener('click',e=>{
-  const d=e.target.closest('.del');
-  if(d){
-    if(d.dataset.arm){state.entries=state.entries.filter(x=>x.id!==d.dataset.id);save();render(false);return}
-    d.dataset.arm=1;d.textContent='SICHER?';setTimeout(()=>{if(d.isConnected){delete d.dataset.arm;d.textContent='LÖSCHEN'}},2500);return;
-  }
-  if(e.target.id==='bMore'){showAll=!showAll;renderLog()}
+$('#bSet').onclick=()=>{fillSettings();provTable();renderMeasured();fillSyncFields();tick();dSet.showModal()};
+$('#sClose').onclick=()=>dSet.close();
+$('#setForm').addEventListener('input',()=>{
+  const s=state.settings,f=(id,d)=>{const v=parseFloat($(id).value);return v>=0?v:d};
+  s.useMeasured=$('#sMeasured').checked;s.evKwh=f('#sEv',0);s.fuelL=f('#sFuel',0);s.fuelPrice=f('#sPrice',0);
+  s.grid=f('#sGrid',DEFAULTS.grid);s.green=f('#sGreen',DEFAULTS.green);s.petrol=f('#sPetrol',DEFAULTS.petrol);s.homeGreen=$('#sHomeGreen').checked;
+  state.settingsUpdated=Date.now();save();render(false);scheduleSync(2500);
 });
-// 3x Logo = Hyperdrive, Konami = Regenbogen
-let lt=[];$('.logo').onclick=()=>{const n=Date.now();lt=lt.filter(t=>n-t<900);lt.push(n);if(lt.length>=3){lt=[];$('#bHyper').click()}};
+[dAdd,dSet,dAsk].forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));
+
+/* ---------- Sicherung ---------- */
+function msg2(t){$('#msg2').textContent=t}
+function download(name,text,type){
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+const today=()=>new Date().toISOString().slice(0,10);
+$('#bJson').onclick=()=>{if(demo){msg2('In der Demo nicht möglich.');return}download('ladelog-sicherung-'+today()+'.json',JSON.stringify(state,null,2),'application/json');msg2('Sicherung heruntergeladen.')};
+$('#bCsv').onclick=()=>{
+  if(demo){msg2('In der Demo nicht möglich.');return}
+  const head=['Datum','Ort','Anbieter','Art','kWh','Kosten EUR','Kilometerstand','Notiz'],q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  const rows=state.charges.slice().sort((a,b)=>a.date<b.date?-1:1).map(c=>[c.date.replace('T',' '),c.place,c.provider,c.type,String(c.kwh).replace('.',','),String(c.cost).replace('.',','),c.odo||'',c.note||''].map(q).join(';'));
+  download('ladelog-'+today()+'.csv','﻿'+head.join(';')+'\n'+rows.join('\n'),'text/csv;charset=utf-8');msg2('CSV heruntergeladen.');
+};
+$('#bImport').onclick=()=>{if(demo)exitDemo();$('#fileIn').click()};
+$('#fileIn').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const p=JSON.parse(r.result);if(!p||!Array.isArray(p.charges))throw new Error('Format');
+      ask('Sicherung laden?',p.charges.length+' Ladungen aus der Datei ersetzen die aktuellen Einträge ('+state.charges.length+').','Ersetzen',()=>{
+        state.charges=p.charges.filter(c=>c&&c.id&&c.date).map(c=>({...c,updated:c.updated||Date.now()}));
+        state.settings={...DEFAULTS,...(p.settings||{})};state.deleted=(p.deleted&&typeof p.deleted==='object')?p.deleted:{};
+        state.settingsUpdated=Date.now();newId=null;save();fillSettings();render(true);msg2(state.charges.length+' Ladungen geladen.');scheduleSync(800);
+      });
+    }catch(err){msg2('Diese Datei ist keine gültige Ladelog-Sicherung.')}
+    e.target.value='';
+  };
+  r.readAsText(f);
+});
+
+/* ---------- Synchronisation mit GitHub (Logik wie in Ladelog 1.0) ---------- */
+let sync={owner:'',repo:'',token:'',path:'ladelog-daten.json',last:0};
+try{const sr=localStorage.getItem(SYNC_KEY);if(sr)sync=Object.assign(sync,JSON.parse(sr))}catch(e){}
+function syncSaveCfg(){try{localStorage.setItem(SYNC_KEY,JSON.stringify(sync))}catch(e){}}
+function syncOn(){return !!(sync.owner&&sync.repo&&sync.token)}
+let syncing=false,again=false,syncTimer=null,lastAttempt=0;
+function toB64(str){const bytes=new TextEncoder().encode(str);let bin='';for(let i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);return btoa(bin)}
+function fromB64(b64){const bin=atob(b64.replace(/\s/g,'')),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return new TextDecoder().decode(bytes)}
+function stable(o){
+  if(Array.isArray(o))return '['+o.map(stable).join(',')+']';
+  if(o&&typeof o==='object')return '{'+Object.keys(o).sort().map(k=>JSON.stringify(k)+':'+stable(o[k])).join(',')+'}';
+  return JSON.stringify(o);
+}
+function snapshot(s){return{version:2,charges:(s.charges||[]).slice().sort((a,b)=>a.id<b.id?-1:1),deleted:s.deleted||{},settings:s.settings||{},settingsUpdated:s.settingsUpdated||0}}
+// Führt zwei Stände zusammen: pro Eintrag gewinnt die neuere Änderung, Löschungen werden mitgeführt.
+function mergeStates(a,b){
+  const map={},del={};
+  [a.deleted||{},b.deleted||{}].forEach(d=>Object.keys(d).forEach(k=>{del[k]=Math.max(del[k]||0,d[k])}));
+  [a.charges||[],b.charges||[]].forEach(list=>list.forEach(c=>{const cur=map[c.id];if(!cur||(c.updated||0)>(cur.updated||0))map[c.id]=c}));
+  const charges=[];
+  Object.keys(map).forEach(id=>{const c=map[id];if(del[id]&&del[id]>=(c.updated||0))return;charges.push(c)});
+  const sA=a.settingsUpdated||0,sB=b.settingsUpdated||0;
+  return{charges,deleted:del,settings:(sB>sA&&b.settings)?b.settings:a.settings,settingsUpdated:Math.max(sA,sB)};
+}
+function setSyncUI(s,text,detail){
+  const b=$('#bSync');b.className='chip'+(s==='ok'?' s-ok':s==='err'?' s-err':s==='busy'?' s-busy':'');
+  b.textContent=s==='ok'?'SYNC ✓':s==='err'?'SYNC !':s==='busy'?'SYNC …':'SYNC ✕';b.title=text;
+  const st=$('#syncStat');st.textContent=detail||'';st.className='syncstat'+(s==='err'?' err':'');
+  $('#syncSum').textContent=s==='err'?'Fehler':s==='busy'?'läuft':s==='ok'?'aktiv':'aus';
+}
+function idleUI(){
+  if(!syncOn()){setSyncUI('off','Sync aus','Nicht verbunden.');return}
+  setSyncUI('ok','Synchronisiert',sync.last?'Zuletzt synchronisiert: '+new Date(sync.last).toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'}):'Verbunden.');
+}
+function SyncError(code,text){const e=new Error(text);e.code=code;return e}
+const repoUrl=()=>'https://api.github.com/repos/'+encodeURIComponent(sync.owner)+'/'+encodeURIComponent(sync.repo);
+function hdr(json){const h={'Authorization':'Bearer '+sync.token,'Accept':'application/vnd.github+json'};if(json)h['Content-Type']='application/json';return h}
+const AUTH_MSG='Der Zugangsschlüssel wird nicht akzeptiert. Er ist falsch oder abgelaufen.';
+const PERM_MSG='Zugriff verweigert. Der Schlüssel braucht für dieses Repository die Berechtigung „Contents: Read and write“, oder das Anfragelimit ist erreicht.';
+function readRemote(){
+  return fetch(repoUrl()+'/contents/'+sync.path+'?_='+Date.now(),{headers:hdr(false),cache:'no-store'}).then(r=>{
+    if(r.status===200)return r.json().then(j=>{
+      let data=null;try{data=JSON.parse(fromB64(j.content))}catch(e){data=null}
+      if(!data||!Array.isArray(data.charges))throw SyncError('format','Die Datei im Daten-Repository ist keine gültige Ladelog-Datei.');
+      return{sha:j.sha,data};
+    });
+    if(r.status===404)return fetch(repoUrl()+'?_='+Date.now(),{headers:hdr(false),cache:'no-store'}).then(rr=>{
+      if(rr.status===200)return{sha:null,data:null};
+      throw SyncError('repo','Repository nicht gefunden oder kein Zugriff. Prüfe Benutzername, Repository-Name und die Rechte des Schlüssels.');
+    });
+    if(r.status===401)throw SyncError('auth',AUTH_MSG);
+    if(r.status===403)throw SyncError('perm',PERM_MSG);
+    throw SyncError('http','GitHub meldet einen Fehler ('+r.status+').');
+  });
+}
+function writeRemote(data,sha){
+  const body={message:'Ladelog '+new Date().toISOString(),content:toB64(JSON.stringify(data,null,2))};if(sha)body.sha=sha;
+  return fetch(repoUrl()+'/contents/'+sync.path,{method:'PUT',headers:hdr(true),body:JSON.stringify(body)}).then(r=>{
+    if(r.status===200||r.status===201)return true;
+    if(r.status===409||r.status===422)throw SyncError('conflict','Konflikt');
+    if(r.status===401)throw SyncError('auth',AUTH_MSG);
+    if(r.status===403||r.status===404)throw SyncError('perm',PERM_MSG);
+    throw SyncError('http','GitHub meldet einen Fehler ('+r.status+').');
+  });
+}
+function runSync(attempt){
+  return readRemote().then(rem=>{
+    const remote=rem.data,merged=snapshot(remote?mergeStates(state,remote):state);
+    if(stable(snapshot(state))!==stable(merged)){
+      state.charges=merged.charges;state.deleted=merged.deleted;state.settings={...DEFAULTS,...merged.settings};state.settingsUpdated=merged.settingsUpdated;
+      save();newId=null;render(false);fillSettings();
+    }
+    if(remote&&stable(snapshot(remote))===stable(merged))return;
+    return writeRemote(merged,rem.sha);
+  }).catch(e=>{if(e&&e.code==='conflict'&&attempt<3)return runSync(attempt+1);throw e});
+}
+function syncNow(){
+  if(demo)return Promise.resolve();
+  if(!syncOn()){idleUI();return Promise.resolve()}
+  if(syncing){again=true;return Promise.resolve()}
+  if(navigator.onLine===false){setSyncUI('err','Offline','Du bist offline. Die Daten werden abgeglichen, sobald du wieder online bist.');return Promise.resolve()}
+  syncing=true;lastAttempt=Date.now();setSyncUI('busy','Synchronisiere …','Synchronisiere …');
+  return runSync(0).then(()=>{sync.last=Date.now();syncSaveCfg();idleUI()})
+    .catch(e=>{setSyncUI('err','Sync-Fehler',(e&&e.code)?e.message:'Keine Verbindung zu GitHub. Bist du online?')})
+    .then(()=>{syncing=false;if(again){again=false;scheduleSync(300)}});
+}
+function scheduleSync(ms){if(!syncOn()||demo)return;clearTimeout(syncTimer);syncTimer=setTimeout(syncNow,ms)}
+function fillSyncFields(){
+  $('#yOwner').value=sync.owner||'';$('#yRepo').value=sync.repo||'';$('#yToken').value='';
+  $('#yToken').placeholder=sync.token?'Gespeichert. Zum Ändern neu einfügen.':'github_pat_...';
+}
+$('#syncForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  let owner=$('#yOwner').value.trim(),repo=$('#yRepo').value.trim();
+  if(repo.indexOf('/')>-1){const parts=repo.split('/').filter(Boolean);repo=parts[parts.length-1];if(!owner&&parts.length>1)owner=parts[parts.length-2]}
+  const token=$('#yToken').value.trim()||sync.token;
+  if(!owner||!repo||!token){setSyncUI('err','Sync-Fehler','Bitte Benutzername, Repository-Name und Zugangsschlüssel ausfüllen.');return}
+  if(demo)exitDemo();
+  sync.owner=owner;sync.repo=repo;sync.token=token;syncSaveCfg();fillSyncFields();syncNow();
+});
+$('#yNow').onclick=()=>syncNow();
+$('#yOff').onclick=()=>ask('Verbindung trennen?','Deine Daten bleiben in diesem Browser und im GitHub-Repository erhalten.','Trennen',()=>{
+  sync={owner:'',repo:'',token:'',path:'ladelog-daten.json',last:0};try{localStorage.removeItem(SYNC_KEY)}catch(e){}
+  fillSyncFields();idleUI();
+});
+$('#bSync').onclick=()=>{fillSettings();provTable();renderMeasured();fillSyncFields();$('#syncDet').open=true;dSet.showModal()};
+function initSync(){
+  fillSyncFields();idleUI();
+  addEventListener('online',()=>syncNow());
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&syncOn()&&Date.now()-lastAttempt>30000)syncNow()});
+  if(syncOn())syncNow();
+}
+
+/* ---------- Eigene Fotos (optional, Ordner „bilder“) ---------- */
+function tryPhoto(key,base){
+  const exts=['jpg','jpeg','png','webp'];let i=0;
+  (function next(){
+    if(i>=exts.length)return;
+    const im=new Image();
+    im.onload=()=>{PHOTO[key]=im.src;renderDuel(calc())};
+    im.onerror=()=>{i++;next()};
+    im.src='bilder/'+base+'.'+exts[i];
+  })();
+}
+
+/* ---------- Bedienung ---------- */
+$('#bSound').onclick=()=>{soundOn=!soundOn;try{localStorage.setItem(SOUND_KEY,soundOn?'on':'off')}catch(e){}render(false);if(soundOn)tick()};
+$('#bHyper').onclick=()=>{hyper=!hyper;try{localStorage.setItem(HYPER_KEY,hyper?'on':'off')}catch(e){}render(false);tick();if(hyper)toast('HYPERDRIVE AKTIV')};
+$('#reactor').onclick=()=>{unitIdx=(unitIdx+1)%UNITS.length;tick();renderHero(calc(),true)};
+$('#co2').addEventListener('click',e=>{
+  const b=e.target.closest('[data-m]');if(!b||demo&&false)return;
+  state.settings.co2mode=b.dataset.m;state.settingsUpdated=Date.now();save();render(false);tick();scheduleSync(2500);
+});
+let lt=[];$('#logo').onclick=()=>{const n=Date.now();lt=lt.filter(t=>n-t<900);lt.push(n);if(lt.length>=3){lt=[];$('#bHyper').click()}};
 const K=['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];let ki=0;
 addEventListener('keydown',e=>{ki=(e.key===K[ki]||e.key.toLowerCase()===K[ki])?ki+1:0;if(ki===K.length){ki=0;document.body.classList.toggle('rainbow');megaFx('Cheat aktiv!')}});
-$('#co2').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(!b)return;state.settings.co2mode=b.dataset.m;save();render(false);tick()});
-// 3D-Tilt
 if(matchMedia('(hover:hover)').matches)document.querySelectorAll('.tilt').forEach(c=>{
   c.addEventListener('pointermove',e=>{const r=c.getBoundingClientRect();c.style.setProperty('--ry',((e.clientX-r.left)/r.width-.5)*5+'deg');c.style.setProperty('--rx',(-((e.clientY-r.top)/r.height-.5))*5+'deg')});
   c.addEventListener('pointerleave',()=>{c.style.setProperty('--rx','0deg');c.style.setProperty('--ry','0deg')});
 });
-[dAdd,dSet].forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));
 
-tickInit();render(true);
+/* ---------- Start ---------- */
+tickInit();fillSettings();render(true);initSync();
+tryPhoto('ev','dolphin');tryPhoto('fuel','ibiza');
 })();
 </script>
 </body>
