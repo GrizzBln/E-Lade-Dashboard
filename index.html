@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#06080a">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Ladelog">
 <title>LADELOG 2.0 · Reaktor</title>
@@ -18,7 +19,8 @@
   --safe-b:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{background:var(--bg);color-scheme:dark}
+html{background:var(--bg);color-scheme:dark;-webkit-text-size-adjust:100%}
+html,body{width:100%;max-width:100%;overflow-x:hidden}
 body{margin:0;min-height:100vh;color:var(--ink);font-family:ui-rounded,"SF Pro Rounded",system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:hidden;padding-bottom:calc(110px + var(--safe-b))}
 .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
 .disp{font-family:"Arial Narrow","Helvetica Neue",Impact,sans-serif;font-weight:900;font-style:italic;letter-spacing:.02em;text-transform:uppercase}
@@ -32,7 +34,8 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:ui-rounded,"SF Pro R
 .aurora i:nth-child(2){width:50vmax;height:50vmax;right:-20vmax;top:10vmax;background:radial-gradient(circle,#ff7a1a88,transparent 65%);animation-duration:23s}
 .aurora i:nth-child(3){width:45vmax;height:45vmax;left:20vmax;bottom:-25vmax;background:radial-gradient(circle,#00ffd055,transparent 65%);animation-duration:27s}
 @keyframes drift{to{transform:translate(8vmax,6vmax) scale(1.2)}}
-.floor{position:fixed;left:-60%;right:-60%;bottom:0;height:55vh;z-index:-2;pointer-events:none;
+.floorbox{position:fixed;inset:0;overflow:hidden;z-index:-2;pointer-events:none}
+.floor{position:absolute;left:-60%;right:-60%;bottom:0;height:55vh;pointer-events:none;
   background:linear-gradient(var(--line) 2px,transparent 2px) 0 0/100% 60px,linear-gradient(90deg,var(--line) 2px,transparent 2px) 0 0/80px 100%;
   transform:perspective(380px) rotateX(62deg);transform-origin:50% 100%;animation:run 2.4s linear infinite;
   -webkit-mask-image:linear-gradient(to top,#000 10%,transparent 85%);mask-image:linear-gradient(to top,#000 10%,transparent 85%)}
@@ -40,7 +43,17 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:ui-rounded,"SF Pro R
 .scan{position:fixed;inset:0;z-index:50;pointer-events:none;opacity:.07;background:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 3px)}
 
 /* ---------- Layout ---------- */
-.wrap{max-width:980px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 0}
+.wrap{width:100%;margin:0;padding:calc(14px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px))}
+#banner:empty{display:none}
+@media(min-width:900px){
+  .wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,430px),1fr));gap:18px;align-items:start;padding-left:max(28px,env(safe-area-inset-left,0px));padding-right:max(28px,env(safe-area-inset-right,0px))}
+  .wrap>section{margin-top:0}
+  .wrap>.top,.wrap>#banner,.wrap>.hero,.wrap>.full,.wrap>footer{grid-column:1/-1}
+}
+@media (horizontal-viewport-segments:2){
+  .wrap{display:grid;grid-template-columns:env(viewport-segment-width 0 0) env(viewport-segment-width 1 0);column-gap:calc(env(viewport-segment-left 1 0) - env(viewport-segment-right 0 0));row-gap:18px;padding-left:0;padding-right:0}
+  .wrap>*{margin-inline:14px;min-width:0}
+}
 .top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0 10px}
 .logo{font-size:clamp(26px,6vw,38px);line-height:1;display:flex;align-items:baseline;gap:8px;cursor:pointer;user-select:none;-webkit-user-select:none}
 .logo b{color:var(--lime);text-shadow:0 0 18px var(--lime)}
@@ -159,6 +172,20 @@ body.hyper .spin1{animation-duration:6s}body.hyper .spin2{animation-duration:3s}
 .prov .hd{display:flex;gap:8px;align-items:center;justify-content:space-between}
 .prov .sub{font:11px/1.4 ui-monospace,Menlo,monospace;color:var(--mute);margin-top:3px}
 
+/* ---------- Neue Auswertungen ---------- */
+.hof{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.hc{padding:14px 12px;border-radius:16px;border:1px solid var(--line);background:rgba(0,0,0,.32);display:flex;flex-direction:column;gap:3px}
+.hc .ic{font-size:26px}
+.hc small{font:700 10px ui-monospace,Menlo,monospace;letter-spacing:.14em;color:var(--mute);text-transform:uppercase}
+.hc b{font-size:19px;color:var(--lime);font-family:ui-monospace,Menlo,monospace}
+.hc i{font:11px ui-monospace,Menlo,monospace;color:var(--mute);font-style:normal;word-break:break-word}
+.persona{text-align:center;padding:4px 0 8px}
+.persona .em{font-size:64px;line-height:1;filter:drop-shadow(0 0 18px var(--lime))}
+.persona .pn{font-size:clamp(30px,8vw,44px);color:#fff;text-shadow:0 0 22px var(--lime);margin-top:6px}
+.persona p{margin:6px 0 14px;font-size:14px;line-height:1.5;color:var(--ink)}
+.persona .row{text-align:left}
+.wv{font:700 10px ui-monospace,Menlo,monospace;font-style:normal}
+
 /* ---------- FAB ---------- */
 .fab{position:fixed;left:50%;bottom:calc(18px + var(--safe-b));transform:translateX(-50%);z-index:40;border:0;cursor:pointer;height:64px;padding:0 30px 0 22px;border-radius:99px;
   background:linear-gradient(135deg,var(--lime),var(--lime2));color:#041000;font-size:20px;display:flex;align-items:center;gap:10px;
@@ -230,7 +257,7 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
 </head>
 <body>
 <div class="aurora"><i></i><i></i><i></i></div>
-<div class="floor"></div>
+<div class="floorbox"><div class="floor"></div></div>
 <div class="scan"></div>
 <canvas id="fx"></canvas>
 
@@ -297,20 +324,38 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
   </section>
 
   <section class="card tilt">
+    <h2>Winter-Malus · kWh/100 km</h2>
+    <div id="winter"></div>
+  </section>
+
+  <section class="card tilt">
+    <h2>Dein Ladetyp</h2>
+    <div id="persona"></div>
+  </section>
+
+  <section class="card tilt full">
+    <h2>Hall of Fame</h2>
+    <div class="hof" id="hof"></div>
+  </section>
+
+  <section class="card tilt">
     <h2>Trophäen</h2>
     <div class="badges" id="badges"></div>
   </section>
 
-  <section class="card">
+  <section class="card tilt">
+    <h2>Ladelog Wrapped</h2>
+    <p class="note" style="margin-top:0">Deine Zahlen als Bild im Reaktor-Look, zum Teilen oder Speichern.</p>
+    <label>Zeitraum<select id="wPer"><option value="all">Gesamt</option><option value="year">Dieses Jahr</option><option value="month">Dieser Monat</option></select></label>
+    <button class="btn pri" id="wGo" type="button">✨ Wrapped erstellen</button>
+  </section>
+
+  <section class="card full">
     <h2>Ladeverlauf</h2>
     <div class="log" id="log"></div>
   </section>
 
-  <footer>LADELOG 2.0 · Daten liegen in diesem Browser und, wenn verbunden, im privaten GitHub-Repo (⚙ → Synchronisation)
-  <p style="text-align: center;">
-  Copyright by GrizzBln
-</p>
-</footer>
+  <footer>LADELOG 2.0 · Daten liegen in diesem Browser und, wenn verbunden, im privaten GitHub-Repo (⚙ → Synchronisation)<br>Copyright by GrizzBln</footer>
 </main>
 
 <button class="fab disp" id="fab" aria-label="Ladung loggen">
@@ -404,6 +449,16 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
     </details>
 
     <div class="btns"><button class="btn pri" id="sClose">Fertig</button></div>
+  </div>
+</dialog>
+
+<!-- Wrapped -->
+<dialog id="dWrap">
+  <div class="dlg">
+    <h3 class="disp">Dein Wrapped</h3>
+    <img id="wrapImg" alt="Ladelog Wrapped" style="width:100%;border-radius:16px;display:block;margin-bottom:10px">
+    <p class="note">Auf dem iPhone: Bild lange drücken und „Zu Fotos hinzufügen“ wählen, oder den Teilen-Knopf nutzen.</p>
+    <div class="btns"><button class="btn" id="wClose" type="button">Schließen</button><button class="btn pri" id="wShare" type="button">Teilen / Speichern</button></div>
   </div>
 </dialog>
 
@@ -519,6 +574,14 @@ const UNITS=[
  {u:'Döner 🥙 gespart',f:c=>c.saved/8,fmt:v=>nf(Math.max(v,0),0)},
  {u:'Liter Benzin nicht verbrannt',f:c=>c.litres,fmt:v=>nf(v,0)},
  {u:'km elektrisch gefahren',f:c=>c.kmEq,fmt:v=>nf(v,0)},
+ {u:'Handyladungen 📱 geladen',f:c=>c.kwh/0.013,fmt:v=>nf(v,0)},
+ {u:'Stunden Toast 🍞 geröstet',f:c=>c.kwh,fmt:v=>nf(v,0)},
+ {u:'Tage Haushaltsstrom 🏠',f:c=>c.kwh/9.6,fmt:v=>nf(v,1)},
+ {u:'Pizzen 🍕 gespart',f:c=>c.saved/12,fmt:v=>nf(Math.max(v,0),0)},
+ {u:'Ibiza-Tankfüllungen ⛽ gespart',f:c=>c.litres/40,fmt:v=>nf(v,1)},
+ {u:'Baumjahre 🌳 CO₂ gebunden (Spielerei)',f:()=>Math.max(co2().saved,0)/10,fmt:v=>nf(v,1)},
+ {u:'× Hamburg–München 🚗',f:c=>c.kmEq/780,fmt:v=>nf(v,1)},
+ {u:'× einmal um die Erde 🌍',f:c=>c.kmEq/40075,fmt:v=>nf(v,3)},
 ];
 const MS=[50,100,250,500,1000,2500,5000,10000];
 function tickInit(){
@@ -665,7 +728,7 @@ function renderMeasured(){
 let hyper=false,soundOn=true;
 try{hyper=localStorage.getItem(HYPER_KEY)==='on';soundOn=localStorage.getItem(SOUND_KEY)!=='off'}catch(e){}
 function render(animate=true){
-  const c=calc();renderBanner();renderHero(c,animate);renderDuel(c);renderCo2(c);renderLeague();renderMonths();renderBadges(c);renderLog();datalists();renderMeasured();
+  const c=calc();renderBanner();renderHero(c,animate);renderDuel(c);renderCo2(c);renderLeague();renderMonths();renderBadges(c);renderWinter();renderPersona();renderHof();renderLog();datalists();renderMeasured();
   $('#bSound').classList.toggle('on',soundOn);$('#bHyper').classList.toggle('on',hyper);document.body.classList.toggle('hyper',hyper);
 }
 
@@ -715,6 +778,126 @@ function megaFx(msg){
   try{navigator.vibrate&&navigator.vibrate([40,30,90])}catch(e){}
 }
 let toastT;function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),2800)}
+
+/* ---------- Strecken, Winter-Malus, Ladetyp, Hall of Fame, Wrapped ---------- */
+function segments(){
+  const asc=state.charges.slice().sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0),out=[];let prev=null;
+  asc.forEach(c=>{
+    if(c.odo>0){
+      if(prev&&c.odo>prev.odo){const km=c.odo-prev.odo;out.push({c,km,kwh:+c.kwh||0,cons:c.kwh>0?c.kwh/km*100:null,date:new Date(c.date)})}
+      prev=c;
+    }
+  });
+  return out;
+}
+const dtShort=e=>{const d=new Date(e.date);return isNaN(d)?'':d.toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'2-digit'})};
+function renderWinter(){
+  const S=segments().filter(s=>s.kwh>0&&!isNaN(s.date)),m={},el=$('#winter');
+  S.forEach(s=>{const k=s.date.getFullYear()*100+s.date.getMonth();const o=m[k]=m[k]||{y:s.date.getFullYear(),mo:s.date.getMonth(),kwh:0,km:0};o.kwh+=s.kwh;o.km+=s.km});
+  const arr=Object.keys(m).sort().slice(-12).map(k=>({...m[k],cons:m[k].kwh/m[k].km*100}));
+  if(arr.length<2){el.innerHTML='<div class="empty">Sobald Strecken aus zwei verschiedenen Monaten vorliegen, siehst du hier, wie Kälte und Wetter deinen Verbrauch verändern.</div>';return}
+  const mx=Math.max(...arr.map(a=>a.cons)),mn=Math.min(...arr.map(a=>a.cons)),best=arr.find(a=>a.cons===mn),worst=arr.find(a=>a.cons===mx);
+  const c=calc(),multi=arr[0].y!==arr[arr.length-1].y;
+  const lab=a=>new Date(a.y,a.mo,1).toLocaleDateString('de-DE',multi?{month:'short',year:'2-digit'}:{month:'short'});
+  el.innerHTML=`<div class="months">${arr.map(a=>{const t=mx>mn?(a.cons-mn)/(mx-mn):0,hue=Math.round(95-t*75);
+    return `<div class="mcol"><em class="wv" style="color:hsl(${hue},100%,60%)">${nf(a.cons,1)}</em><div class="b" data-h="${a.cons/mx*100}" style="background:linear-gradient(180deg,hsl(${hue},100%,58%),hsl(${hue},80%,22%));box-shadow:0 0 16px hsla(${hue},100%,50%,.35)"></div><span>${lab(a)}</span></div>`}).join('')}</div>
+   <div class="verdict">Sparsamster Monat: <b>${lab(best)}</b> mit <b>${nf(mn,1)} kWh/100 km</b>. Durstigster: <b>${lab(worst)}</b> mit <b>${nf(mx,1)}</b>. Das sind <b>+${nf((mx/mn-1)*100,0)} %</b>${c.ok?((mx-mn)/100*c.avg>=0.05?`, also etwa <b>${eur((mx-mn)/100*c.avg)}</b> mehr Strom pro 100 km`:', praktisch kein Kostenunterschied'):''}.<br><span style="color:var(--mute);font-size:12px">Jeder Balken ist der Verbrauch der Strecken, die in diesem Monat zu Ende gingen.</span></div>`;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('#winter .b').forEach(b=>b.style.height=Math.max(+b.dataset.h,2)+'%')));
+}
+function persona(E){
+  if(E.length<3)return null;
+  const n=E.length,cnt={home:0,dc:0,ac:0},free=E.filter(e=>!(+e.cost>0)).length;
+  E.forEach(e=>cnt[typeKey(e.type)]++);
+  const sh={home:cnt.home/n,ac:cnt.ac/n,dc:cnt.dc/n,free:free/n};let p;
+  if(sh.free>=.35)p={i:'🎁',n:'Gratis-Jäger',t:'Wo es Strom umsonst gibt, bist du schon da. Der Zähler läuft, die Kasse schweigt.'};
+  else if(sh.home>=.6)p={i:'🐹',n:'Heim-Hamster',t:'Dein Akku füllt sich am liebsten im eigenen Bau. Entspannt, günstig, planbar.'};
+  else if(sh.dc>=.4)p={i:'🦅',n:'Autobahn-Falke',t:'Kurz andocken, volle Power, weiter. Du lädst, wenn andere noch den Kaffee bestellen.'};
+  else if(sh.ac>=.5)p={i:'🦉',n:'Gemütlicher Stromer',t:'Wechselstrom unterwegs, ohne Hektik. Du lädst gern nebenbei beim Einkaufen oder Arbeiten.'};
+  else p={i:'🦝',n:'Allrounder-Waschbär',t:'Zuhause, Schnelllader, Supermarkt: du nimmst Strom, wo er gerade steht.'};
+  return{p,sh};
+}
+function renderPersona(){
+  const el=$('#persona'),r=persona(state.charges);
+  if(!r){el.innerHTML='<div class="empty">Ab 3 Ladungen verrate ich dir, was für ein Ladetyp du bist.</div>';return}
+  const rows=[['Zuhause',r.sh.home],['Wechselstrom unterwegs',r.sh.ac],['Schnellladen (DC)',r.sh.dc],['Gratis geladen',r.sh.free]];
+  el.innerHTML=`<div class="persona"><div class="em">${r.p.i}</div><div class="pn disp">${r.p.n}</div><p>${r.p.t}</p></div>`
+   +rows.map(x=>`<div class="row" style="grid-template-columns:1fr auto"><div><div class="nm">${x[0]}</div><div class="bar"><i class="${x[0]==='Gratis geladen'?'free':''}" data-w="${Math.max(x[1]*100,x[1]>0?4:0)}"></i></div></div><div class="val">${nf(x[1]*100,0)} %</div></div>`).join('')
+   +'<p class="note" style="margin-bottom:0">Reine Spielerei, abgeleitet aus deinen Ladearten (Anteil der Ladungen).</p>';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('#persona .bar i').forEach(i=>i.style.width=i.dataset.w+'%')));
+}
+function renderHof(){
+  const E=state.charges,el=$('#hof'),c=calc(),sp=state.settings;
+  if(!E.length){el.innerHTML='<div class="empty" style="grid-column:1/-1">Noch keine Rekorde. Die erste Ladung startet die Jagd.</div>';return}
+  const pick=(arr,f,max)=>arr.reduce((b,e)=>{const v=f(e);return(b===null||(max?v>b.v:v<b.v))?{e,v}:b},null);
+  const withK=E.filter(e=>e.kwh>0),paid=withK.filter(e=>e.cost>0),S=segments(),Sc=S.filter(s=>s.cons!==null&&s.km>=30);
+  const cards=[],add=(i,t,v,s)=>cards.push(`<div class="hc"><span class="ic">${i}</span><small>${t}</small><b>${v}</b><i>${s}</i></div>`);
+  const where=e=>esc(e.place)+(dtShort(e)?' · '+dtShort(e):'');
+  let r=pick(withK,e=>e.kwh,true);if(r)add('🔋','Größte Ladung',nf(r.v,1)+' kWh',where(r.e));
+  r=pick(paid,e=>e.cost/e.kwh*100,false);if(r)add('🪙','Billigste Ladung',nf(r.v,1)+' ct/kWh',where(r.e));
+  r=pick(paid,e=>e.cost/e.kwh*100,true);if(r&&paid.length>1)add('💸','Teuerste Ladung',nf(r.v,1)+' ct/kWh',where(r.e));
+  const fr=withK.filter(e=>!(e.cost>0));if(fr.length)add('🎁','Gratis-Strom',nf(fr.reduce((a,e)=>a+e.kwh,0),1)+' kWh',fr.length+'× umsonst geladen');
+  if(c.cons>0){r=pick(withK,e=>e.kwh/c.cons*sp.fuelL*sp.fuelPrice-e.cost,true);if(r)add('🏆','Größte Einzelersparnis',eur(r.v),where(r.e))}
+  let q=pick(S,s=>s.km,true);if(q)add('🛣️','Längste Strecke',nf(q.v,0)+' km','bis '+where(q.e.c));
+  q=pick(Sc,s=>s.cons,false);if(q)add('🍃','Sparsamster Abschnitt',nf(q.v,1)+' kWh/100 km','bis '+where(q.e.c));
+  q=pick(Sc,s=>s.cons,true);if(q&&Sc.length>1)add('🔥','Durstigster Abschnitt',nf(q.v,1)+' kWh/100 km','bis '+where(q.e.c));
+  const pm={};E.forEach(e=>{const k=(e.place||'').trim();if(k)pm[k]=(pm[k]||0)+1});
+  const top=Object.entries(pm).sort((a,b)=>b[1]-a[1])[0];if(top)add('📍','Stammplatz',esc(top[0]),top[1]+'× geladen');
+  el.innerHTML=cards.join('');
+}
+const dWrap=$('#dWrap');let wrapBlob=null;
+function wrapList(p){
+  const now=new Date();
+  return state.charges.filter(e=>{const d=new Date(e.date);if(isNaN(d))return false;
+    if(p==='year')return d.getFullYear()===now.getFullYear();
+    if(p==='month')return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();
+    return true});
+}
+function wrapStats(list){
+  const c=calc(),s=state.settings,t=totals(list),r={n:list.length,kwh:t.kwh,cost:t.cost},ok=c.cons>0&&t.kwhWithCost>0;
+  r.km=ok?t.kwhWithCost/c.cons*100:0;r.saved=ok?r.km/100*s.fuelL*s.fuelPrice-t.costWithKwh:0;
+  let ev=0;list.forEach(e=>{if(e.kwh>0)ev+=e.kwh*ef(e).g});
+  r.co2=(r.km*s.fuelL/100*s.petrol-ev)/1000;
+  const top=f=>{const m={};list.forEach(e=>{const k=(f(e)||'').trim();if(k)m[k]=(m[k]||0)+1});return Object.entries(m).sort((a,b)=>b[1]-a[1])[0]||null};
+  r.place=top(e=>e.place);r.prov=top(e=>e.provider);
+  const wd=[0,0,0,0,0,0,0];list.forEach(e=>wd[new Date(e.date).getDay()]++);
+  const mxw=Math.max(...wd);r.day=mxw>0?['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'][wd.indexOf(mxw)]:null;
+  r.pers=persona(list);
+  return r;
+}
+function drawWrap(list,label){
+  const R=wrapStats(list),W=1080,H=1350,cv2=document.createElement('canvas');cv2.width=W;cv2.height=H;const g=cv2.getContext('2d');
+  const F='"Arial Narrow","Helvetica Neue",Arial,sans-serif',M='ui-monospace,Menlo,Consolas,monospace';
+  const txt=(s,x,y,size,col,al,fnt,w)=>{g.font=(fnt==='m'?'700 ':'italic 900 ')+size+'px '+(fnt==='m'?M:F);g.fillStyle=col;g.textAlign=al||'center';g.fillText(s,x,y,w)};
+  let gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#0d1a0a');gr.addColorStop(1,'#030504');g.fillStyle=gr;g.fillRect(0,0,W,H);
+  gr=g.createRadialGradient(540,300,10,540,300,640);gr.addColorStop(0,'rgba(182,255,0,.38)');gr.addColorStop(1,'rgba(182,255,0,0)');g.fillStyle=gr;g.fillRect(0,0,W,H);
+  g.strokeStyle='rgba(182,255,0,.13)';g.lineWidth=2;for(let y=1030;y<H;y+=46){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke()}
+  g.save();g.translate(374,56);g.scale(5.2,5.2);g.shadowColor='#b6ff00';g.shadowBlur=70;g.fillStyle='#b6ff00';g.fill(new Path2D('M37 3 12 37h15l-5 24 30-37H36z'));g.restore();
+  txt('LADELOG WRAPPED',540,450,84,'#b6ff00');
+  txt(label.toUpperCase(),540,496,30,'#7f9772','center','m');
+  g.save();g.shadowColor='#b6ff00';g.shadowBlur=50;txt(nf(R.saved,0)+' €',540,660,170,'#ffffff');g.restore();
+  txt('GESPART GEGENÜBER DEM IBIZA',540,706,28,'#b6ff00','center','m');
+  const stats=[[nf(R.n,0),'LADUNGEN'],[nf(R.kwh,0),'KWH GELADEN'],[nf(R.km,0),'E-KILOMETER'],[nf(R.co2,0),'KG CO₂ GESPART']];
+  stats.forEach((s,i)=>{const x=135+i*270;txt(s[0],x,800,62,'#eaffd2');txt(s[1],x,838,19,'#7f9772','center','m')});
+  g.strokeStyle='rgba(182,255,0,.3)';g.lineWidth=2;g.beginPath();g.moveTo(90,880);g.lineTo(990,880);g.stroke();
+  const rows=[['LIEBLINGSORT',R.place?R.place[0]+' ('+R.place[1]+'×)':'–'],['LIEBLINGSANBIETER',R.prov?R.prov[0]+' ('+R.prov[1]+'×)':'–'],['LIEBLINGS-WOCHENTAG',R.day||'–'],['LADETYP',R.pers?R.pers.p.i+' '+R.pers.p.n:'–']];
+  rows.forEach((r,i)=>{const y=950+i*70;txt(r[0],90,y,22,'#7f9772','left','m');txt(r[1],990,y+2,40,'#b6ff00','right','i',560)});
+  txt('LADELOG 2.0 · Copyright by GrizzBln',540,1300,22,'#7f9772','center','m');
+  return cv2;
+}
+$('#wGo').onclick=()=>{
+  const per=$('#wPer').value,list=wrapList(per);
+  if(!list.length){toast('Keine Ladungen in diesem Zeitraum');return}
+  const lab={all:'Gesamt',year:'Jahr '+new Date().getFullYear(),month:new Date().toLocaleDateString('de-DE',{month:'long',year:'numeric'})}[per];
+  const c2=drawWrap(list,lab);$('#wrapImg').src=c2.toDataURL('image/png');
+  c2.toBlob(b=>{wrapBlob=b},'image/png');tick();dWrap.showModal();burst(innerWidth/2,innerHeight/2,60);
+};
+$('#wClose').onclick=()=>dWrap.close();
+$('#wShare').onclick=()=>{
+  if(!wrapBlob){toast('Bild noch nicht bereit');return}
+  const f=new File([wrapBlob],'ladelog-wrapped.png',{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Ladelog Wrapped'}).catch(()=>{});return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(wrapBlob);a.download='ladelog-wrapped.png';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
 
 /* ---------- Rückfrage-Dialog ---------- */
 const dAsk=$('#dAsk');let askFn=null;
@@ -824,7 +1007,7 @@ $('#setForm').addEventListener('input',()=>{
   s.grid=f('#sGrid',DEFAULTS.grid);s.green=f('#sGreen',DEFAULTS.green);s.petrol=f('#sPetrol',DEFAULTS.petrol);s.homeGreen=$('#sHomeGreen').checked;
   state.settingsUpdated=Date.now();save();render(false);scheduleSync(2500);
 });
-[dAdd,dSet,dAsk].forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));
+[dAdd,dSet,dAsk,dWrap].forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));
 
 /* ---------- Sicherung ---------- */
 function msg2(t){$('#msg2').textContent=t}
