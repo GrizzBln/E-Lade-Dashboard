@@ -21,6 +21,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:var(--bg);color-scheme:dark;-webkit-text-size-adjust:100%}
 html,body{width:100%;max-width:100%;overflow-x:hidden}
+html{overscroll-behavior-y:none}
 body{margin:0;min-height:100vh;color:var(--ink);font-family:ui-rounded,"SF Pro Rounded",system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:hidden;padding-bottom:calc(110px + var(--safe-b))}
 .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
 .disp{font-family:"Arial Narrow","Helvetica Neue",Impact,sans-serif;font-weight:900;font-style:italic;letter-spacing:.02em;text-transform:uppercase}
@@ -54,12 +55,14 @@ body{margin:0;min-height:100vh;color:var(--ink);font-family:ui-rounded,"SF Pro R
   .wrap{display:grid;grid-template-columns:env(viewport-segment-width 0 0) env(viewport-segment-width 1 0);column-gap:calc(env(viewport-segment-left 1 0) - env(viewport-segment-right 0 0));row-gap:18px;padding-left:0;padding-right:0}
   .wrap>*{margin-inline:14px;min-width:0}
 }
-.top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0 10px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px 10px;padding:6px 0 10px;flex-wrap:wrap}
 .logo{font-size:clamp(26px,6vw,38px);line-height:1;display:flex;align-items:baseline;gap:8px;cursor:pointer;user-select:none;-webkit-user-select:none}
 .logo b{color:var(--lime);text-shadow:0 0 18px var(--lime)}
 .logo small{font:700 11px ui-monospace,Menlo,monospace;color:var(--bg);background:var(--lime);padding:2px 6px;border-radius:5px;transform:skew(-10deg);font-style:normal}
 .tools{display:flex;gap:8px}
 .chip{appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);height:40px;min-width:40px;padding:0 12px;border-radius:12px;font:700 12px ui-monospace,Menlo,monospace;letter-spacing:.08em;cursor:pointer;backdrop-filter:blur(10px);transition:.2s}
+.chip,.fab{white-space:nowrap}
+@media(max-width:480px){.tools{gap:5px}.chip{padding:0 8px;min-width:36px;font-size:11px;letter-spacing:.04em}.fab{font-size:18px;padding:0 24px 0 18px}}
 .chip:hover{border-color:var(--lime);box-shadow:0 0 14px #b6ff0055}
 .chip.on{background:var(--lime);color:#000;box-shadow:0 0 18px #b6ff0099}
 .chip.s-ok{border-color:#3dffa0;color:#3dffa0}
@@ -140,12 +143,15 @@ body.hyper .spin1{animation-duration:6s}body.hyper .spin2{animation-duration:3s}
 .mcol em{font:700 10px ui-monospace,Menlo,monospace;font-style:normal}
 
 /* ---------- Badges ---------- */
-.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
-.badge{padding:14px 10px;border-radius:16px;text-align:center;border:1px solid var(--line);background:rgba(0,0,0,.3);filter:grayscale(1);opacity:.45;transition:.4s}
-.badge.on{filter:none;opacity:1;border-color:var(--lime);box-shadow:inset 0 0 24px #b6ff0022,0 0 18px #b6ff0033}
-.badge .ic{font-size:30px;display:block;margin-bottom:4px}
-.badge b{display:block;font-size:13px}
-.badge small{font:10px ui-monospace,Menlo,monospace;color:var(--mute)}
+.bsum{font:11px ui-monospace,Menlo,monospace;color:var(--mute);margin-bottom:10px}
+.bsum b{color:var(--lime);font-size:15px}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:6px}
+.badge{appearance:none;aspect-ratio:1;padding:0;border-radius:11px;border:1px solid var(--line);background:rgba(0,0,0,.3);font-size:21px;line-height:1;cursor:pointer;filter:grayscale(1);opacity:.32;transition:.25s}
+.badge.on{filter:none;opacity:1;border-color:var(--lime);box-shadow:inset 0 0 12px #b6ff0033,0 0 10px #b6ff0033}
+.badge:active{transform:scale(1.25)}
+#dBadge .dlg{text-align:center}
+#bdIc{font-size:110px;line-height:1.1;filter:drop-shadow(0 0 26px var(--lime));animation:dlg .5s cubic-bezier(.2,1.6,.4,1)}
+#bdIc.off{filter:grayscale(1);opacity:.45}
 
 /* ---------- Verlauf ---------- */
 .log{display:grid;gap:8px}
@@ -185,6 +191,37 @@ body.hyper .spin1{animation-duration:6s}body.hyper .spin2{animation-duration:3s}
 .persona p{margin:6px 0 14px;font-size:14px;line-height:1.5;color:var(--ink)}
 .persona .row{text-align:left}
 .wv{font:700 10px ui-monospace,Menlo,monospace;font-style:normal}
+
+/* ---------- Pull-to-Refresh ---------- */
+#ptr{position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:50%;width:46px;height:46px;margin-left:-23px;border-radius:50%;background:#0c140a;border:2px solid var(--line);display:grid;place-items:center;z-index:75;transform:translateY(-90px);pointer-events:none;box-shadow:0 0 20px #000}
+#ptr svg{width:24px;height:24px}
+#ptr.ready{border-color:var(--lime);box-shadow:0 0 22px #b6ff0088}
+#ptr.spin{transform:translateY(14px)!important;transition:transform .2s;border-color:var(--lime)}
+#ptr.spin svg{animation:spin .7s linear infinite}
+#ptr.back{transition:transform .25s}
+
+/* ---------- Ladekarte ---------- */
+#dMap{width:100vw;max-width:100vw;height:100vh;height:100dvh;max-height:100dvh;margin:0;border:0;border-radius:0;background:#06080a}
+#dMap[open]{display:flex;flex-direction:column}
+.mapbar{display:flex;gap:8px;align-items:center;padding:calc(8px + env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line)}
+.mapbar b{flex:1;min-width:0;overflow:hidden;font-size:22px;color:var(--lime)}
+@media(max-width:420px){.mapbar b{font-size:0}}
+#mapBox{flex:1;min-height:0;background:#0a0f0a}
+.mapfoot{padding:8px 12px calc(8px + var(--safe-b));font:11px/1.5 ui-monospace,Menlo,monospace;color:var(--mute);border-top:1px solid var(--line)}
+.mapfoot a{color:var(--lime)}
+.mapfoot b{color:var(--ink)}
+#dMap .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.95) contrast(.9) saturate(.5)}
+#dMap .leaflet-container{background:#0a0f0a;font-family:inherit}
+#dMap .leaflet-popup-content-wrapper{background:#0c140a;color:var(--ink);border:1px solid var(--lime);border-radius:14px;box-shadow:0 0 30px #000}
+#dMap .leaflet-popup-tip{background:#0c140a;border:1px solid var(--lime)}
+#dMap .leaflet-popup-content{margin:12px 14px;font-size:13px;line-height:1.5}
+#dMap .leaflet-popup-content a{color:var(--lime)}
+#dMap .leaflet-container a.leaflet-popup-close-button{color:var(--lime)}
+.pp b.t{font-size:15px;display:block}
+.pp .s{font:11px/1.5 ui-monospace,Menlo,monospace;color:var(--mute)}
+.pp .own{margin:6px 0;padding:6px 8px;border-radius:8px;background:rgba(182,255,0,.1);border:1px dashed var(--line)}
+.pp .lk{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.pp .lk a,.pp .lk button{font:700 11px ui-monospace,Menlo,monospace;padding:7px 9px;border-radius:8px;border:1px solid var(--line);background:#000a;color:var(--lime);text-decoration:none;cursor:pointer}
 
 /* ---------- FAB ---------- */
 .fab{position:fixed;left:50%;bottom:calc(18px + var(--safe-b));transform:translateX(-50%);z-index:40;border:0;cursor:pointer;height:64px;padding:0 30px 0 22px;border-radius:99px;
@@ -266,6 +303,7 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
   <div class="msg disp" id="boltMsg">Geladen!</div>
 </div>
 <div class="toast" id="toast" role="status"></div>
+<div id="ptr" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M37 3 12 37h15l-5 24 30-37H36z" fill="#b6ff00"/></svg></div>
 
 <main class="wrap">
   <div class="top">
@@ -314,6 +352,12 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
   </section>
 
   <section class="card tilt">
+    <h2>Ladekarte</h2>
+    <p class="note" style="margin-top:0">Ladestationen in ganz Deutschland auf einer Karte, mit deinem Standort, Betreiber, AC/DC, Steckern und Leistung. Vorgefiltert auf Anschlüsse, die zum Dolphin Surf passen (Typ 2 und CCS). Dazu dein eigener Durchschnittspreis beim jeweiligen Anbieter.</p>
+    <button class="btn pri" id="mOpen" type="button">🗺️ Karte öffnen</button>
+  </section>
+
+  <section class="card tilt">
     <h2>Anbieter-Liga</h2>
     <div id="league"></div>
   </section>
@@ -340,7 +384,7 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
 
   <section class="card tilt">
     <h2>Trophäen</h2>
-    <div class="badges" id="badges"></div>
+    <div id="badges"></div>
   </section>
 
   <section class="card tilt">
@@ -407,6 +451,8 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
         <label>Ibiza (l/100 km)<input type="number" id="sFuel" step="0.1" inputmode="decimal"></label>
       </div>
       <label>Super E10, Ø Deutschland (€/l)<input type="number" id="sPrice" step="0.001" inputmode="decimal"></label>
+      <label>Benzinpreis<span class="sw"><input type="checkbox" id="sFuelAuto"><i></i><span>automatisch aktualisieren</span></span></label>
+      <p class="note" id="fuelStat"></p>
       <p class="note" id="measured"></p>
       <div class="grid2">
         <label>Netzmix (g CO₂/kWh)<input type="number" id="sGrid" step="1" inputmode="decimal"></label>
@@ -415,6 +461,13 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
       <label>Benzin (g CO₂ pro Liter)<input type="number" id="sPetrol" step="10" inputmode="decimal"></label>
       <label>Heimstrom<span class="sw"><input type="checkbox" id="sHomeGreen"><i></i><span>Zuhause mit Ökostrom-Tarif</span></span></label>
     </form>
+    <details>
+      <summary>Benzinpreis: Ersatzquelle <small>optional</small></summary>
+      <p class="note">Standard ist der bundesweite E10-Durchschnitt von benzinpreis-aktuell.de (ohne Anmeldung). Nur falls das nicht klappt, kannst du hier einen kostenlosen Schlüssel von <a href="https://creativecommons.tankerkoenig.de" target="_blank" rel="noopener" style="color:var(--lime)">tankerkoenig.de</a> eintragen. Dann nimmt Ladelog den mittleren E10-Preis der Tankstellen im 5-km-Umkreis. Schlüssel und Standort bleiben nur in diesem Browser.</p>
+      <label>Tankerkönig-Schlüssel<input type="password" id="tkKey" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="00000000-0000-..."></label>
+      <div class="btns"><button type="button" class="btn sm" id="tkLoc">Meinen Standort verwenden</button><button type="button" class="btn sm" id="fuelNow">Preis jetzt abrufen</button></div>
+      <p class="msg2" id="tkStat" role="status"></p>
+    </details>
     <details><summary>So rechnet das CO₂ · Quellen</summary><div class="prov" id="provTbl"></div></details>
 
     <details id="syncDet">
@@ -452,6 +505,17 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
   </div>
 </dialog>
 
+<!-- Ladekarte -->
+<dialog id="dMap">
+  <div class="mapbar"><b class="disp">Ladekarte</b>
+    <button class="chip on" id="mFit" type="button" title="Nur passende Anschlüsse für den Dolphin Surf">PASSEND</button>
+    <button class="chip" id="mDc" type="button" title="Nur Schnelllader">NUR DC</button>
+    <button class="chip" id="mLoc" type="button" title="Mein Standort" aria-label="Mein Standort">📍</button>
+    <button class="chip" id="mClose" type="button" aria-label="Schließen">✕</button></div>
+  <div id="mapBox"></div>
+  <div class="mapfoot"><span id="mStat">Karte wird geladen …</span><br>Daten: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende. Live-Belegung und Säulenpreise sind nicht frei abrufbar. Amtliche Karte: <a href="https://www.bundesnetzagentur.de/Ladesaeulenkarte" target="_blank" rel="noopener">Bundesnetzagentur</a></div>
+</dialog>
+
 <!-- Wrapped -->
 <dialog id="dWrap">
   <div class="dlg">
@@ -459,6 +523,18 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
     <img id="wrapImg" alt="Ladelog Wrapped" style="width:100%;border-radius:16px;display:block;margin-bottom:10px">
     <p class="note">Auf dem iPhone: Bild lange drücken und „Zu Fotos hinzufügen“ wählen, oder den Teilen-Knopf nutzen.</p>
     <div class="btns"><button class="btn" id="wClose" type="button">Schließen</button><button class="btn pri" id="wShare" type="button">Teilen / Speichern</button></div>
+  </div>
+</dialog>
+
+<!-- Trophäe -->
+<dialog id="dBadge">
+  <div class="dlg">
+    <div id="bdIc"></div>
+    <h3 class="disp" id="bdN" style="margin-top:6px"></h3>
+    <p class="note" id="bdD" style="font-size:14px"></p>
+    <div class="bar" style="height:12px;margin:0 0 8px"><i id="bdBar" style="width:0"></i></div>
+    <p class="note mono" id="bdP"></p>
+    <div class="btns"><button class="btn pri" id="bdClose" type="button">Schließen</button></div>
   </div>
 </dialog>
 
@@ -482,7 +558,7 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
 /* ---------- Datenmodell (kompatibel zu Ladelog 1.0) ---------- */
 const KEY='ladelog.v1',SOUND_KEY='ladelog.sound',HYPER_KEY='ladelog.hyper',SYNC_KEY='ladelog.sync';
-const DEFAULTS={evKwh:16,fuelL:6.5,fuelPrice:1.98,useMeasured:true,grid:344,green:20,petrol:2320,homeGreen:false,co2mode:'markt'};
+const DEFAULTS={evKwh:16,fuelL:6.5,fuelPrice:1.98,useMeasured:true,grid:344,green:20,petrol:2320,homeGreen:false,co2mode:'markt',fuelAuto:true};
 let demo=false,state=loadReal(),newId=null,editingId=null;
 function loadReal(){
   const st={charges:[],settings:{...DEFAULTS},deleted:{},settingsUpdated:0};
@@ -529,10 +605,14 @@ function derived(){
   }
   return d;
 }
+function lastOdo(list){let b=null;(list||state.charges).forEach(c=>{if(c.odo>0&&(!b||c.date>b.date))b=c});return b?b.odo:0}
+// Elektrisch gefahrene Kilometer = letzter eingetragener Kilometerstand.
 function calc(){
-  const d=derived(),s=state.settings,t=d.t,km=d.ok?d.km:0;
-  return{kwh:t.kwh,cost:t.cost,cons:d.evKwh,kmEq:km,litres:km*s.fuelL/100,saved:d.ok?d.saved:0,avg:d.ok?d.avg:0,
-    evPer100:d.ok?d.ev100:0,icePer100:d.fuel100,n:t.count,ok:d.ok,measured:d.measured};
+  const d=derived(),s=state.settings,t=d.t,odo=lastOdo();
+  const km=odo>0?odo:(d.ok?d.km:0),ok=km>0&&d.fuel100>0&&t.kwhWithCost>0;
+  const avg=t.kwhWithCost>0?t.costWithKwh/t.kwhWithCost:0;
+  return{kwh:t.kwh,cost:t.cost,cons:d.evKwh,kmEq:km,litres:km*s.fuelL/100,saved:ok?km/100*d.fuel100-t.cost:0,avg,
+    evPer100:avg*(d.evKwh||0),icePer100:d.fuel100,n:t.count,ok,measured:d.measured,odo};
 }
 
 /* ---------- CO2: Stromherkunft je Anbieter (recherchiert Nov 2026) ---------- */
@@ -615,7 +695,7 @@ const avatar=k=>PHOTO[k]?`<img class="av" alt="" src="${PHOTO[k]}">`:'';
 function renderDuel(c){
   const a=c.evPer100,b=c.icePer100,hasEv=c.ok;
   const evWin=hasEv&&a<=b;
-  const evPos=!hasEv?0:(a<=b?100:(b/a*100)),icePos=!hasEv?100:(b<=a?100:(a/b*100));
+  const mxc=Math.max(a,b,.01),evPos=!hasEv?0:Math.max(a/mxc*100,16),icePos=b>0?Math.max(b/mxc*100,16):0;
   const pod=col=>`<svg viewBox="0 0 40 40"><path d="M4 26c0-5 3-8 8-9l5-6c1-1 2-1 3-1h8c2 0 4 1 5 3l4 6c1 1 2 2 2 4v3H4z" fill="${col}" stroke="#000" stroke-width="2" stroke-linejoin="round"/><circle cx="13" cy="30" r="4.5" fill="#111" stroke="${col}" stroke-width="2"/><circle cx="31" cy="30" r="4.5" fill="#111" stroke="${col}" stroke-width="2"/></svg>`;
   $('#duel').innerHTML=`
    <div class="lane"><div class="lab"><span style="color:var(--lime)">${avatar('ev')}DOLPHIN SURF ⚡</span><b>${hasEv?eur(a):'–'}</b></div>
@@ -623,9 +703,9 @@ function renderDuel(c){
    <div class="lane"><div class="lab"><span style="color:var(--orange)">${avatar('fuel')}SEAT IBIZA ⛽</span><b>${b>0?eur(b):'–'}</b></div>
      <div class="track"><div class="pod ice" data-w="${icePos}">${pod('#ff7a1a')}</div></div></div>
    <div class="verdict">${hasEv?(evWin
-      ?`Pro 100 km zahlst du elektrisch <b>${eur(b-a)}</b> weniger – das sind <b>${nf((1-a/b)*100,0)} %</b> Rabatt. Auf den bisher ${nf(c.kmEq,0)} E-Kilometern: <b>${eur(c.saved)}</b> im Plus.`
+      ?`Pro 100 km zahlst du elektrisch <b>${eur(b-a)}</b> weniger – das sind <b>${nf((1-a/b)*100,0)} %</b> Rabatt. Auf den bisher <b>${nf(c.kmEq,0)} km</b> (${c.odo>0?'letzter Kilometerstand':'geschätzt'}) bist du <b>${eur(c.saved)}</b> im ${c.saved>=0?'Plus':'Minus'}.`
       :`Aktuell ist der Ibiza pro 100 km <b>${eur(a-b)}</b> günstiger – mehr Gratis- &amp; Heimladungen drehen das.`)
-      +`<br><span style="color:var(--mute);font-size:12px">Strom: Ø ${eur(c.avg)}/kWh × ${nf(c.cons,1)} kWh/100 km (${c.measured?'aus deinen Kilometerständen':'Ersatzwert'}). Benzin: ${nf(state.settings.fuelL,1)} l × ${eur(state.settings.fuelPrice)}.</span>`
+      +`<br><span style="color:var(--mute);font-size:12px">Strom: Ø ${eur(c.avg)}/kWh × ${nf(c.cons,1)} kWh/100 km (${c.measured?'aus deinen Kilometerständen':'Ersatzwert'}). Benzin: ${nf(state.settings.fuelL,1)} l × ${nf(state.settings.fuelPrice,3)} €${state.settings.fuelAuto&&fuelCfg.last?' (automatisch, Stand '+new Date(fuelCfg.last).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})+')':''}. Ersparnis = Benzinkosten für diese Kilometer minus alles, was du fürs Laden bezahlt hast. Kürzerer Balken = günstiger.</span>`
       :'Sobald die erste Ladung mit kWh drin ist, startet das Rennen.'}</div>`;
   requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('.pod').forEach(p=>p.style.width=p.dataset.w+'%')));
 }
@@ -675,20 +755,79 @@ function renderMonths(){
   $('#months').innerHTML=arr.map(a=>`<div class="mcol"><em>${a.kwh?nf(a.kwh,0):''}</em><div class="b" data-h="${a.kwh/mx*100}"></div><span>${new Date(a.y,a.m,1).toLocaleDateString('de-DE',{month:'short'})}</span></div>`).join('');
   requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('.mcol .b').forEach(b=>b.style.height=Math.max(+b.dataset.h,2)+'%')));
 }
+const days=E=>{const t=E.map(ts).filter(x=>x>0);return t.length?(Date.now()-Math.min(...t))/864e5:0};
+const cnt=(E,f)=>E.filter(f).length,uniq=(E,k)=>new Set(E.map(e=>(e[k]||'').trim().toLowerCase()).filter(Boolean)).size;
+const hr=e=>new Date(e.date).getHours(),mo=e=>new Date(e.date).getMonth();
+const B=(i,n,d,g,u,f)=>({i,n,d,g,u,f});
 const BADGES=[
- {i:'⚡',n:'Erster Funke',d:'1. Ladung',t:(c,E)=>E.length>=1},
- {i:'🔟',n:'Stammgast',d:'10 Ladungen',t:(c,E)=>E.length>=10},
- {i:'🔋',n:'100-kWh-Club',d:'100 kWh geladen',t:c=>c.kwh>=100},
- {i:'🌋',n:'Strom-Titan',d:'500 kWh geladen',t:c=>c.kwh>=500},
- {i:'🎁',n:'Schnorrer',d:'Gratis geladen',t:(c,E)=>E.some(e=>!(+e.cost>0))},
- {i:'🚀',n:'Blitzlader',d:'DC-Schnellladung',t:(c,E)=>E.some(e=>typeKey(e.type)==='dc')},
- {i:'💶',n:'Hunni gespart',d:'100 € gespart',t:c=>c.saved>=100},
- {i:'🧭',n:'Entdecker',d:'5 Orte',t:(c,E)=>new Set(E.map(e=>(e.place||'').toLowerCase())).size>=5},
- {i:'🏡',n:'Home-Hero',d:'5× Zuhause',t:(c,E)=>E.filter(e=>typeKey(e.type)==='home').length>=5},
- {i:'🍃',n:'Sparfuchs',d:'< 10 ct/kWh Ø',t:(c,E)=>E.length>=3&&c.ok&&c.avg<.10},
- {i:'🌍',n:'Klima-Held',d:'50 kg CO₂ gespart',t:()=>co2().saved>=50},
+ B('⚡','Erster Funke','Die allererste Ladung',1,'Ladungen',(c,E)=>E.length),
+ B('🔟','Stammgast','10 Ladungen',10,'Ladungen',(c,E)=>E.length),
+ B('🎯','Routinier','25 Ladungen',25,'Ladungen',(c,E)=>E.length),
+ B('🥈','Halbes Hundert','50 Ladungen',50,'Ladungen',(c,E)=>E.length),
+ B('💯','Hunderter-Club','100 Ladungen',100,'Ladungen',(c,E)=>E.length),
+ B('🦾','Kabel-Veteran','250 Ladungen',250,'Ladungen',(c,E)=>E.length),
+ B('👑','Lade-Legende','500 Ladungen',500,'Ladungen',(c,E)=>E.length),
+ B('🔋','100-kWh-Club','100 kWh geladen',100,'kWh',c=>c.kwh),
+ B('🌋','Strom-Titan','500 kWh geladen',500,'kWh',c=>c.kwh),
+ B('🏭','Megawatt-Meister','1.000 kWh, eine ganze Megawattstunde',1000,'kWh',c=>c.kwh),
+ B('☄️','Energie-Komet','2.500 kWh geladen',2500,'kWh',c=>c.kwh),
+ B('🌞','Kleines Kraftwerk','5.000 kWh geladen',5000,'kWh',c=>c.kwh),
+ B('🌌','Galaxie-Akku','10.000 kWh geladen',10000,'kWh',c=>c.kwh),
+ B('🛴','Eingefahren','1.000 km elektrisch',1000,'km',c=>c.kmEq),
+ B('🚗','Kilometerfresser','5.000 km elektrisch',5000,'km',c=>c.kmEq),
+ B('🛣️','Zehntausender','10.000 km elektrisch',10000,'km',c=>c.kmEq),
+ B('🧳','Langstrecken-Surfer','25.000 km elektrisch',25000,'km',c=>c.kmEq),
+ B('🌍','Einmal um die Erde','40.075 km, der Erdumfang',40075,'km',c=>c.kmEq),
+ B('🚀','Mondfahrer-Azubi','100.000 km elektrisch',100000,'km',c=>c.kmEq),
+ B('💶','Hunni gespart','100 € gegenüber dem Ibiza gespart',100,'€',c=>c.saved),
+ B('💰','Sparschwein','250 € gespart',250,'€',c=>c.saved),
+ B('🏦','Halber Riese','500 € gespart',500,'€',c=>c.saved),
+ B('💎','Tausender','1.000 € gespart',1000,'€',c=>c.saved),
+ B('🏝️','Urlaubskasse','2.500 € gespart',2500,'€',c=>c.saved),
+ B('🤑','Dagobert','5.000 € gespart',5000,'€',c=>c.saved),
+ B('🌱','Klima-Keimling','50 kg CO₂ gespart',50,'kg CO₂',()=>co2().saved),
+ B('🌳','Klima-Held','250 kg CO₂ gespart',250,'kg CO₂',()=>co2().saved),
+ B('🌲','Eine Tonne leichter','1.000 kg CO₂ gespart',1000,'kg CO₂',()=>co2().saved),
+ B('🏔️','Gletscher-Freund','5.000 kg CO₂ gespart',5000,'kg CO₂',()=>co2().saved),
+ B('⛽','Zapfsäulen-Schreck','100 Liter Benzin nicht verbrannt',100,'Liter',c=>c.litres),
+ B('🛢️','Fass voll','1.000 Liter Benzin nicht verbrannt',1000,'Liter',c=>c.litres),
+ B('🎂','Erstes Jahr','Seit 1 Jahr elektrisch unterwegs',365,'Tage',(c,E)=>days(E)),
+ B('🥂','Zwei Jahre Strom','Seit 2 Jahren dabei',730,'Tage',(c,E)=>days(E)),
+ B('🎖️','Drei-Jahres-Orden','Seit 3 Jahren dabei',1095,'Tage',(c,E)=>days(E)),
+ B('🏛️','Fünf Jahre Reaktor','Seit 5 Jahren dabei',1826,'Tage',(c,E)=>days(E)),
+ B('📅','Ganzjahres-Lader','In allen 12 Kalendermonaten geladen',12,'Monate',(c,E)=>new Set(E.map(mo).filter(m=>!isNaN(m))).size),
+ B('🎁','Schnorrer','Einmal gratis geladen',1,'Gratis-Ladungen',(c,E)=>cnt(E,e=>!(+e.cost>0))),
+ B('🎉','Gratis-König','10× gratis geladen',10,'Gratis-Ladungen',(c,E)=>cnt(E,e=>!(+e.cost>0))),
+ B('🏎️','Blitzlader','Erste DC-Schnellladung',1,'DC-Ladungen',(c,E)=>cnt(E,e=>typeKey(e.type)==='dc')),
+ B('🌩️','Gleichstrom-Junkie','25 DC-Schnellladungen',25,'DC-Ladungen',(c,E)=>cnt(E,e=>typeKey(e.type)==='dc')),
+ B('🐢','Geduldsfaden','25 AC-Ladungen',25,'AC-Ladungen',(c,E)=>cnt(E,e=>typeKey(e.type)==='ac')),
+ B('🧭','Entdecker','An 5 verschiedenen Orten geladen',5,'Orte',(c,E)=>uniq(E,'place')),
+ B('🗺️','Weltenbummler','An 15 verschiedenen Orten geladen',15,'Orte',(c,E)=>uniq(E,'place')),
+ B('🃏','Anbieter-Sammler','Bei 5 verschiedenen Anbietern geladen',5,'Anbieter',(c,E)=>uniq(E,'provider')),
+ B('🎴','Karten-Chaos','Bei 10 verschiedenen Anbietern geladen',10,'Anbieter',(c,E)=>uniq(E,'provider')),
+ B('🍀','Öko-Lader','10 Ladungen mit Ökostrom-Angabe',10,'Öko-Ladungen',(c,E)=>cnt(E,e=>ef(e,'markt').t==='eco')),
+ B('🐘','Volle Hütte','Eine einzelne Ladung mit 30 kWh oder mehr',30,'kWh',(c,E)=>Math.max(0,...E.map(e=>+e.kwh||0))),
+ B('🦉','Nachteule','Zwischen 22 und 5 Uhr geladen',1,'Nacht-Ladungen',(c,E)=>cnt(E,e=>hr(e)>=22||hr(e)<5)),
+ B('🐓','Früher Vogel','5× vor 7 Uhr morgens geladen',5,'Früh-Ladungen',(c,E)=>cnt(E,e=>hr(e)>=5&&hr(e)<7)),
+ B('⛄','Winterheld','10 Ladungen im Dezember, Januar oder Februar',10,'Winter-Ladungen',(c,E)=>cnt(E,e=>[11,0,1].includes(mo(e)))),
+ B('🏖️','Sommer-Surfer','10 Ladungen im Juni, Juli oder August',10,'Sommer-Ladungen',(c,E)=>cnt(E,e=>[5,6,7].includes(mo(e)))),
+ B('🎆','Neujahrs-Lader','An Silvester oder Neujahr geladen',1,'Ladungen',(c,E)=>cnt(E,e=>/-(12-31|01-01)T/.test(e.date))),
+ B('🦊','Sparfuchs','Durchschnittspreis unter 35 ct/kWh bei mindestens 10 Ladungen',1,'',(c,E)=>E.length>=10&&c.ok&&c.avg<.35?1:0),
+ B('🪶','Leichtfuß','Gemessener Verbrauch unter 14 kWh/100 km über mindestens 1.000 km',1,'',c=>c.measured&&c.cons<14&&c.kmEq>=1000?1:0),
 ];
-function renderBadges(c){const E=state.charges;$('#badges').innerHTML=BADGES.map(b=>`<div class="badge ${b.t(c,E)?'on':''}"><span class="ic">${b.i}</span><b>${b.n}</b><small>${b.d}</small></div>`).join('')}
+BADGES.forEach(b=>{b.t=(c,E)=>b.f(c,E)>=b.g});
+function renderBadges(c){
+  const E=state.charges;let on=0;
+  const tiles=BADGES.map((b,i)=>{const ok=b.t(c,E);if(ok)on++;return `<button type="button" class="badge ${ok?'on':''}" data-b="${i}" aria-label="${esc(b.n)}">${b.i}</button>`}).join('');
+  $('#badges').innerHTML=`<div class="bsum"><b>${on}</b> von ${BADGES.length} freigeschaltet · antippen für Details</div><div class="bgrid">${tiles}</div>`;
+}
+$('#badges').addEventListener('click',e=>{
+  const t=e.target.closest('[data-b]');if(!t)return;const b=BADGES[+t.dataset.b],c=calc(),v=Math.max(b.f(c,state.charges)||0,0),ok=v>=b.g,p=Math.min(v/b.g,1);
+  $('#bdIc').textContent=b.i;$('#bdIc').classList.toggle('off',!ok);$('#bdN').textContent=b.n;$('#bdD').textContent=b.d;
+  $('#bdBar').style.width=(p*100)+'%';
+  $('#bdP').textContent=ok?'🏆 Freigeschaltet!':b.u?nf(v,v<100&&v%1?1:0)+' von '+nf(b.g,0)+' '+b.u+' ('+nf(p*100,0)+' %)':'Noch nicht geschafft';
+  tick();$('#dBadge').showModal();if(ok)burst(innerWidth/2,innerHeight*.35,50);
+});
 let showAll=false;
 function renderLog(){
   const asc=state.charges.slice().sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
@@ -819,7 +958,7 @@ function persona(E){
 function renderPersona(){
   const el=$('#persona'),r=persona(state.charges);
   if(!r){el.innerHTML='<div class="empty">Ab 3 Ladungen verrate ich dir, was für ein Ladetyp du bist.</div>';return}
-  const rows=[['Zuhause',r.sh.home],['Wechselstrom unterwegs (AC)',r.sh.ac],['Schnellladen (DC)',r.sh.dc],['Gratis geladen',r.sh.free]];
+  const rows=[['Zuhause',r.sh.home],['Wechselstrom unterwegs',r.sh.ac],['Schnellladen (DC)',r.sh.dc],['Gratis geladen',r.sh.free]];
   el.innerHTML=`<div class="persona"><div class="em">${r.p.i}</div><div class="pn disp">${r.p.n}</div><p>${r.p.t}</p></div>`
    +rows.map(x=>`<div class="row" style="grid-template-columns:1fr auto"><div><div class="nm">${x[0]}</div><div class="bar"><i class="${x[0]==='Gratis geladen'?'free':''}" data-w="${Math.max(x[1]*100,x[1]>0?4:0)}"></i></div></div><div class="val">${nf(x[1]*100,0)} %</div></div>`).join('')
    +'<p class="note" style="margin-bottom:0">Reine Spielerei, abgeleitet aus deinen Ladearten (Anteil der Ladungen).</p>';
@@ -854,7 +993,8 @@ function wrapList(p){
 }
 function wrapStats(list){
   const c=calc(),s=state.settings,t=totals(list),r={n:list.length,kwh:t.kwh,cost:t.cost},ok=c.cons>0&&t.kwhWithCost>0;
-  r.km=ok?t.kwhWithCost/c.cons*100:0;r.saved=ok?r.km/100*s.fuelL*s.fuelPrice-t.costWithKwh:0;
+  const first=list.reduce((m,e)=>!m||e.date<m?e.date:m,''),oEnd=lastOdo(list),oStart=lastOdo(state.charges.filter(e=>e.date<first));
+  r.km=oEnd>oStart?oEnd-oStart:(ok?t.kwhWithCost/c.cons*100:0);r.saved=r.km>0?r.km/100*s.fuelL*s.fuelPrice-t.cost:0;
   let ev=0;list.forEach(e=>{if(e.kwh>0)ev+=e.kwh*ef(e).g});
   r.co2=(r.km*s.fuelL/100*s.petrol-ev)/1000;
   const top=f=>{const m={};list.forEach(e=>{const k=(f(e)||'').trim();if(k)m[k]=(m[k]||0)+1});return Object.entries(m).sort((a,b)=>b[1]-a[1])[0]||null};
@@ -982,7 +1122,7 @@ $('#banner').addEventListener('click',e=>{if(e.target.id==='bDemoOff')exitDemo()
 /* ---------- Demo (nur Ansicht, nie gespeichert) ---------- */
 function enterDemo(){
   const P=[['Zuhause','Wallbox','Wallbox zu Hause',.32],['Lidl Zentrum','Lidl','Schnellladen (DC)',0],['EnBW Autobahn','EnBW','Schnellladen (DC)',.59],['Kaufland','Kaufland','Wechselstrom (AC)',0],['Raststätte Süd','Ionity','Schnellladen (DC)',.79],['Zuhause','Wallbox','Wallbox zu Hause',.32],['Aral pulse','Aral pulse','Schnellladen (DC)',.69],['Arbeit','50Five','Wechselstrom (AC)',.33]];
-  const ch=[];let odo=1000;
+  const ch=[];let odo=0;
   for(let i=0;i<16;i++){
     const p=P[i%P.length],kwh=+(8+((i*7)%22)+(i%3)*.7).toFixed(1);odo+=Math.round(kwh/(.138+((i*3)%5)*.004));
     const d=new Date(Date.now()-(16-i)*5.4*864e5);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
@@ -997,17 +1137,21 @@ const dSet=$('#dSet');
 function fillSettings(){
   const s=state.settings;
   $('#sMeasured').checked=s.useMeasured!==false;$('#sEv').value=s.evKwh;$('#sFuel').value=s.fuelL;$('#sPrice').value=s.fuelPrice;
+  $('#sFuelAuto').checked=s.fuelAuto!==false;$('#sPrice').disabled=s.fuelAuto!==false&&!demo;fuelUI();
   $('#sGrid').value=s.grid;$('#sGreen').value=s.green;$('#sPetrol').value=s.petrol;$('#sHomeGreen').checked=!!s.homeGreen;
 }
 $('#bSet').onclick=()=>{fillSettings();provTable();renderMeasured();fillSyncFields();tick();dSet.showModal()};
 $('#sClose').onclick=()=>dSet.close();
 $('#setForm').addEventListener('input',()=>{
   const s=state.settings,f=(id,d)=>{const v=parseFloat($(id).value);return v>=0?v:d};
-  s.useMeasured=$('#sMeasured').checked;s.evKwh=f('#sEv',0);s.fuelL=f('#sFuel',0);s.fuelPrice=f('#sPrice',0);
+  const wasAuto=s.fuelAuto!==false;s.fuelAuto=$('#sFuelAuto').checked;$('#sPrice').disabled=s.fuelAuto;
+  s.useMeasured=$('#sMeasured').checked;s.evKwh=f('#sEv',0);s.fuelL=f('#sFuel',0);if(!s.fuelAuto)s.fuelPrice=f('#sPrice',0);
   s.grid=f('#sGrid',DEFAULTS.grid);s.green=f('#sGreen',DEFAULTS.green);s.petrol=f('#sPetrol',DEFAULTS.petrol);s.homeGreen=$('#sHomeGreen').checked;
   state.settingsUpdated=Date.now();save();render(false);scheduleSync(2500);
+  if(s.fuelAuto&&!wasAuto)updateFuel(true);fuelUI();
 });
-[dAdd,dSet,dAsk,dWrap].forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));
+$('#bdClose').onclick=()=>$('#dBadge').close();
+[dAdd,dSet,dAsk,dWrap,$('#dBadge')].forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));
 
 /* ---------- Sicherung ---------- */
 function msg2(t){$('#msg2').textContent=t}
@@ -1153,6 +1297,191 @@ function initSync(){
   if(syncOn())syncNow();
 }
 
+/* ---------- Benzinpreis automatisch ---------- */
+const FUEL_KEY='ladelog.fuel';
+let fuelCfg={last:0,src:'',stamp:'',err:'',key:'',lat:null,lng:null},fuelBusy=false;
+try{const fr=localStorage.getItem(FUEL_KEY);if(fr)fuelCfg=Object.assign(fuelCfg,JSON.parse(fr))}catch(e){}
+function fuelSaveCfg(){try{localStorage.setItem(FUEL_KEY,JSON.stringify(fuelCfg))}catch(e){}}
+function fuelUI(){
+  const el=$('#fuelStat');if(!el)return;const s=state.settings;
+  if(s.fuelAuto===false){el.textContent='Automatik aus. Du pflegst den Preis selbst.';return}
+  el.textContent=fuelCfg.last?'Zuletzt aktualisiert: '+new Date(fuelCfg.last).toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'})+' · '+nf(s.fuelPrice,3)+' €/l · '+fuelCfg.src+(fuelCfg.err?' · Letzter Versuch fehlgeschlagen: '+fuelCfg.err:'')
+    :(fuelCfg.err?'Abruf fehlgeschlagen: '+fuelCfg.err:'Der Preis wird beim Öffnen der Seite geholt, höchstens alle 12 Stunden.');
+  const tk=$('#tkKey');if(tk){tk.placeholder=fuelCfg.key?'Gespeichert. Zum Ändern neu einfügen.':'00000000-0000-...';$('#tkStat').textContent=fuelCfg.lat!=null?'Standort gespeichert.':''}
+}
+const okPrice=p=>p>0.8&&p<4;
+async function fuelNation(){
+  const r=await fetch('https://www.benzinpreis-aktuell.de/api.v2.php?data=nationwide',{cache:'no-store'});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const j=await r.json(),p=parseFloat(j.e10);if(!okPrice(p))throw new Error('unplausibel');
+  return{p,src:'Ø Deutschland, benzinpreis-aktuell.de'};
+}
+async function fuelTk(){
+  if(!fuelCfg.key||fuelCfg.lat==null)throw new Error('keine Ersatzquelle');
+  const r=await fetch('https://creativecommons.tankerkoenig.de/json/list.php?lat='+fuelCfg.lat+'&lng='+fuelCfg.lng+'&rad=5&sort=dist&type=all&apikey='+encodeURIComponent(fuelCfg.key),{cache:'no-store'});
+  const j=await r.json();if(!j.ok)throw new Error(j.message||'Tankerkönig');
+  const a=(j.stations||[]).map(x=>+x.e10).filter(okPrice).sort((x,y)=>x-y);if(!a.length)throw new Error('keine Preise');
+  return{p:a[Math.floor(a.length/2)],src:'Median 5 km, tankerkoenig.de (CC BY 4.0)'};
+}
+async function updateFuel(force){
+  if(demo||fuelBusy||state.settings.fuelAuto===false)return;
+  if(!force&&Date.now()-fuelCfg.last<12*3600e3)return;
+  if(navigator.onLine===false)return;
+  fuelBusy=true;let res=null;
+  try{res=await fuelNation()}catch(e1){try{res=await fuelTk()}catch(e2){fuelCfg.err=fuelCfg.key?'beide Quellen nicht erreichbar':'Quelle nicht erreichbar (Ersatzquelle unten möglich)'}}
+  fuelBusy=false;
+  if(res&&!demo){
+    const p=Math.round(res.p*1000)/1000;fuelCfg.last=Date.now();fuelCfg.src=res.src;fuelCfg.err='';
+    if(Math.abs(p-state.settings.fuelPrice)>0.0005){state.settings.fuelPrice=p;state.settingsUpdated=Date.now();save();render(false);scheduleSync(2500);if(force)toast('Benzinpreis aktualisiert: '+nf(p,3)+' €/l')}
+    else if(force)toast('Benzinpreis ist aktuell: '+nf(p,3)+' €/l');
+    $('#sPrice').value=state.settings.fuelPrice;
+  }
+  fuelSaveCfg();fuelUI();
+}
+$('#tkKey').addEventListener('change',e=>{const v=e.target.value.trim();if(v){fuelCfg.key=v;fuelSaveCfg();e.target.value='';fuelUI();$('#tkStat').textContent='Schlüssel gespeichert.'}});
+$('#tkLoc').onclick=()=>{
+  if(!navigator.geolocation){$('#tkStat').textContent='Standort wird von diesem Browser nicht unterstützt.';return}
+  navigator.geolocation.getCurrentPosition(p=>{fuelCfg.lat=+p.coords.latitude.toFixed(3);fuelCfg.lng=+p.coords.longitude.toFixed(3);fuelSaveCfg();fuelUI()},()=>{$('#tkStat').textContent='Standort nicht freigegeben.'});
+};
+$('#fuelNow').onclick=()=>{if(state.settings.fuelAuto===false){$('#tkStat').textContent='Bitte zuerst „automatisch aktualisieren“ einschalten.';return}updateFuel(true)};
+
+/* ---------- Ladekarte (Leaflet + OpenStreetMap/Overpass, wird erst beim Öffnen geladen) ---------- */
+const dMap=$('#dMap'),MAP_KEY='ladelog.map';
+const OVP=['https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
+let leafP=null,map=null,mLayer=null,mMe=null,mAcc=null,mTimer=null,mBusy=false,mDcOnly=false,mFitOnly=true,mSeen=new Map();
+function loadLeaflet(){
+  return leafP=leafP||new Promise((res,rej)=>{
+    const l=document.createElement('link');l.rel='stylesheet';l.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';l.integrity='sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';l.crossOrigin='';document.head.appendChild(l);
+    const s=document.createElement('script');s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';s.integrity='sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';s.crossOrigin='';
+    s.onload=()=>window.L?res(window.L):rej();s.onerror=()=>{leafP=null;rej()};document.head.appendChild(s);
+  });
+}
+const SOCK={type2:'Typ 2',type2_cable:'Typ 2 (Kabel)',type2_combo:'CCS',chademo:'CHAdeMO',schuko:'Schuko',tesla_supercharger:'Tesla',tesla_destination:'Tesla Destination',type1:'Typ 1',type1_combo:'CCS Typ 1',cee_blue:'CEE blau',cee_red_16a:'CEE rot 16 A',cee_red_32a:'CEE rot 32 A',type3c:'Typ 3C',nacs:'NACS'};
+const FIT_AC=/^type2(_cable)?$/,FIT_DC=/^type2_combo$/;
+function station(el){
+  const t=el.tags||{},lat=el.lat!=null?el.lat:(el.center||{}).lat,lng=el.lon!=null?el.lon:(el.center||{}).lon;
+  if(lat==null||lng==null)return null;
+  const socks=[];let ac=false,dc=false,fitAc=false,fitDc=false,kwAc=0,kwDc=0;
+  Object.keys(t).forEach(k=>{
+    const m=/^socket:([a-z0-9_]+)$/.exec(k);if(!m||t[k]==='no')return;
+    const kw=parseFloat(String(t['socket:'+m[1]+':output']||'').replace(',','.'))||0;
+    const isDc=/combo|chademo|supercharger|nacs/.test(m[1])||kw>=50,fit=FIT_AC.test(m[1])||FIT_DC.test(m[1]);
+    if(isDc){dc=true;if(FIT_DC.test(m[1])){fitDc=true;kwDc=Math.max(kwDc,kw)}}else{ac=true;if(FIT_AC.test(m[1])){fitAc=true;kwAc=Math.max(kwAc,kw)}}
+    socks.push({n:SOCK[m[1]]||m[1],c:parseInt(t[k])>0?parseInt(t[k]):0,kw,dc:isDc,fit});
+  });
+  const known=socks.length>0;
+  return{id:el.type+el.id,lat,lng,t,op:t.operator||t.brand||t.network||t.name||'Unbekannter Betreiber',socks,ac,dc,fitAc,fitDc,kwAc,kwDc,known,fit:fitAc||fitDc};
+}
+function ownPrice(op){
+  const o=op.toLowerCase(),m=state.charges.filter(e=>{const p=(e.provider||'').trim().toLowerCase();return p.length>=3&&(o.includes(p)||p.includes(o))});
+  if(!m.length)return null;const t=totals(m);
+  return{n:m.length,ct:t.kwhWithCost>0?t.costWithKwh/t.kwhWithCost*100:null};
+}
+function popupHtml(s){
+  const t=s.t,f=ef({provider:s.op,place:t.name||'',type:s.dc&&!s.ac?'Schnellladen (DC)':'Wechselstrom (AC)'},'markt'),own=ownPrice(s.op);
+  const addr=[[t['addr:street'],t['addr:housenumber']].filter(Boolean).join(' '),[t['addr:postcode'],t['addr:city']].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+  const price=t.fee==='no'?'Kostenlos (laut OpenStreetMap)':t.charge?'Preis laut OpenStreetMap: '+t.charge:'Preis: nicht hinterlegt';
+  const sock=s.known?s.socks.map(x=>`${x.fit?'✅':'❌'} <b>${esc(x.n)}</b> <span class="tag ${x.dc?'dc':'ac'}">${x.dc?'DC':'AC'}</span>${x.c?' ×'+x.c:''}${x.kw?' · '+nf(x.kw,0)+' kW':''}`).join('<br>'):'❔ Stecker in den Daten nicht hinterlegt';
+  const fit=!s.known?'Ob der Dolphin Surf hier passt, ist unbekannt. Die meisten öffentlichen Säulen haben Typ 2 oder CCS.'
+    :!s.fit?'Kein passender Anschluss für den Dolphin Surf.'
+    :'Passt für den Dolphin Surf: '+[s.fitAc?'AC über Typ 2 (das Auto lädt mit max. 11 kW)':'',s.fitDc?'DC über CCS (das Auto lädt je nach Variante mit max. 65 oder 85 kW)':''].filter(Boolean).join(' und ')+'.';
+  return `<div class="pp"><b class="t">${esc(t.name&&t.name!==s.op?t.name:s.op)}</b>
+   <div class="s">${esc(s.op)} ${s.ac?'<span class="tag ac">AC</span>':''}${s.dc?'<span class="tag dc">DC</span>':''}<span class="tag ${f.t}">${f.t==='eco'?'ÖKO':'NETZ'}</span></div>
+   ${addr?`<div class="s">${esc(addr)}</div>`:''}
+   <div style="margin-top:4px">${sock}</div>
+   <div class="own" style="border-color:${s.fit?'var(--lime)':s.known?'var(--danger)':'var(--line)'}">${fit}</div>
+   <div class="s">${t.capacity?esc(t.capacity)+' Ladeplätze · ':''}${esc(price)}${t.opening_hours?' · '+esc(t.opening_hours):''}</div>
+   ${own?`<div class="own">Dein Schnitt hier: <b>${own.ct===null?'–':own.ct===0?'gratis':nf(own.ct,1)+' ct/kWh'}</b> (${own.n}× geladen)</div>`:''}
+   <div class="lk"><a href="https://maps.apple.com/?daddr=${s.lat},${s.lng}" target="_blank" rel="noopener">Apple Karten</a><a href="https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}" target="_blank" rel="noopener">Google Maps</a><button type="button" data-log="${esc(s.id)}">Hier loggen</button></div></div>`;
+}
+const mShow=s=>{
+  if(mFitOnly&&s.known&&!s.fit)return false;
+  if(mDcOnly&&!(mFitOnly?s.fitDc:s.dc))return false;
+  return true;
+};
+function drawStations(){
+  if(!map)return{n:0,u:0};mLayer.clearLayers();let n=0,u=0;const b=map.getBounds();
+  mSeen.forEach(s=>{
+    if(!mShow(s))return;
+    const A=mFitOnly?s.fitAc:s.ac,D=mFitOnly?s.fitDc:s.dc,col=!s.known?'#8a8f8a':A&&D?'#ff3df2':D?'#ff7a1a':A?'#b6ff00':'#555';
+    window.L.circleMarker([s.lat,s.lng],{radius:D?7:5,color:'#000',weight:1,fillColor:col,fillOpacity:.9}).bindPopup(()=>popupHtml(s),{maxWidth:290}).addTo(mLayer);
+    if(b.contains([s.lat,s.lng])){n++;if(!s.known)u++}
+  });
+  return{n,u};
+}
+function mapStatus(){
+  const r=drawStations(),dot=(c,l)=>`<span style="color:${c}">●</span> ${l}`;
+  $('#mStat').innerHTML='<b>'+nf(r.n,0)+' Ladestationen</b> im Ausschnitt'+(mFitOnly?', passend für den Dolphin Surf':'')+(mDcOnly?', nur DC':'')+'<br>'+dot('#b6ff00','AC (Typ 2)')+' '+dot('#ff7a1a','DC (CCS)')+' '+dot('#ff3df2','AC + DC')+(r.u?' '+dot('#8a8f8a','Stecker unbekannt ('+r.u+')'):'');
+}
+async function loadStations(){
+  if(!map||mBusy)return;
+  if(map.getZoom()<11){$('#mStat').innerHTML='<b>Zoome näher heran</b>, dann lade ich die Ladestationen im Ausschnitt.';return}
+  const b=map.getBounds(),q='[out:json][timeout:25];nwr["amenity"="charging_station"]('+[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(v=>v.toFixed(5)).join(',')+');out center tags;';
+  mBusy=true;$('#mStat').textContent='Lade Ladestationen …';let data=null;
+  for(const u of OVP){
+    try{
+      const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),28000);
+      const r=await fetch(u,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ctl.signal});
+      clearTimeout(to);if(!r.ok)continue;data=await r.json();break;
+    }catch(e){}
+  }
+  mBusy=false;
+  if(!data||!Array.isArray(data.elements)){$('#mStat').innerHTML='<b>Ladestationen konnten nicht geladen werden.</b> Karte kurz bewegen, dann versuche ich es erneut.';return}
+  if(mSeen.size>8000)mSeen.clear();
+  data.elements.forEach(el=>{const s=station(el);if(s)mSeen.set(s.id,s)});
+  mapStatus();
+}
+function locateMe(){
+  if(!map)return;
+  if(!navigator.geolocation){$('#mStat').innerHTML='<b>Dieser Browser unterstützt keinen Standort.</b>';return}
+  $('#mStat').textContent='Suche deinen Standort …';$('#mLoc').classList.add('s-busy');
+  map.locate({setView:true,maxZoom:14,enableHighAccuracy:true,timeout:12000,maximumAge:60000});
+}
+async function openMap(){
+  tick();dMap.showModal();
+  if(map){setTimeout(()=>map.invalidateSize(),60);return}
+  let L;try{L=await loadLeaflet()}catch(e){$('#mStat').innerHTML='<b>Die Karte konnte nicht geladen werden.</b> In der Chat-Vorschau ist sie gesperrt, auf deiner echten Seite brauchst du eine Internetverbindung.';return}
+  let view=null;try{view=JSON.parse(localStorage.getItem(MAP_KEY))}catch(e){}
+  map=L.map('mapBox',{preferCanvas:true,zoomControl:true}).setView(view&&view.c?view.c:[51.2,10.4],view&&view.z?view.z:6);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+  mLayer=L.layerGroup().addTo(map);
+  map.on('moveend',()=>{
+    try{const c=map.getCenter();localStorage.setItem(MAP_KEY,JSON.stringify({c:[+c.lat.toFixed(4),+c.lng.toFixed(4)],z:map.getZoom()}))}catch(e){}
+    clearTimeout(mTimer);mTimer=setTimeout(loadStations,700);
+  });
+  map.on('locationfound',e=>{$('#mLoc').classList.remove('s-busy');$('#mLoc').classList.add('on');if(mMe)mMe.remove();if(mAcc)mAcc.remove();
+    mAcc=L.circle(e.latlng,{radius:Math.min(e.accuracy||0,400),color:'#27f0ff',weight:1,fillColor:'#27f0ff',fillOpacity:.12,interactive:false}).addTo(map);
+    mMe=L.circleMarker(e.latlng,{radius:8,color:'#fff',weight:3,fillColor:'#27f0ff',fillOpacity:1,interactive:false}).addTo(map)});
+  map.on('locationerror',e=>{$('#mLoc').classList.remove('s-busy','on');$('#mStat').innerHTML=e&&e.code===1?'<b>Standort nicht freigegeben.</b> Erlaube ihn für diese Seite: iPhone-Einstellungen → Datenschutz &amp; Sicherheit → Ortungsdienste → Safari-Websites (bzw. „Ladelog“) → „Beim Verwenden“. Danach 📍 antippen.':'<b>Standort gerade nicht verfügbar.</b> Tippe 📍 für einen neuen Versuch oder verschiebe die Karte selbst.'});
+  setTimeout(()=>{map.invalidateSize();locateMe()},80);
+}
+$('#mOpen').onclick=openMap;
+$('#mClose').onclick=()=>dMap.close();
+$('#mLoc').onclick=locateMe;
+$('#mDc').onclick=()=>{mDcOnly=!mDcOnly;$('#mDc').classList.toggle('on',mDcOnly);if(map&&mSeen.size)mapStatus()};
+$('#mFit').onclick=()=>{mFitOnly=!mFitOnly;$('#mFit').classList.toggle('on',mFitOnly);if(map&&mSeen.size)mapStatus()};
+$('#mapBox').addEventListener('click',e=>{
+  const b=e.target.closest('[data-log]');if(!b)return;const s=mSeen.get(b.dataset.log);if(!s)return;
+  dMap.close();openAdd();$('#fPlace').value=s.t.name&&s.t.name!==s.op?s.t.name:s.op+(s.t['addr:city']?' '+s.t['addr:city']:'');$('#fProv').value=s.op==='Unbekannter Betreiber'?'':s.op;
+  $('#fType').value=s.dc&&!s.ac?'Schnellladen (DC)':'Wechselstrom (AC)';prev();
+});
+
+/* ---------- Pull-to-Refresh ---------- */
+(()=>{
+  const ptr=$('#ptr');let y0=null,dy=0;
+  addEventListener('touchstart',e=>{y0=(scrollY<=0&&e.touches.length===1&&!document.querySelector('dialog[open]'))?e.touches[0].clientY:null;dy=0;ptr.classList.remove('back')},{passive:true});
+  addEventListener('touchmove',e=>{
+    if(y0===null)return;dy=e.touches[0].clientY-y0;
+    if(dy<=0||scrollY>0){y0=null;ptr.style.transform='';return}
+    ptr.style.transform='translateY('+(Math.min(dy*.45,80)-66)+'px) rotate('+dy*1.5+'deg)';ptr.classList.toggle('ready',dy>150);
+  },{passive:true});
+  addEventListener('touchend',()=>{
+    if(y0!==null&&dy>150){ptr.classList.add('spin');try{sessionStorage.setItem('ladelog.force','1')}catch(e){}tick();setTimeout(()=>location.reload(),450)}
+    else{ptr.classList.add('back');ptr.style.transform='';ptr.classList.remove('ready')}
+    y0=null;
+  });
+})();
+
 /* ---------- Eigene Fotos (optional, Ordner „bilder“) ---------- */
 function tryPhoto(key,base){
   const exts=['jpg','jpeg','png','webp'];let i=0;
@@ -1183,6 +1512,9 @@ if(matchMedia('(hover:hover)').matches)document.querySelectorAll('.tilt').forEac
 
 /* ---------- Start ---------- */
 tickInit();fillSettings();render(true);initSync();
+let forceF=false;try{forceF=sessionStorage.getItem('ladelog.force')==='1';sessionStorage.removeItem('ladelog.force')}catch(e){}
+updateFuel(forceF);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')updateFuel(false)});
 tryPhoto('ev','dolphin');tryPhoto('fuel','ibiza');
 })();
 </script>
