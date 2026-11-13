@@ -1381,10 +1381,10 @@ function station(el,src){
   Object.keys(t).forEach(k=>{
     const m=/^socket:([a-z0-9_]+)$/.exec(k);if(!m||t[k]==='no')return;
     const kw=parseFloat(String(t['socket:'+m[1]+':output']||'').replace(',','.'))||0;
-    socks.push({n:SOCK[m[1]]||m[1],c:parseInt(t[k])>0?parseInt(t[k]):0,kw,dc:/combo|chademo|supercharger|nacs/.test(m[1])||kw>=50,fit:FIT_AC.test(m[1])||FIT_DC.test(m[1])});
+    socks.push({n:SOCK[m[1]]||(/^other/.test(m[1])?'Sonstiger Anschluss':m[1]),c:parseInt(t[k])>0?parseInt(t[k]):0,kw,dc:/combo|chademo|supercharger|nacs/.test(m[1])||kw>=50,fit:FIT_AC.test(m[1])||FIT_DC.test(m[1])});
   });
   const tt={};TKEEP.forEach(k=>{if(t[k])tt[k]=t[k]});
-  return fin({id:el.type+el.id,src:src||'osm',lat,lng,t:tt,edited:el.timestamp||'',op:t.operator||t.brand||t.network||t.name||'Unbekannter Betreiber',socks});
+  return fin({id:el.type+el.id,src:el.type==='ocm'?'ocm':(src||'osm'),lat,lng,t:tt,edited:el.timestamp||'',op:t.operator||t.brand||t.network||t.name||'Unbekannter Betreiber',socks});
 }
 const OCMT={25:'Typ 2',1036:'Typ 2 (Kabel)',33:'CCS',2:'CHAdeMO',28:'Schuko',27:'Tesla',30:'Tesla',1:'Typ 1',32:'CCS Typ 1'};
 function ocmStation(p){
@@ -1396,7 +1396,7 @@ function ocmStation(p){
   if(p.StatusType&&p.StatusType.IsOperational===false)t.off='1';
   return fin({id:'ocm'+p.ID,src:'ocm',lat:a.Latitude,lng:a.Longitude,t,edited:p.DateLastStatusUpdate||'',op:(p.OperatorInfo&&p.OperatorInfo.Title)||a.Title||'Unbekannter Betreiber',socks});
 }
-const SRCN={snap:'OpenStreetMap (Tagesdaten)',osm:'OpenStreetMap',ocm:'Open Charge Map'};
+const SRCN={snap:'OpenStreetMap (Tagesdaten aus deinem Repo)',osm:'OpenStreetMap',ocm:'Open Charge Map'};
 function ownPrice(op){
   const o=op.toLowerCase(),m=state.charges.filter(e=>{const p=(e.provider||'').trim().toLowerCase();return p.length>=3&&(o.includes(p)||p.includes(o))});
   if(!m.length)return null;const t=totals(m);
@@ -1468,7 +1468,7 @@ function ovpRace(q){
 }
 async function snapCheck(){
   if(snap!==null)return snap;
-  try{const j=await getJson('ladepunkte/stand.json?d='+new Date().toISOString().slice(0,10),8000);if(!j||!j.t)throw new Error('Format');snap=j;mSt.snap='✓ aktiv, Stand '+mDate(j.t)+' ('+nf(j.n||0,0)+' Stationen)'}
+  try{const j=await getJson('ladepunkte/stand.json?d='+new Date().toISOString().slice(0,10),8000);if(!j||!j.t)throw new Error('Format');snap=j;mSt.snap='✓ aktiv, Stand '+mDate(j.t)+' · '+(j.ok||'?')+' von '+(j.tiles||j.boxes||'?')+' Kacheln erneuert'+(j.ocm?', davon '+j.ocm+' über Open Charge Map':'')+(j.missing&&j.missing.length?' · nicht erneuert: '+j.missing.length:'')}
   catch(e){snap=false;mSt.snap=e&&e.message==='HTTP 404'?'nicht eingerichtet (Datei ladekarte.yml fehlt im Repo oder lief noch nicht)':'✗ '+errTxt(e)}
   return snap;
 }
