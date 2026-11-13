@@ -1,6 +1,11 @@
-# Holt einmal täglich alle Ladestationen in Deutschland aus OpenStreetMap
-# und legt sie als kleine Dateien im Ordner "ladepunkte" ab.
+# Holt einmal täglich alle Ladestationen in Deutschland und legt sie
+# als kleine Dateien im Ordner "ladepunkte" ab.
 # Ablageort dieser Datei im Repo:  .github/workflows/ladekarte.yml
+#
+# Quelle 1: OpenStreetMap (drei Overpass-Server, kleine 1°-Kacheln)
+# Quelle 2: Open Charge Map – nur für Kacheln, bei denen OpenStreetMap
+#           nicht antwortet. Dafür im Repo unter Settings → Secrets and
+#           variables → Actions ein Secret "OCM_KEY" anlegen (optional).
 name: Ladekarte aktualisieren
 
 on:
@@ -22,13 +27,18 @@ jobs:
 
       - name: Ladepunkte holen
         timeout-minutes: 45
+        env:
+          OCM_KEY: ${{ secrets.OCM_KEY }}
         run: |
           python3 -u - <<'PY'
           import datetime, json, os, sys, time, urllib.parse, urllib.request
-          START = time.time()
-          BUDGET = 38 * 60  # danach geordnet aufhören und speichern
-          left = lambda: BUDGET - (time.time() - START)
 
+          START = time.time()
+          BUDGET = 38 * 60
+          left = lambda: BUDGET - (time.time() - START)
+          mins = lambda: int((time.time() - START) // 60)
+          UA = {'User-Agent': 'Ladelog-Ladekarte/2.0 (privates GitHub-Pages-Projekt)'}
+          OCM_KEY = os.environ.get('OCM_KEY', '').strip()
           SERVERS = [
               'https://overpass-api.de/api/interpreter',
               'https://overpass.private.coffee/api/interpreter',
@@ -38,91 +48,138 @@ jobs:
                   'opening_hours', 'check_date', 'addr:street', 'addr:housenumber',
                   'addr:postcode', 'addr:city'}
           OUT = 'ladepunkte'
-          LATS = [(47, 49), (49, 51), (51, 53), (53, 56)]
-          LONS = [(5, 7), (7, 9), (9, 11), (11, 13), (13, 16)]
+          os.makedirs(OUT, exist_ok=True)
 
-          def fetch(box):
-              q = ('[out:json][timeout:90];(node["amenity"="charging_station"](%s);'
+          # 1°-Kacheln über Deutschland, nach Entfernung zu Berlin sortiert
+          TILES = [(la, lo) for la in range(47, 55) for lo in range(5, 15)]
+          TILES.sort(key=lambda t: (t[0] + .5 - 52.5) ** 2 + ((t[1] + .5 - 13.4) * .6) ** 2)
+
+          def overpass(la, lo, attempt):
+              box = '%d,%d,%d,%d' % (la, lo, la + 1, lo + 1)
+              q = ('[out:json][timeout:40];(node["amenity"="charging_station"](%s);'
                    'way["amenity"="charging_station"](%s););out center meta;' % (box, box))
-              body = urllib.parse.urlencode({'data': q}).encode()
-              for attempt in range(4):
-                  if left() < 120:
-                      print('  Zeitbudget fast aufgebraucht, höre auf')
-                      return None
-                  url = SERVERS[attempt % len(SERVERS)]
+              url = SERVERS[attempt % len(SERVERS)]
+              req = urllib.request.Request(url, data=urllib.parse.urlencode({'data': q}).encode(), headers=UA)
+              with urllib.request.urlopen(req, timeout=50) as r:
+                  j = json.load(r)
+              if not isinstance(j.get('elements'), list):
+                  raise ValueError('unerwartete Antwort: ' + str(j.get('remark', ''))[:100])
+              out = []
+              for el in j['elements']:
+                  lat = el.get('lat', (el.get('center') or {}).get('lat'))
+                  lon = el.get('lon', (el.get('center') or {}).get('lon'))
+                  if lat is None or lon is None:
+                      continue
+                  tags = {k: v for k, v in (el.get('tags') or {}).items() if k in KEEP or k.startswith('socket:')}
+                  out.append({'type': el['type'], 'id': el['id'], 'lat': round(lat, 6), 'lon': round(lon, 6),
+                              'timestamp': (el.get('timestamp') or '')[:10], 'tags': tags})
+              return out, (j.get('osm3s') or {}).get('timestamp_osm_base')
+
+          OCM_SOCK = {25: 'type2', 1036: 'type2_cable', 33: 'type2_combo', 2: 'chademo', 28: 'schuko',
+                      27: 'tesla_supercharger', 30: 'tesla_supercharger', 1: 'type1', 32: 'type1_combo'}
+
+          def ocm(la, lo):
+              url = ('https://api.openchargemap.io/v3/poi/?output=json&maxresults=5000&compact=true&verbose=false'
+                     '&boundingbox=(%d,%d),(%d,%d)' % (la + 1, lo, la, lo + 1))
+              req = urllib.request.Request(url, headers=dict(UA, **{'X-API-Key': OCM_KEY}))
+              with urllib.request.urlopen(req, timeout=60) as r:
+                  arr = json.load(r)
+              if not isinstance(arr, list):
+                  raise ValueError('unerwartete Antwort')
+              out = []
+              for p in arr:
+                  a = p.get('AddressInfo') or {}
+                  if a.get('Latitude') is None or a.get('Longitude') is None:
+                      continue
+                  tags = {}
+                  for c in p.get('Connections') or []:
+                      s = OCM_SOCK.get(c.get('ConnectionTypeID'), 'other_%s' % c.get('ConnectionTypeID'))
+                      tags['socket:' + s] = str(int(tags.get('socket:' + s, 0)) + max(int(c.get('Quantity') or 1), 1))
+                      kw = c.get('PowerKW') or 0
+                      if kw and kw > float(str(tags.get('socket:%s:output' % s, '0 kW')).split()[0]):
+                          tags['socket:%s:output' % s] = '%g kW' % kw
+                  for k, v in (('name', a.get('Title')), ('addr:street', a.get('AddressLine1')),
+                               ('addr:postcode', a.get('Postcode')), ('addr:city', a.get('Town')),
+                               ('charge', p.get('UsageCost')), ('capacity', p.get('NumberOfPoints')),
+                               ('operator', (p.get('OperatorInfo') or {}).get('Title'))):
+                      if v:
+                          tags[k] = str(v)
+                  out.append({'type': 'ocm', 'id': p.get('ID'), 'lat': round(a['Latitude'], 6),
+                              'lon': round(a['Longitude'], 6),
+                              'timestamp': str(p.get('DateLastStatusUpdate') or '')[:10], 'tags': tags})
+              return out
+
+          def save(la, lo, els):
+              els.sort(key=lambda e: (e['type'], e['id']))
+              with open('%s/%d_%d.json' % (OUT, la, lo), 'w', encoding='utf-8') as f:
+                  f.write('[\n' + ',\n'.join(json.dumps(e, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
+                                            for e in els) + '\n]\n')
+
+          done, stamps, total, via_ocm = {}, [], 0, 0
+          print('%d Kacheln. Open Charge Map als Ersatz: %s' % (len(TILES), 'ja' if OCM_KEY else 'nein (kein Secret OCM_KEY)'))
+
+          def try_osm(la, lo, tries, offset):
+              global total
+              for a in range(tries):
+                  if left() < 60:
+                      return False
                   t0 = time.time()
                   try:
-                      req = urllib.request.Request(url, data=body, headers={
-                          'User-Agent': 'Ladelog-Ladekarte/1.0 (privates GitHub-Pages-Projekt)'})
-                      with urllib.request.urlopen(req, timeout=110) as r:
-                          j = json.load(r)
-                      if isinstance(j.get('elements'), list):
-                          return j
-                      print('  Versuch %d bei %s: unerwartete Antwort (%s)' % (attempt + 1, url, str(j.get('remark', ''))[:120]))
+                      els, ts = overpass(la, lo, a + offset)
+                      save(la, lo, els); done[(la, lo)] = 1; total += len(els)
+                      if ts: stamps.append(ts)
+                      print('[%2d min] %d_%d: %d Stationen' % (mins(), la, lo, len(els)))
+                      return True
                   except Exception as e:
-                      print('  Versuch %d bei %s nach %d s: %s' % (attempt + 1, url, time.time() - t0, e))
-                  time.sleep(5 + attempt * 5)
-              return None
+                      print('[%2d min] %d_%d: OSM-Versuch %d nach %d s fehlgeschlagen (%s)' % (mins(), la, lo, a + 1, time.time() - t0, e))
+                      time.sleep(2 + a * 3)
+              return False
 
-          def slim(el):
-              lat = el.get('lat', (el.get('center') or {}).get('lat'))
-              lon = el.get('lon', (el.get('center') or {}).get('lon'))
-              if lat is None or lon is None:
-                  return None
-              tags = {k: v for k, v in (el.get('tags') or {}).items()
-                      if k in KEEP or k.startswith('socket:')}
-              return {'type': el['type'], 'id': el['id'], 'lat': round(lat, 6), 'lon': round(lon, 6),
-                      'timestamp': (el.get('timestamp') or '')[:10], 'tags': tags}
+          def try_ocm(la, lo):
+              global total, via_ocm
+              if not OCM_KEY or left() < 20:
+                  return False
+              try:
+                  els = ocm(la, lo); save(la, lo, els); done[(la, lo)] = 1; total += len(els); via_ocm += 1
+                  print('[%2d min] %d_%d: %d Stationen (Open Charge Map)' % (mins(), la, lo, len(els)))
+                  return True
+              except Exception as e:
+                  print('[%2d min] %d_%d: Open Charge Map fehlgeschlagen (%s)' % (mins(), la, lo, e))
+                  return False
 
-          os.makedirs(OUT, exist_ok=True)
-          ok = total = 0
-          stamps = []
-          # Berlin/Brandenburg zuerst, damit die eigene Gegend auch bei kurzen Läufen dabei ist
-          ORDER = sorted(((la, lo) for la in LATS for lo in LONS), key=lambda p: (p != ((51, 53), (13, 16)),))
-          for (la0, la1), (lo0, lo1) in ORDER:
-              if True:
-                  box = '%d,%d,%d,%d' % (la0, lo0, la1, lo1)
-                  print('[%2d min] Bereich %s' % ((time.time() - START) // 60, box))
-                  j = fetch(box)
-                  if j is None:
-                      print('  übersprungen, alte Dateien bleiben erhalten')
-                      continue
-                  ok += 1
-                  ts = (j.get('osm3s') or {}).get('timestamp_osm_base')
-                  if ts:
-                      stamps.append(ts)
-                  tiles = {(la, lo): [] for la in range(la0, la1) for lo in range(lo0, lo1)}
-                  for el in j['elements']:
-                      s = slim(el)
-                      if not s:
-                          continue
-                      key = (int(s['lat'] // 1), int(s['lon'] // 1))
-                      if key in tiles:
-                          tiles[key].append(s)
-                  for (la, lo), els in tiles.items():
-                      els.sort(key=lambda e: (e['type'], e['id']))
-                      total += len(els)
-                      with open('%s/%d_%d.json' % (OUT, la, lo), 'w', encoding='utf-8') as f:
-                          f.write('[\n' + ',\n'.join(json.dumps(e, ensure_ascii=False, sort_keys=True,
-                                                                 separators=(',', ':')) for e in els) + '\n]\n')
-                  print('  %d Stationen' % len(j['elements']))
-                  time.sleep(5)
+          # Durchgang 1: zwei OSM-Server, sonst sofort Open Charge Map
+          for la, lo in TILES:
+              if left() < 60:
+                  break
+              if not try_osm(la, lo, 2, la + lo):
+                  try_ocm(la, lo)
+              time.sleep(1)
+          # Durchgang 2: übrige Kacheln nochmal bei OSM
+          todo = [t for t in TILES if t not in done]
+          if todo and left() > 120:
+              print('--- Durchgang 2: %d Kacheln ---' % len(todo))
+              time.sleep(15)
+              for la, lo in todo:
+                  try_osm(la, lo, 3, la + lo + 2)
 
-          boxes = len(LATS) * len(LONS)
-          print('Fertig: %d von %d Bereichen neu geladen, %d Stationen' % (ok, boxes, total))
-          if ok == 0:
-              sys.exit('Kein Bereich konnte geladen werden. Die OpenStreetMap-Server haben nicht geantwortet.')
+          rest = ['%d_%d' % t for t in TILES if t not in done]
+          print('Fertig nach %d min: %d von %d Kacheln neu (%d über Open Charge Map), %d Stationen.' % (mins(), len(done), len(TILES), via_ocm, total))
+          if rest:
+              print('Nicht erneuert (alte Dateien bleiben): ' + ', '.join(rest))
+          if not done:
+              sys.exit('Keine Kachel konnte geladen werden.')
           with open(OUT + '/stand.json', 'w', encoding='utf-8') as f:
               json.dump({'t': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
-                         'osm': min(stamps) if stamps else '', 'n': total, 'ok': ok, 'boxes': boxes}, f)
+                         'osm': min(stamps) if stamps else '', 'n': total, 'ok': len(done), 'tiles': len(TILES),
+                         'ocm': via_ocm, 'missing': rest}, f)
           PY
 
       - name: Speichern
         if: always()
         run: |
+          [ -d ladepunkte ] || { echo "Nichts zu speichern"; exit 0; }
           git config user.name "ladelog-bot"
           git config user.email "ladelog-bot@users.noreply.github.com"
-          [ -d ladepunkte ] || { echo "Nichts zu speichern"; exit 0; }
           git add ladepunkte
           if git diff --cached --quiet; then
             echo "Keine Änderung"
