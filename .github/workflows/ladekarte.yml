@@ -16,14 +16,18 @@ concurrency: ladekarte
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 58
     steps:
       - uses: actions/checkout@v4
 
       - name: Ladepunkte holen
+        timeout-minutes: 45
         run: |
-          python3 - <<'PY'
+          python3 -u - <<'PY'
           import datetime, json, os, sys, time, urllib.parse, urllib.request
+          START = time.time()
+          BUDGET = 38 * 60  # danach geordnet aufhören und speichern
+          left = lambda: BUDGET - (time.time() - START)
 
           SERVERS = [
               'https://overpass-api.de/api/interpreter',
@@ -38,22 +42,26 @@ jobs:
           LONS = [(5, 7), (7, 9), (9, 11), (11, 13), (13, 16)]
 
           def fetch(box):
-              q = ('[out:json][timeout:170];(node["amenity"="charging_station"](%s);'
+              q = ('[out:json][timeout:90];(node["amenity"="charging_station"](%s);'
                    'way["amenity"="charging_station"](%s););out center meta;' % (box, box))
               body = urllib.parse.urlencode({'data': q}).encode()
-              for attempt in range(6):
+              for attempt in range(4):
+                  if left() < 120:
+                      print('  Zeitbudget fast aufgebraucht, höre auf')
+                      return None
                   url = SERVERS[attempt % len(SERVERS)]
+                  t0 = time.time()
                   try:
                       req = urllib.request.Request(url, data=body, headers={
                           'User-Agent': 'Ladelog-Ladekarte/1.0 (privates GitHub-Pages-Projekt)'})
-                      with urllib.request.urlopen(req, timeout=200) as r:
+                      with urllib.request.urlopen(req, timeout=110) as r:
                           j = json.load(r)
                       if isinstance(j.get('elements'), list):
                           return j
-                      print('  unerwartete Antwort von', url)
+                      print('  Versuch %d bei %s: unerwartete Antwort (%s)' % (attempt + 1, url, str(j.get('remark', ''))[:120]))
                   except Exception as e:
-                      print('  Versuch %d bei %s: %s' % (attempt + 1, url, e))
-                  time.sleep(10 + attempt * 8)
+                      print('  Versuch %d bei %s nach %d s: %s' % (attempt + 1, url, time.time() - t0, e))
+                  time.sleep(5 + attempt * 5)
               return None
 
           def slim(el):
@@ -69,10 +77,12 @@ jobs:
           os.makedirs(OUT, exist_ok=True)
           ok = total = 0
           stamps = []
-          for la0, la1 in LATS:
-              for lo0, lo1 in LONS:
+          # Berlin/Brandenburg zuerst, damit die eigene Gegend auch bei kurzen Läufen dabei ist
+          ORDER = sorted(((la, lo) for la in LATS for lo in LONS), key=lambda p: (p != ((51, 53), (13, 16)),))
+          for (la0, la1), (lo0, lo1) in ORDER:
+              if True:
                   box = '%d,%d,%d,%d' % (la0, lo0, la1, lo1)
-                  print('Bereich', box)
+                  print('[%2d min] Bereich %s' % ((time.time() - START) // 60, box))
                   j = fetch(box)
                   if j is None:
                       print('  übersprungen, alte Dateien bleiben erhalten')
@@ -99,18 +109,20 @@ jobs:
                   time.sleep(5)
 
           boxes = len(LATS) * len(LONS)
-          print('Fertig: %d von %d Bereichen, %d Stationen' % (ok, boxes, total))
+          print('Fertig: %d von %d Bereichen neu geladen, %d Stationen' % (ok, boxes, total))
           if ok == 0:
-              sys.exit('Kein Bereich konnte geladen werden.')
+              sys.exit('Kein Bereich konnte geladen werden. Die OpenStreetMap-Server haben nicht geantwortet.')
           with open(OUT + '/stand.json', 'w', encoding='utf-8') as f:
               json.dump({'t': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
                          'osm': min(stamps) if stamps else '', 'n': total, 'ok': ok, 'boxes': boxes}, f)
           PY
 
       - name: Speichern
+        if: always()
         run: |
           git config user.name "ladelog-bot"
           git config user.email "ladelog-bot@users.noreply.github.com"
+          [ -d ladepunkte ] || { echo "Nichts zu speichern"; exit 0; }
           git add ladepunkte
           if git diff --cached --quiet; then
             echo "Keine Änderung"
