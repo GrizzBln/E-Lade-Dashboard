@@ -1,0 +1,4 @@
+[
+{"id":"r1129410","lat":54.32459,"lon":7.36405,"src":"r","tags":{"addr:city":"Wendlingen am Neckar","addr:housenumber":"40","addr:postcode":"73240","addr:street":"Bahnhofstr.","capacity":"301","name":"amba operations","operator":"amba operations GmbH","payment":"Onlinezahlungsverfahren","posts":"188","socket:type2":"301","socket:type2:output":"22 kW","start":"2025-05"}},
+{"id":"r1158983","lat":54.5,"lon":7.5,"src":"r","tags":{"addr:city":"Monheim am Rhein","addr:housenumber":"7","addr:postcode":"40789","addr:street":"Hans-Scholl-Str.","capacity":"6","name":"MEGA Grüne Energien","opening_hours":"24/7","operator":"MEGA Grüne Energien GmbH & Co. KG","payment":"Onlinezahlungsverfahren;RFID-Karte","posts":"3","socket:type2":"6","socket:type2:output":"22 kW","start":"2024-11"}}
+]

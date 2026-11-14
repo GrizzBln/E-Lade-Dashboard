@@ -1,0 +1,10 @@
+[
+{"id":"on13130398726","lat":53.457029,"lon":6.832209,"src":"o","tags":{"capacity":"1","osm":"2026-06"}},
+{"id":"on13130398727","lat":53.457069,"lon":6.832029,"src":"o","tags":{"capacity":"2","osm":"2026-06"}},
+{"id":"on13130398728","lat":53.457113,"lon":6.832051,"src":"o","tags":{"capacity":"2","osm":"2026-06"}},
+{"id":"on13130398729","lat":53.457156,"lon":6.83207,"src":"o","tags":{"capacity":"2","osm":"2026-06"}},
+{"id":"on7832307382","lat":53.585221,"lon":6.66231,"src":"o","tags":{"capacity":"2","fee":"yes","opening_hours":"24/7","operator":"EWE","osm":"2026-10","socket:type2":"2"}},
+{"id":"on8201399444","lat":53.592344,"lon":6.662862,"src":"o","tags":{"capacity":"2","fee":"yes","opening_hours":"24/7","operator":"EWE Go","osm":"2026-10","socket:type2":"2"}},
+{"id":"r1021360","lat":53.582404,"lon":6.666287,"src":"r","tags":{"addr:city":"Borkum","addr:housenumber":"1","addr:postcode":"26757","addr:street":"Ankerstraße","capacity":"2","operator":"EWE Go GmbH","socket:type2":"2","socket:type2:output":"22 kW","start":"2019-08"}},
+{"id":"r1163815","lat":53.563413,"lon":6.751914,"src":"r","tags":{"addr:city":"Borkum","addr:housenumber":"29","addr:postcode":"26757","addr:street":"Am Nordufer","capacity":"4","opening_hours":"24/7","operator":"EWE Go GmbH","payment":"RFID-Karte;Onlinezahlungsverfahren","posts":"4","socket:type2":"4","socket:type2:output":"22 kW","start":"2022-06"}}
+]
