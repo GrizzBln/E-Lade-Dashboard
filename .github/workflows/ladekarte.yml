@@ -1,17 +1,22 @@
-# Holt einmal täglich alle Ladestationen in Deutschland und legt sie
-# als kleine Dateien im Ordner "ladepunkte" ab.
+# Baut einmal täglich die Ladekarte für Ladelog und legt sie im Ordner "ladepunkte" ab.
 # Ablageort dieser Datei im Repo:  .github/workflows/ladekarte.yml
 #
-# Quelle 1: OpenStreetMap (drei Overpass-Server, kleine 1°-Kacheln)
-# Quelle 2: Open Charge Map – nur für Kacheln, bei denen OpenStreetMap
-#           nicht antwortet. Dafür im Repo unter Settings → Secrets and
-#           variables → Actions ein Secret "OCM_KEY" anlegen (optional).
+# Quellen:
+#   1. Ladesäulenregister der Bundesnetzagentur (amtlich: Betreiber, Stecker, Leistung, Inbetriebnahme)
+#   2. OpenStreetMap, kompletter Deutschland-Abzug von Geofabrik (genaue Position, Öffnungszeiten, Zusatzangaben)
+#   3. Open Charge Map (optional, Secret OCM_KEY): aktuelle Preisangaben
+# Die Quellen werden zu einem Datensatz ohne Dubletten abgeglichen.
 name: Ladekarte aktualisieren
 
 on:
   schedule:
     - cron: '23 2 * * *'
   workflow_dispatch:
+    inputs:
+      alles:
+        description: 'Alle Quellen komplett neu laden'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -21,169 +26,760 @@ concurrency: ladekarte
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 58
+    timeout-minutes: 90
+    env:
+      FORCE: ${{ inputs.alles }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Ladepunkte holen
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Plan (OpenStreetMap wird einmal pro Woche neu geholt)
+        id: plan
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import datetime, json, os
+          need = 1
+          try:
+              m = json.loads(open('ladepunkte/_osm.jsonl', encoding='utf-8').readline())
+              age = (datetime.date.today() - datetime.date.fromisoformat(m['t'])).days
+              if age < 6 and os.environ.get('FORCE') != 'true':
+                  need = 0
+          except Exception:
+              pass
+          print('osm=%d' % need)
+          PY
+          cat "$GITHUB_OUTPUT"
+
+      - name: OpenStreetMap-Gesamtabzug laden und filtern
+        if: steps.plan.outputs.osm == '1'
+        continue-on-error: true
+        timeout-minutes: 45
+        run: |
+          set -e
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq osmium-tool
+          cd /tmp
+          echo "Lade Deutschland-Abzug von Geofabrik (ca. 4,5 GB) ..."
+          curl -fsSL --retry 3 --retry-delay 30 --connect-timeout 30 --max-time 2400 -o de.osm.pbf https://download.geofabrik.de/europe/germany-latest.osm.pbf
+          ls -la de.osm.pbf
+          osmium fileinfo -g header.option.osmosis_replication_timestamp de.osm.pbf > osm_date.txt 2>/dev/null || true
+          echo "Datenstand: $(cat osm_date.txt)"
+          osmium tags-filter de.osm.pbf nw/amenity=charging_station -o cs.osm.pbf --overwrite
+          osmium cat cs.osm.pbf -f opl -o osm.opl --overwrite
+          rm -f de.osm.pbf
+          echo "Zeilen im Auszug: $(wc -l < osm.opl)"
+
+      - name: Excel-Leser bereitstellen
+        continue-on-error: true
+        run: python3 -m pip install --quiet openpyxl
+
+      - name: Ladekarte bauen
         timeout-minutes: 45
         env:
           OCM_KEY: ${{ secrets.OCM_KEY }}
         run: |
           python3 -u - <<'PY'
-          import datetime, json, os, sys, time, urllib.parse, urllib.request
+          import csv, datetime, html as htmllib, io, json, math, os, re, sys, time, urllib.parse, urllib.request, zlib
 
-          START = time.time()
-          BUDGET = 38 * 60
-          left = lambda: BUDGET - (time.time() - START)
-          mins = lambda: int((time.time() - START) // 60)
-          UA = {'User-Agent': 'Ladelog-Ladekarte/2.0 (privates GitHub-Pages-Projekt)'}
-          OCM_KEY = os.environ.get('OCM_KEY', '').strip()
-          SERVERS = [
-              'https://overpass-api.de/api/interpreter',
-              'https://overpass.private.coffee/api/interpreter',
-              'https://overpass.kumi.systems/api/interpreter',
-          ]
-          KEEP = {'operator', 'brand', 'network', 'name', 'capacity', 'fee', 'charge',
-                  'opening_hours', 'check_date', 'addr:street', 'addr:housenumber',
-                  'addr:postcode', 'addr:city'}
+          # ---------------------------------------------------------------- Einstellungen
+          T0 = time.time()
           OUT = 'ladepunkte'
           os.makedirs(OUT, exist_ok=True)
+          UA = {'User-Agent': 'Mozilla/5.0 (compatible; Ladelog-Ladekarte/3.0; privates GitHub-Pages-Projekt)'}
+          PAGE = os.environ.get('BNETZA_PAGE') or 'https://www.bundesnetzagentur.de/DE/Fachthemen/ElektrizitaetundGas/E-Mobilitaet/start.html'
+          OSM_OPL = os.environ.get('OSM_OPL') or '/tmp/osm.opl'
+          OSM_DATE = os.environ.get('OSM_DATE_FILE') or '/tmp/osm_date.txt'
+          OCM_KEY = (os.environ.get('OCM_KEY') or '').strip()
+          FORCE = (os.environ.get('FORCE') or '') == 'true'
+          MIN_REG = int(os.environ.get('MIN_REG') or 20000)
+          MIN_OSM = int(os.environ.get('MIN_OSM') or 15000)
+          TODAY = datetime.date.today()
+          DC = {'type2_combo', 'chademo', 'tesla_supercharger', 'type1_combo'}
 
-          # 1°-Kacheln über Deutschland, nach Entfernung zu Berlin sortiert
-          TILES = [(la, lo) for la in range(47, 55) for lo in range(5, 15)]
-          TILES.sort(key=lambda t: (t[0] + .5 - 52.5) ** 2 + ((t[1] + .5 - 13.4) * .6) ** 2)
 
-          def overpass(la, lo, attempt):
-              box = '%d,%d,%d,%d' % (la, lo, la + 1, lo + 1)
-              q = ('[out:json][timeout:40];(node["amenity"="charging_station"](%s);'
-                   'way["amenity"="charging_station"](%s););out center meta;' % (box, box))
-              url = SERVERS[attempt % len(SERVERS)]
-              req = urllib.request.Request(url, data=urllib.parse.urlencode({'data': q}).encode(), headers=UA)
-              with urllib.request.urlopen(req, timeout=50) as r:
-                  j = json.load(r)
-              if not isinstance(j.get('elements'), list):
-                  raise ValueError('unerwartete Antwort: ' + str(j.get('remark', ''))[:100])
+          def log(*a):
+              print('[%2d min]' % ((time.time() - T0) // 60), *a, flush=True)
+
+
+          def http(url, timeout=180):
+              req = urllib.request.Request(url, headers=UA)
+              with urllib.request.urlopen(req, timeout=timeout) as r:
+                  return r.read()
+
+
+          def dist(la1, lo1, la2, lo2):
+              dy = (la1 - la2) * 110540.0
+              dx = (lo1 - lo2) * 111320.0 * math.cos(math.radians((la1 + la2) / 2))
+              return math.hypot(dx, dy)
+
+
+          def cell(lat, lon):
+              return (int(lat / 0.001), int(lon / 0.0015))
+
+
+          def near(grid, lat, lon):
+              cx, cy = cell(lat, lon)
+              for dx in (-1, 0, 1):
+                  for dy in (-1, 0, 1):
+                      for x in grid.get((cx + dx, cy + dy), ()):
+                          yield x
+
+
+          def age_days(meta):
+              try:
+                  return (TODAY - datetime.date.fromisoformat(meta['t'])).days
+              except Exception:
+                  return 9999
+
+
+          def store_load(name):
+              try:
+                  with open('%s/_%s.jsonl' % (OUT, name), encoding='utf-8') as f:
+                      meta = json.loads(f.readline())
+                      return meta, [json.loads(l) for l in f if l.strip()]
+              except Exception:
+                  return None, []
+
+
+          def store_save(name, meta, items):
+              with open('%s/_%s.jsonl' % (OUT, name), 'w', encoding='utf-8') as f:
+                  f.write(json.dumps(meta, ensure_ascii=False, sort_keys=True) + '\n')
+                  for it in sorted(items, key=lambda x: str(x['id'])):
+                      f.write(json.dumps(it, ensure_ascii=False, sort_keys=True, separators=(',', ':')) + '\n')
+
+
+          def norm(s):
+              return re.sub(r'\s+', ' ', str(s if s is not None else '')).strip()
+
+
+          def numf(v):
+              if v is None:
+                  return None
+              if isinstance(v, (int, float)):
+                  return float(v)
+              s = re.sub(r'[^0-9,.\-]', '', str(v))
+              if not s:
+                  return None
+              s = s.replace('.', '').replace(',', '.') if (',' in s and '.' in s) else s.replace(',', '.')
+              try:
+                  return float(s)
+              except ValueError:
+                  return None
+
+
+          def ym(v):
+              if v is None:
+                  return ''
+              if isinstance(v, (datetime.date, datetime.datetime)):
+                  return v.strftime('%Y-%m')
+              s = str(v).strip()
+              m = re.match(r'(\d{1,2})\.(\d{1,2})\.(\d{4})', s)
+              if m:
+                  return '%s-%02d' % (m.group(3), int(m.group(2)))
+              m = re.match(r'(\d{4})-(\d{2})', s)
+              return m.group(0) if m else ''
+
+
+          STOP = set('''gmbh ag kg co se mbh ug ohg gbr ev eg kgaa und the der die das fuer für von im am an
+           deutschland germany energie energy stadtwerke stadtwerk mobility emobility emobilitaet mobilitaet mobilität charging
+           charge netz netze service services vertrieb dienstleistung dienstleistungen holding group gruppe international europe
+           gesellschaft betriebs betrieb strom werke power ladeinfrastruktur ladestation ladestationen solutions systems
+           management verwaltung beteiligungs versorgung versorgungs regional kommunal gemeinde stadt'''.split())
+
+
+          def tokens(*names):
+              out = set()
+              for n in names:
+                  for t in re.findall(r'[a-z0-9äöüß]+', str(n or '').lower()):
+                      if len(t) >= 3 and t not in STOP:
+                          out.add(t)
+              return out
+
+
+          def overlap(a, b):
+              for x in a:
+                  for y in b:
+                      if x == y or (len(x) >= 4 and len(y) >= 4 and (x.startswith(y) or y.startswith(x))):
+                          return True
+              return False
+
+
+          # ---------------------------------------------------------------- 1. Amtliches Ladesäulenregister
+          def plug_keys(cellv):
               out = []
-              for el in j['elements']:
-                  lat = el.get('lat', (el.get('center') or {}).get('lat'))
-                  lon = el.get('lon', (el.get('center') or {}).get('lon'))
-                  if lat is None or lon is None:
+              for part in re.split(r'[;,/]|\bund\b', str(cellv or '')):
+                  p = part.strip().lower()
+                  if not p:
                       continue
-                  tags = {k: v for k, v in (el.get('tags') or {}).items() if k in KEEP or k.startswith('socket:')}
-                  out.append({'type': el['type'], 'id': el['id'], 'lat': round(lat, 6), 'lon': round(lon, 6),
-                              'timestamp': (el.get('timestamp') or '')[:10], 'tags': tags})
-              return out, (j.get('osm3s') or {}).get('timestamp_osm_base')
+                  if 'combo' in p or 'ccs' in p:
+                      k = 'type2_combo'
+                  elif 'chademo' in p:
+                      k = 'chademo'
+                  elif 'tesla' in p:
+                      k = 'tesla_supercharger'
+                  elif re.search(r'typ\s*2', p):
+                      k = 'type2_cable' if ('kupplung' in p or 'kabel' in p) else 'type2'
+                  elif re.search(r'typ\s*1', p):
+                      k = 'type1'
+                  elif 'schuko' in p:
+                      k = 'schuko'
+                  elif 'cee' in p:
+                      k = 'cee_red_16a' if '5' in p else 'cee_blue'
+                  else:
+                      k = None
+                  if k and k not in out:
+                      out.append(k)
+              return out
 
+
+          def map_header(row):
+              cols, plugs = {}, {}
+              for i, h in enumerate(row):
+                  h = norm(h).lower().lstrip('﻿').strip('"')
+                  if not h:
+                      continue
+                  m = re.match(r'steckertyp\w*\s*(\d+)', h)
+                  if m:
+                      plugs.setdefault(int(m.group(1)), {})['t'] = i
+                      continue
+                  m = re.match(r'(?:nennleistung\s*stecker\s*|p)(\d+)', h)
+                  if m:
+                      plugs.setdefault(int(m.group(1)), {})['p'] = i
+                      continue
+                  k = None
+                  if 'breitengrad' in h: k = 'lat'
+                  elif 'ngengrad' in h: k = 'lon'
+                  elif h.startswith('betreiber'): k = 'op'
+                  elif 'anzeigename' in h: k = 'name'
+                  elif h.startswith('status'): k = 'status'
+                  elif 'anzahl ladepunkte' in h: k = 'n'
+                  elif 'inbetriebnahme' in h: k = 'start'
+                  elif h.startswith('stra'): k = 'street'
+                  elif 'hausnummer' in h: k = 'hnr'
+                  elif 'postleitzahl' in h or h == 'plz': k = 'plz'
+                  elif h == 'ort': k = 'city'
+                  elif 'bezahl' in h: k = 'pay'
+                  elif 'ffnungszeiten' in h and 'wochentag' in h: k = 'days'
+                  elif 'ffnungszeiten' in h and 'tageszeit' in h: k = 'hours'
+                  elif 'ffnungszeiten' in h: k = 'open'
+                  elif 'ladeeinrichtungs' in h and 'id' in h: k = 'id'
+                  elif 'standortbezeichnung' in h: k = 'site'
+                  if k and k not in cols:
+                      cols[k] = i
+              return cols, plugs
+
+
+          def parse_table(rows):
+              cols = plugs = None
+              pre, posts, bad = [], [], 0
+              for row in rows:
+                  row = list(row)
+                  if cols is None:
+                      c, p = map_header(row)
+                      if 'lat' in c and 'lon' in c and 'op' in c:
+                          cols, plugs = c, p
+                      else:
+                          pre.append(' '.join(norm(x) for x in row if x not in (None, ''))[:300])
+                          if len(pre) > 80:
+                              break
+                      continue
+                  g = lambda k: (row[cols[k]] if k in cols and cols[k] < len(row) else None)
+                  lat, lon = numf(g('lat')), numf(g('lon'))
+                  if lat is None or lon is None:
+                      bad += 1
+                      continue
+                  if not (47 <= lat <= 55.3 and 5.5 <= lon <= 15.6):
+                      if 47 <= lon <= 55.3 and 5.5 <= lat <= 15.6:
+                          lat, lon = lon, lat
+                      else:
+                          bad += 1
+                          continue
+                  if re.search(r'au(ß|ss)er|stillgelegt|geplant|abgebaut', norm(g('status')).lower()):
+                      continue
+                  pl, npts = [], 0
+                  for i in sorted(plugs):
+                      d = plugs[i]
+                      keys = plug_keys(row[d['t']] if 't' in d and d['t'] < len(row) else None)
+                      if not keys:
+                          continue
+                      npts += 1
+                      kw = (numf(row[d['p']]) if 'p' in d and d['p'] < len(row) else None) or 0
+                      has_dc = any(k in DC for k in keys)
+                      for k in keys:
+                          pl.append([k, 0 if (k not in DC and has_dc and kw >= 50) else round(kw, 1)])
+                  n = numf(g('n'))
+                  posts.append({'op': norm(g('op')), 'name': norm(g('name')) or norm(g('site')), 'lat': lat, 'lon': lon,
+                                'start': ym(g('start')), 'n': int(n) if n and 0 < n < 100 else max(npts, 1),
+                                'pl': pl, 'street': norm(g('street')), 'hnr': norm(g('hnr')), 'plz': norm(g('plz')).split('.')[0],
+                                'city': norm(g('city')), 'pay': norm(g('pay')), 'open': norm(g('open')),
+                                'days': norm(g('days')), 'hours': norm(g('hours')), 'id': norm(g('id'))})
+              return posts, pre, bad, cols, plugs
+
+
+          def csv_rows(data):
+              try:
+                  text = data.decode('utf-8-sig')
+              except UnicodeDecodeError:
+                  text = data.decode('cp1252', errors='replace')
+              delim = ';'
+              for ln in text.split('\n', 90)[:90]:
+                  l = ln.lower()
+                  if 'breitengrad' in l and 'ngengrad' in l:
+                      delim = max(';,\t|', key=ln.count)
+                      break
+              return csv.reader(io.StringIO(text), delimiter=delim)
+
+
+          def parse_register_file(url, data):
+              if url.lower().split('?')[0].endswith('.xlsx'):
+                  import openpyxl
+                  wb = openpyxl.load_workbook(io.BytesIO(data), read_only=True, data_only=True)
+                  best = None
+                  for ws in wb.worksheets:
+                      try:
+                          ws.reset_dimensions()
+                      except Exception:
+                          pass
+                      res = parse_table(ws.iter_rows(values_only=True))
+                      if best is None or len(res[0]) > len(best[0]):
+                          best = res
+                  return best
+              return parse_table(csv_rows(data))
+
+
+          def opening(o, d, h):
+              if re.search(r'24\s*/?\s*7|247|rund um die uhr|durchgehend', o.lower()):
+                  return '24/7'
+              skip = ('keine angabe', 'nein', 'ja', '')
+              t = ' '.join(x for x in (d, h) if x.lower() not in skip)
+              return (t or ('' if o.lower() in skip else o))[:120]
+
+
+          def build_sites(posts):
+              """Fasst Ladesäulen desselben Betreibers im Umkreis von 45 m zu einem Standort zusammen."""
+              grid, sites = {}, []
+              for p in posts:
+                  p['opn'] = re.sub(r'[^a-z0-9äöüß]', '', p['op'].lower())
+              for p in sorted(posts, key=lambda p: (p['opn'], p['lat'], p['lon'], p['id'])):
+                  best = None
+                  for s in near(grid, p['lat'], p['lon']):
+                      if s['opn'] == p['opn']:
+                          d = dist(p['lat'], p['lon'], s['a'][0], s['a'][1])
+                          if d <= 45 and (best is None or d < best[0]):
+                              best = (d, s)
+                  if best:
+                      best[1]['p'].append(p)
+                  else:
+                      s = {'opn': p['opn'], 'a': (p['lat'], p['lon']), 'p': [p]}
+                      grid.setdefault(cell(p['lat'], p['lon']), []).append(s)
+                      sites.append(s)
+              out = []
+              for s in sites:
+                  ps = s['p']
+                  sock = {}
+                  for p in ps:
+                      for k, kw in p['pl']:
+                          e = sock.setdefault(k, [0, 0])
+                          e[0] += 1
+                          e[1] = max(e[1], kw)
+                  ids = sorted(p['id'] for p in ps if p['id'])
+                  sid = ids[0] if ids else '%08x' % zlib.crc32(('%s|%.4f|%.4f' % (s['opn'], s['a'][0], s['a'][1])).encode())
+                  first = ps[0]
+                  starts = sorted(p['start'] for p in ps if p['start'])
+                  pays = []
+                  for p in ps:
+                      if p['pay'] and p['pay'].lower() != 'keine angabe' and p['pay'] not in pays:
+                          pays.append(p['pay'])
+                  opens = [o for o in (opening(p['open'], p['days'], p['hours']) for p in ps) if o]
+                  names = [p['name'] for p in ps if p['name'] and p['name'] != p['op']]
+                  out.append({'id': 'r' + re.sub(r'[^A-Za-z0-9_-]', '', sid), 'lat': round(sum(p['lat'] for p in ps) / len(ps), 6),
+                              'lon': round(sum(p['lon'] for p in ps) / len(ps), 6), 'op': first['op'], 'name': names[0] if names else '',
+                              'street': first['street'], 'hnr': first['hnr'], 'plz': first['plz'], 'city': first['city'],
+                              'sock': sock, 'cap': sum(p['n'] for p in ps), 'posts': len(ps),
+                              'start': starts[0] if starts else '', 'pay': '; '.join(pays)[:200], 'open': opens[0] if opens else ''})
+              # eindeutige IDs erzwingen
+              seen = {}
+              for o in sorted(out, key=lambda o: (o['id'], o['lat'], o['lon'])):
+                  n = seen.get(o['id'], 0)
+                  seen[o['id']] = n + 1
+                  if n:
+                      o['id'] += '-%d' % n
+              return out
+
+
+          def load_register():
+              old_meta, old = store_load('register')
+              try:
+                  page = http(PAGE, 60).decode('utf-8', 'replace')
+                  links = set()
+                  hrefs = re.findall(r'''href=["']([^"']*Ladesaeulenregister[^"']*?\.(?:csv|xlsx)[^"']*)["']''', page, flags=re.I)
+                  hrefs += re.findall(r'''https?://[^\s"'<>]*Ladesaeulenregister[^\s"'<>]*?\.(?:csv|xlsx)''', page, flags=re.I)
+                  for href in hrefs:
+                      url = urllib.parse.urljoin(PAGE, htmllib.unescape(href))
+                      m = re.search(r'(\d{4})-(\d{2})-(\d{2})', url)
+                      links.add((m.group(0) if m else '', url.lower().split('?')[0].endswith('.csv'), url))
+                  links = sorted(links, reverse=True)
+                  log('Register: %d Datei-Links auf der Seite der Bundesnetzagentur gefunden' % len(links))
+                  if not links:
+                      raise RuntimeError('kein Link zur Liste der Ladesäulen gefunden')
+                  for date, _, url in links:
+                      name = url.split('/')[-1].split('?')[0]
+                      if old and not FORCE and old_meta.get('url') == url:
+                          log('Register: %s ist schon verarbeitet (%d Standorte), kein neuer Download nötig' % (name, len(old)))
+                          return old_meta, old, True
+                      try:
+                          log('Register: lade', name)
+                          data = http(url, 600)
+                          log('Register: %.1f MB geladen, lese Tabelle' % (len(data) / 1e6))
+                          posts, pre, bad, cols, plugs = parse_register_file(url, data)
+                          if cols is None:
+                              raise RuntimeError('Kopfzeile mit Breitengrad/Längengrad nicht gefunden')
+                          log('Register: %d Ladesäulen gelesen (%d Zeilen ohne gültige Koordinaten), Spalten: %s, Stecker-Spalten: %d'
+                              % (len(posts), bad, ','.join(sorted(cols)), len(plugs)))
+                          if len(posts) < MIN_REG:
+                              raise RuntimeError('nur %d Ladesäulen, das ist zu wenig für ganz Deutschland' % len(posts))
+                          noplug = sum(1 for p in posts if not p['pl'])
+                          if noplug > len(posts) * 0.5:
+                              log('Register: WARNUNG, bei %d Ladesäulen wurden keine Stecker erkannt' % noplug)
+                          stand = ''
+                          for ln in pre:
+                              m = re.search(r'Stand[:\s]+(\d{1,2}\.\s?\d{1,2}\.\s?\d{4}|\d{1,2}\.\s?[A-Za-zä]+\s\d{4})', ln)
+                              if m:
+                                  stand = m.group(1)
+                                  break
+                          sites = build_sites(posts)
+                          meta = {'t': TODAY.isoformat(), 'url': url, 'file': name, 'stand': stand or date, 'posts': len(posts),
+                                  'points': sum(p['n'] for p in posts)}
+                          store_save('register', meta, sites)
+                          log('Register: %d Standorte aus %d Ladesäulen gebildet (Stand %s)' % (len(sites), len(posts), meta['stand']))
+                          return meta, sites, True
+                      except Exception as e:
+                          log('Register: %s fehlgeschlagen (%s)' % (name, e))
+              except Exception as e:
+                  log('Register: FEHLER (%s)' % e)
+              if old:
+                  log('Register: verwende den letzten guten Stand vom %s (%d Standorte)' % (old_meta.get('t'), len(old)))
+                  return old_meta, old, False
+              log('Register: steht nicht zur Verfügung')
+              return None, [], False
+
+
+          # ---------------------------------------------------------------- 2. OpenStreetMap (Gesamtabzug Deutschland)
+          OSM_KEEP = ('operator', 'brand', 'network', 'name', 'capacity', 'fee', 'charge', 'opening_hours', 'check_date',
+                      'access', 'addr:street', 'addr:housenumber', 'addr:postcode', 'addr:city')
+
+
+          def unesc(s):
+              return re.sub(r'%([0-9a-fA-F]+)%', lambda m: chr(int(m.group(1), 16)), s)
+
+
+          def parse_opl(path):
+              nodes, raw = {}, []
+              with open(path, encoding='utf-8', errors='replace') as f:
+                  for line in f:
+                      parts = line.rstrip('\n').split(' ')
+                      if not parts or len(parts[0]) < 2 or parts[0][0] not in 'nw':
+                          continue
+                      kind, oid = parts[0][0], parts[0][1:]
+                      tags, x, y, ts, refs = {}, None, None, '', ''
+                      for fld in parts[1:]:
+                          if not fld:
+                              continue
+                          c = fld[0]
+                          if c == 'T':
+                              for kv in fld[1:].split(','):
+                                  if '=' in kv:
+                                      k, v = kv.split('=', 1)
+                                      tags[unesc(k)] = unesc(v)
+                          elif c == 'x' and len(fld) > 1:
+                              x = numf(fld[1:])
+                          elif c == 'y' and len(fld) > 1:
+                              y = numf(fld[1:])
+                          elif c == 't':
+                              ts = fld[1:11]
+                          elif c == 'N':
+                              refs = fld[1:]
+                      if kind == 'n' and x is not None and y is not None:
+                          nodes[oid] = (y, x)
+                      if tags.get('amenity') == 'charging_station':
+                          raw.append((kind, oid, tags, ts, refs))
+              out, dropped = [], 0
+              for kind, oid, tags, ts, refs in raw:
+                  if kind == 'n':
+                      pos = nodes.get(oid)
+                  else:
+                      pts = list({r: nodes[r] for r in re.findall(r'n(\d+)', refs) if r in nodes}.values())
+                      pos = (sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts)) if pts else None
+                  if not pos:
+                      continue
+                  socks = [k for k in tags if re.match(r'socket:[a-z0-9_]+$', k) and tags[k] != 'no']
+                  car = any(re.search(r'type2|chademo|tesla|type1|cee', k) for k in socks)
+                  if tags.get('access') in ('private', 'no') or tags.get('motorcar') == 'no' or \
+                          (tags.get('bicycle') in ('yes', 'designated') and tags.get('motorcar') not in ('yes', 'designated') and not car):
+                      dropped += 1
+                      continue
+                  t = {k: v for k, v in tags.items() if k in OSM_KEEP or k.startswith('socket:')}
+                  out.append({'id': kind + oid, 'lat': round(pos[0], 6), 'lon': round(pos[1], 6), 'ts': ts, 'tags': t})
+              return out, dropped
+
+
+          def load_osm():
+              old_meta, old = store_load('osm')
+              if os.path.exists(OSM_OPL):
+                  try:
+                      st, dropped = parse_opl(OSM_OPL)
+                      log('OpenStreetMap: %d Ladestationen im Gesamtabzug (%d private oder reine Fahrrad-Lader aussortiert)' % (len(st), dropped))
+                      if len(st) < MIN_OSM:
+                          raise RuntimeError('nur %d Stationen, das ist zu wenig für ganz Deutschland' % len(st))
+                      date = ''
+                      try:
+                          date = open(OSM_DATE).read().strip()[:20]
+                      except Exception:
+                          pass
+                      meta = {'t': TODAY.isoformat(), 'date': date if re.match(r'\d{4}-\d{2}-\d{2}', date) else TODAY.isoformat()}
+                      store_save('osm', meta, st)
+                      return meta, st, True
+                  except Exception as e:
+                      log('OpenStreetMap: FEHLER beim Lesen des Gesamtabzugs (%s)' % e)
+              if old:
+                  log('OpenStreetMap: verwende den gespeicherten Stand vom %s (%d Stationen, wird wöchentlich erneuert)' % (old_meta.get('t'), len(old)))
+                  return old_meta, old, False
+              log('OpenStreetMap: steht nicht zur Verfügung')
+              return None, [], False
+
+
+          # ---------------------------------------------------------------- 3. Open Charge Map (optional: Preisangaben, Notreserve)
           OCM_SOCK = {25: 'type2', 1036: 'type2_cable', 33: 'type2_combo', 2: 'chademo', 28: 'schuko',
                       27: 'tesla_supercharger', 30: 'tesla_supercharger', 1: 'type1', 32: 'type1_combo'}
 
-          def ocm(la, lo):
-              url = ('https://api.openchargemap.io/v3/poi/?output=json&maxresults=5000&compact=true&verbose=false'
-                     '&boundingbox=(%d,%d),(%d,%d)' % (la + 1, lo, la, lo + 1))
-              req = urllib.request.Request(url, headers=dict(UA, **{'X-API-Key': OCM_KEY}))
-              with urllib.request.urlopen(req, timeout=60) as r:
-                  arr = json.load(r)
-              if not isinstance(arr, list):
-                  raise ValueError('unerwartete Antwort')
-              out = []
-              for p in arr:
-                  a = p.get('AddressInfo') or {}
-                  if a.get('Latitude') is None or a.get('Longitude') is None:
-                      continue
+
+          def load_ocm():
+              old_meta, old = store_load('ocm')
+              if not OCM_KEY:
+                  log('Open Charge Map: kein Schlüssel (Secret OCM_KEY), wird übersprungen')
+                  return old_meta, old
+              if old and not FORCE and age_days(old_meta) < 6:
+                  log('Open Charge Map: gespeicherter Stand vom %s (%d Einträge, wird wöchentlich erneuert)' % (old_meta.get('t'), len(old)))
+                  return old_meta, old
+              items, okc, tiles = {}, 0, [(la, lo) for la in range(47, 56) for lo in range(5, 16)]
+              for la, lo in tiles:
+                  if time.time() - T0 > 30 * 60:
+                      break
+                  url = ('https://api.openchargemap.io/v3/poi/?output=json&countrycode=DE&maxresults=5000&compact=true&verbose=false'
+                         '&boundingbox=(%d,%d),(%d,%d)&key=%s' % (la + 1, lo, la, lo + 1, urllib.parse.quote(OCM_KEY)))
+                  for attempt in range(2):
+                      try:
+                          arr = json.loads(http(url, 60))
+                          if not isinstance(arr, list):
+                              raise ValueError('unerwartete Antwort')
+                          okc += 1
+                          for p in arr:
+                              a = p.get('AddressInfo') or {}
+                              if a.get('Latitude') is None or a.get('Longitude') is None or p.get('ID') is None:
+                                  continue
+                              sock = {}
+                              for c in p.get('Connections') or []:
+                                  k = OCM_SOCK.get(c.get('ConnectionTypeID'))
+                                  if not k:
+                                      continue
+                                  e = sock.setdefault(k, [0, 0])
+                                  e[0] += max(int(c.get('Quantity') or 1), 1)
+                                  e[1] = max(e[1], float(c.get('PowerKW') or 0))
+                              items[p['ID']] = {'id': 'c%s' % p['ID'], 'lat': round(float(a['Latitude']), 6), 'lon': round(float(a['Longitude']), 6),
+                                                'name': norm(a.get('Title')), 'street': norm(a.get('AddressLine1')), 'plz': norm(a.get('Postcode')),
+                                                'city': norm(a.get('Town')), 'cost': norm(p.get('UsageCost'))[:90],
+                                                'date': str(p.get('DateLastStatusUpdate') or p.get('DateLastVerified') or '')[:10],
+                                                'ok': p.get('StatusTypeID') in (None, 0, 10, 20, 50, 75), 'sock': sock}
+                          break
+                      except Exception as e:
+                          if attempt:
+                              log('Open Charge Map: Kachel %d_%d fehlgeschlagen (%s)' % (la, lo, e))
+                          time.sleep(3)
+                  time.sleep(0.5)
+              if okc < len(tiles) * 0.6:
+                  log('Open Charge Map: nur %d von %d Kacheln geladen, behalte den alten Stand' % (okc, len(tiles)))
+                  return old_meta, old
+              meta = {'t': TODAY.isoformat()}
+              store_save('ocm', meta, list(items.values()))
+              log('Open Charge Map: %d Einträge geladen' % len(items))
+              return meta, list(items.values())
+
+
+          # ---------------------------------------------------------------- 4. Abgleich zu einer Karte ohne Dubletten
+          def sock_tags(tags, sock):
+              for k in sorted(sock):
+                  c, kw = sock[k]
+                  tags['socket:' + k] = str(int(c))
+                  if kw:
+                      tags['socket:%s:output' % k] = '%g kW' % kw
+
+
+          def merge(reg, osm, ocm):
+              grid, out = {}, []
+              for s in reg:
+                  m = {'id': s['id'], 'r': s, 'o': [], 'tok': tokens(s.get('op'), s.get('name')), 'lat': s['lat'], 'lon': s['lon']}
+                  grid.setdefault(cell(s['lat'], s['lon']), []).append(m)
+                  out.append(m)
+              for o in osm:
+                  t = o['tags']
+                  tok = tokens(t.get('operator'), t.get('brand'), t.get('network'))
+                  best = None
+                  for m in near(grid, o['lat'], o['lon']):
+                      if m['r'] is None:
+                          continue
+                      d = dist(o['lat'], o['lon'], m['r']['lat'], m['r']['lon'])
+                      ov = bool(tok) and overlap(tok, m['tok'])
+                      if d <= 30 or (ov and d <= 90):
+                          sc = (0 if ov else 1, d)
+                          if best is None or sc < best[0]:
+                              best = (sc, m)
+                  if best:
+                      best[1]['o'].append(o)
+                  else:
+                      out.append({'id': 'o' + o['id'], 'r': None, 'o': [o], 'lat': o['lat'], 'lon': o['lon']})
+              recs = []
+              for m in out:
+                  r, os_ = m['r'], sorted(m['o'], key=lambda o: o['id'])
                   tags = {}
-                  for c in p.get('Connections') or []:
-                      s = OCM_SOCK.get(c.get('ConnectionTypeID'), 'other_%s' % c.get('ConnectionTypeID'))
-                      tags['socket:' + s] = str(int(tags.get('socket:' + s, 0)) + max(int(c.get('Quantity') or 1), 1))
-                      kw = c.get('PowerKW') or 0
-                      if kw and kw > float(str(tags.get('socket:%s:output' % s, '0 kW')).split()[0]):
-                          tags['socket:%s:output' % s] = '%g kW' % kw
-                  for k, v in (('name', a.get('Title')), ('addr:street', a.get('AddressLine1')),
-                               ('addr:postcode', a.get('Postcode')), ('addr:city', a.get('Town')),
-                               ('charge', p.get('UsageCost')), ('capacity', p.get('NumberOfPoints')),
-                               ('operator', (p.get('OperatorInfo') or {}).get('Title'))):
-                      if v:
-                          tags[k] = str(v)
-                  out.append({'type': 'ocm', 'id': p.get('ID'), 'lat': round(a['Latitude'], 6),
-                              'lon': round(a['Longitude'], 6),
-                              'timestamp': str(p.get('DateLastStatusUpdate') or '')[:10], 'tags': tags})
-              return out
+                  lat, lon = m['lat'], m['lon']
+                  if r:
+                      tags['operator'] = r['op']
+                      if r['name']:
+                          tags['name'] = r['name']
+                      for a, b in (('street', 'addr:street'), ('hnr', 'addr:housenumber'), ('plz', 'addr:postcode'), ('city', 'addr:city'),
+                                   ('start', 'start'), ('pay', 'payment'), ('open', 'opening_hours')):
+                          if r.get(a):
+                              tags[b] = r[a]
+                      sock_tags(tags, r['sock'])
+                      tags['capacity'] = str(r['cap'])
+                      if r['posts'] > 1:
+                          tags['posts'] = str(r['posts'])
+                  if os_:
+                      if r:
+                          lat = sum(o['lat'] for o in os_) / len(os_)
+                          lon = sum(o['lon'] for o in os_) / len(os_)
+                      first = lambda k: next((o['tags'][k] for o in os_ if o['tags'].get(k)), '')
+                      brand = first('brand') or first('operator') or first('network')
+                      if not r:
+                          if brand:
+                              tags['operator'] = brand
+                          for k in ('addr:street', 'addr:housenumber', 'addr:postcode', 'addr:city', 'capacity'):
+                              if first(k):
+                                  tags[k] = first(k)
+                      elif brand and not overlap(tokens(brand), tokens(r['op'])) and brand.lower() != r['op'].lower():
+                          tags['brand'] = brand
+                      for k in ('name', 'opening_hours', 'fee', 'charge', 'check_date'):
+                          if first(k) and not (k == 'name' and tags.get('name')):
+                              tags[k] = first(k)
+                      if first('access') in ('customers', 'permissive', 'destination'):
+                          tags['access'] = first('access')
+                      if not r or not r['sock']:
+                          sock = {}
+                          for o in os_:
+                              for k, v in o['tags'].items():
+                                  mm = re.match(r'socket:([a-z0-9_]+)$', k)
+                                  if not mm or v == 'no':
+                                      continue
+                                  e = sock.setdefault(mm.group(1), [0, 0])
+                                  e[0] += int(v) if v.isdigit() and 0 < int(v) < 100 else 1
+                                  e[1] = max(e[1], numf(re.sub(r'[^0-9.,]', '', o['tags'].get(k + ':output', ''))) or 0)
+                          sock_tags(tags, sock)
+                      ts = max((o['ts'] for o in os_ if o['ts']), default='')
+                      if ts:
+                          tags['osm'] = ts[:7]
+                  recs.append({'id': m['id'], 'lat': round(lat, 6), 'lon': round(lon, 6), 'src': ('r' if r else '') + ('o' if os_ else ''), 'tags': tags})
+              # Open Charge Map: nur aktuelle Preisangaben ergänzen; eigene Punkte nur, wenn das Register fehlt
+              stats = {'price': 0, 'c': 0}
+              if ocm:
+                  g2 = {}
+                  for x in recs:
+                      g2.setdefault(cell(x['lat'], x['lon']), []).append(x)
+                  limit = (TODAY - datetime.timedelta(days=730)).isoformat()
+                  for p in ocm:
+                      best = None
+                      for x in near(g2, p['lat'], p['lon']):
+                          d = dist(p['lat'], p['lon'], x['lat'], x['lon'])
+                          if d <= 60 and (best is None or d < best[0]):
+                              best = (d, x)
+                      if best:
+                          t = best[1]['tags']
+                          if p.get('cost') and p.get('date', '') >= limit and not t.get('charge') and not t.get('price') and t.get('fee') != 'no':
+                              t['price'] = p['cost']
+                              t['price_date'] = p['date'][:7]
+                              if 'c' not in best[1]['src']:
+                                  best[1]['src'] += 'c'
+                              stats['price'] += 1
+                      elif not reg and p.get('ok'):
+                          tags = {}
+                          for a, b in (('name', 'name'), ('street', 'addr:street'), ('plz', 'addr:postcode'), ('city', 'addr:city')):
+                              if p.get(a):
+                                  tags[b] = p[a]
+                          sock_tags(tags, p.get('sock') or {})
+                          if p.get('cost') and p.get('date', '') >= limit:
+                              tags['price'], tags['price_date'] = p['cost'], p['date'][:7]
+                          x = {'id': p['id'], 'lat': p['lat'], 'lon': p['lon'], 'src': 'c', 'tags': tags}
+                          recs.append(x)
+                          g2.setdefault(cell(x['lat'], x['lon']), []).append(x)
+                          stats['c'] += 1
+              return recs, stats
 
-          def save(la, lo, els):
-              els.sort(key=lambda e: (e['type'], e['id']))
+
+          # ---------------------------------------------------------------- Ablauf
+          reg_meta, reg, reg_fresh = load_register()
+          osm_meta, osm, osm_fresh = load_osm()
+          ocm_meta, ocm = load_ocm()
+          if not reg and not osm:
+              sys.exit('Weder das Register noch OpenStreetMap stehen zur Verfügung. Die bisherige Karte bleibt unverändert.')
+
+          recs, st = merge(reg, osm, ocm)
+          seen_ids = {}
+          for x in sorted(recs, key=lambda x: (x['id'], x['lat'], x['lon'])):
+              n = seen_ids.get(x['id'], 0)
+              seen_ids[x['id']] = n + 1
+              if n:
+                  x['id'] += '~%d' % n
+          both = sum(1 for x in recs if x['src'].startswith('ro'))
+          r_only = sum(1 for x in recs if x['src'] in ('r', 'rc'))
+          o_only = sum(1 for x in recs if x['src'] in ('o', 'oc'))
+          log('Abgleich: %d Standorte gesamt. %d in Register und OpenStreetMap, %d nur im Register, %d nur in OpenStreetMap, %d nur in Open Charge Map, %d Preisangaben ergänzt'
+              % (len(recs), both, r_only, o_only, st['c'], st['price']))
+
+          for fn in os.listdir(OUT):
+              if re.match(r'^\d+_\d+\.json$', fn) or fn == 'kacheln.json':
+                  os.remove(os.path.join(OUT, fn))
+          tiles = {}
+          for x in recs:
+              tiles.setdefault((int(x['lat'] // 1), int(x['lon'] // 1)), []).append(x)
+          for (la, lo), els in tiles.items():
+              els.sort(key=lambda e: e['id'])
               with open('%s/%d_%d.json' % (OUT, la, lo), 'w', encoding='utf-8') as f:
-                  f.write('[\n' + ',\n'.join(json.dumps(e, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
-                                            for e in els) + '\n]\n')
+                  f.write('[\n' + ',\n'.join(json.dumps(e, ensure_ascii=False, sort_keys=True, separators=(',', ':')) for e in els) + '\n]\n')
 
-          done, stamps, total, via_ocm = {}, [], 0, 0
-          print('%d Kacheln. Open Charge Map als Ersatz: %s' % (len(TILES), 'ja' if OCM_KEY else 'nein (kein Secret OCM_KEY)'))
-
-          def try_osm(la, lo, tries, offset):
-              global total
-              for a in range(tries):
-                  if left() < 60:
-                      return False
-                  t0 = time.time()
-                  try:
-                      els, ts = overpass(la, lo, a + offset)
-                      save(la, lo, els); done[(la, lo)] = 1; total += len(els)
-                      if ts: stamps.append(ts)
-                      print('[%2d min] %d_%d: %d Stationen' % (mins(), la, lo, len(els)))
-                      return True
-                  except Exception as e:
-                      print('[%2d min] %d_%d: OSM-Versuch %d nach %d s fehlgeschlagen (%s)' % (mins(), la, lo, a + 1, time.time() - t0, e))
-                      time.sleep(2 + a * 3)
-              return False
-
-          def try_ocm(la, lo):
-              global total, via_ocm
-              if not OCM_KEY or left() < 20:
-                  return False
-              try:
-                  els = ocm(la, lo); save(la, lo, els); done[(la, lo)] = 1; total += len(els); via_ocm += 1
-                  print('[%2d min] %d_%d: %d Stationen (Open Charge Map)' % (mins(), la, lo, len(els)))
-                  return True
-              except Exception as e:
-                  print('[%2d min] %d_%d: Open Charge Map fehlgeschlagen (%s)' % (mins(), la, lo, e))
-                  return False
-
-          # Durchgang 1: zwei OSM-Server, sonst sofort Open Charge Map
-          for la, lo in TILES:
-              if left() < 60:
-                  break
-              if not try_osm(la, lo, 2, la + lo):
-                  try_ocm(la, lo)
-              time.sleep(1)
-          # Durchgang 2: übrige Kacheln nochmal bei OSM
-          todo = [t for t in TILES if t not in done]
-          if todo and left() > 120:
-              print('--- Durchgang 2: %d Kacheln ---' % len(todo))
-              time.sleep(15)
-              for la, lo in todo:
-                  try_osm(la, lo, 3, la + lo + 2)
-
-          rest = ['%d_%d' % t for t in TILES if t not in done]
-          print('Fertig nach %d min: %d von %d Kacheln neu (%d über Open Charge Map), %d Stationen.' % (mins(), len(done), len(TILES), via_ocm, total))
-          if rest:
-              print('Nicht erneuert (alte Dateien bleiben): ' + ', '.join(rest))
-          if not done:
-              sys.exit('Keine Kachel konnte geladen werden.')
           with open(OUT + '/stand.json', 'w', encoding='utf-8') as f:
-              json.dump({'t': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
-                         'osm': min(stamps) if stamps else '', 'n': total, 'ok': len(done), 'tiles': len(TILES),
-                         'ocm': via_ocm, 'missing': rest}, f)
+              json.dump({'v': 2, 't': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'), 'n': len(recs),
+                         'tiles': len(tiles), 'both': both, 'r_only': r_only, 'o_only': o_only, 'c_only': st['c'], 'prices': st['price'],
+                         'reg': {'n': len(reg), 'stand': reg_meta.get('stand', ''), 'file': reg_meta.get('file', ''), 't': reg_meta.get('t', ''),
+                                 'posts': reg_meta.get('posts', 0), 'points': reg_meta.get('points', 0)} if reg else None,
+                         'osm': {'n': len(osm), 'date': osm_meta.get('date', ''), 't': osm_meta.get('t', '')} if osm else None,
+                         'ocm': {'n': len(ocm), 't': (ocm_meta or {}).get('t', '')} if ocm else None}, f, ensure_ascii=False)
+          log('Fertig: %d Kacheln geschrieben.' % len(tiles))
+          if not reg:
+              log('HINWEIS: Das amtliche Register fehlt in dieser Karte. Bitte die Meldungen oben mit "Register:" ansehen.')
+          if not osm:
+              log('HINWEIS: OpenStreetMap fehlt in dieser Karte. Bitte den Schritt "OpenStreetMap-Gesamtabzug" ansehen.')
           PY
 
       - name: Speichern
-        if: always()
         run: |
-          [ -d ladepunkte ] || { echo "Nichts zu speichern"; exit 0; }
           git config user.name "ladelog-bot"
           git config user.email "ladelog-bot@users.noreply.github.com"
-          git add ladepunkte
+          git add -A ladepunkte
           if git diff --cached --quiet; then
             echo "Keine Änderung"
           else
-            git commit -m "Ladekarte $(date -u +%F)"
-            git push
+            git commit -q -m "Ladekarte $(date -u +%F)"
+            git push || (git pull --rebase && git push)
           fi
