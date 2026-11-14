@@ -357,7 +357,7 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
 
   <section class="card tilt">
     <h2>Ladekarte</h2>
-    <p class="note" style="margin-top:0">Ladestationen in ganz Deutschland auf einer Karte, mit deinem Standort, Betreiber, AC/DC, Steckern und Leistung. Vorgefiltert auf Anschlüsse, die zum Dolphin Surf passen (Typ 2 und CCS). Dazu dein eigener Durchschnittspreis beim jeweiligen Anbieter.</p>
+    <p class="note" style="margin-top:0">Alle amtlich gemeldeten Ladestandorte in Deutschland, abgeglichen mit OpenStreetMap: mit deinem Standort, Betreiber, AC/DC, Steckern und Leistung. Vorgefiltert auf Anschlüsse, die zum Dolphin Surf passen (Typ 2 und CCS). Dazu dein eigener Durchschnittspreis beim jeweiligen Anbieter.</p>
     <button class="btn pri" id="mOpen" type="button">🗺️ Karte öffnen</button>
   </section>
 
@@ -520,7 +520,8 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
   <div class="mapfoot"><span id="mStat">Karte wird geladen …</span>
     <details id="mSrcD"><summary>Quellen &amp; Datenstand</summary>
       <div id="mSrc"></div>
-      <p>Ladestationen werden höchstens einmal täglich neu geholt. Die Daten pflegen Freiwillige, einzelne Einträge können veraltet sein (Datum im Popup). Live-Belegung und Säulenpreise sind nicht frei abrufbar.</p>
+      <p>Die Tagesdaten gleichen jede Nacht das amtliche Ladesäulenregister mit OpenStreetMap ab. Stecker, Leistung und Betreiber stammen aus dem Register, die genaue Position und Zusatzangaben aus OpenStreetMap. Ein ausgefüllter Punkt ist amtlich gemeldet, ein Ring steht nur in OpenStreetMap. Live-Belegung und verbindliche Säulenpreise sind nicht frei abrufbar.</p>
+      <p>Daten: Bundesnetzagentur.de (CC BY 4.0) · © OpenStreetMap-Mitwirkende (ODbL) · Open Charge Map</p>
       <label>Open-Charge-Map-Schlüssel (optional, bleibt in diesem Browser)<input type="password" id="ocmKey" autocomplete="off" autocapitalize="none" spellcheck="false"></label>
       <button type="button" class="btn sm" id="mReload" style="width:100%">Jetzt neu laden</button>
     </details></div>
@@ -1368,7 +1369,7 @@ function loadLeaflet(){
 }
 const SOCK={type2:'Typ 2',type2_cable:'Typ 2 (Kabel)',type2_combo:'CCS',chademo:'CHAdeMO',schuko:'Schuko',tesla_supercharger:'Tesla',tesla_destination:'Tesla Destination',type1:'Typ 1',type1_combo:'CCS Typ 1',cee_blue:'CEE blau',cee_red_16a:'CEE rot 16 A',cee_red_32a:'CEE rot 32 A',type3c:'Typ 3C',nacs:'NACS'};
 const FIT_AC=/^type2(_cable)?$/,FIT_DC=/^type2_combo$/;
-const TKEEP=['name','capacity','fee','charge','opening_hours','check_date','addr:street','addr:housenumber','addr:postcode','addr:city'];
+const TKEEP=['name','brand','capacity','posts','fee','charge','price','price_date','opening_hours','access','payment','start','osm','check_date','addr:street','addr:housenumber','addr:postcode','addr:city'];
 function fin(s){
   s.ac=s.dc=s.fitAc=s.fitDc=false;
   s.socks.forEach(x=>{if(x.dc){s.dc=true;if(x.fit)s.fitDc=true}else{s.ac=true;if(x.fit)s.fitAc=true}});
@@ -1381,10 +1382,10 @@ function station(el,src){
   Object.keys(t).forEach(k=>{
     const m=/^socket:([a-z0-9_]+)$/.exec(k);if(!m||t[k]==='no')return;
     const kw=parseFloat(String(t['socket:'+m[1]+':output']||'').replace(',','.'))||0;
-    socks.push({n:SOCK[m[1]]||(/^other/.test(m[1])?'Sonstiger Anschluss':m[1]),c:parseInt(t[k])>0?parseInt(t[k]):0,kw,dc:/combo|chademo|supercharger|nacs/.test(m[1])||kw>=50,fit:FIT_AC.test(m[1])||FIT_DC.test(m[1])});
+    socks.push({n:SOCK[m[1]]||(/^other/.test(m[1])?'Sonstiger Anschluss':m[1]),c:parseInt(t[k])>0?parseInt(t[k]):0,kw,dc:/combo|chademo|supercharger|nacs/.test(m[1])||(kw>=50&&!/^(type2|type2_cable|type1|schuko|cee_\w+)$/.test(m[1])),fit:FIT_AC.test(m[1])||FIT_DC.test(m[1])});
   });
   const tt={};TKEEP.forEach(k=>{if(t[k])tt[k]=t[k]});
-  return fin({id:el.type+el.id,src:el.type==='ocm'?'ocm':(src||'osm'),lat,lng,t:tt,edited:el.timestamp||'',op:t.operator||t.brand||t.network||t.name||'Unbekannter Betreiber',socks});
+  return fin({id:(el.type||'')+el.id,src:el.type==='ocm'?'ocm':(src||'osm'),srcs:el.src||'',lat,lng,t:tt,edited:el.timestamp||'',op:t.operator||t.brand||t.network||t.name||'Unbekannter Betreiber',socks});
 }
 const OCMT={25:'Typ 2',1036:'Typ 2 (Kabel)',33:'CCS',2:'CHAdeMO',28:'Schuko',27:'Tesla',30:'Tesla',1:'Typ 1',32:'CCS Typ 1'};
 function ocmStation(p){
@@ -1396,27 +1397,38 @@ function ocmStation(p){
   if(p.StatusType&&p.StatusType.IsOperational===false)t.off='1';
   return fin({id:'ocm'+p.ID,src:'ocm',lat:a.Latitude,lng:a.Longitude,t,edited:p.DateLastStatusUpdate||'',op:(p.OperatorInfo&&p.OperatorInfo.Title)||a.Title||'Unbekannter Betreiber',socks});
 }
-const SRCN={snap:'OpenStreetMap (Tagesdaten aus deinem Repo)',osm:'OpenStreetMap',ocm:'Open Charge Map'};
+const SRCN={snap:'Tagesdaten aus deinem Repo',osm:'OpenStreetMap',ocm:'Open Charge Map'};
 function ownPrice(op){
   const o=op.toLowerCase(),m=state.charges.filter(e=>{const p=(e.provider||'').trim().toLowerCase();return p.length>=3&&(o.includes(p)||p.includes(o))});
   if(!m.length)return null;const t=totals(m);
   return{n:m.length,ct:t.kwhWithCost>0?t.costWithKwh/t.kwhWithCost*100:null};
 }
+const ymT=v=>{const m=/^(\d{4})-(\d{2})/.exec(v||'');return m?m[2]+'/'+m[1]:''};
 function popupHtml(s){
-  const t=s.t,f=ef({provider:s.op,place:t.name||'',type:s.dc&&!s.ac?'Schnellladen (DC)':'Wechselstrom (AC)'},'markt'),own=ownPrice(s.op);
+  const t=s.t,txt=s.op+' '+(t.brand||''),f=ef({provider:txt,place:t.name||'',type:s.dc&&!s.ac?'Schnellladen (DC)':'Wechselstrom (AC)'},'markt'),own=ownPrice(txt+' '+(t.name||''));
   const addr=[[t['addr:street'],t['addr:housenumber']].filter(Boolean).join(' '),[t['addr:postcode'],t['addr:city']].filter(Boolean).join(' ')].filter(Boolean).join(', ');
-  const price=t.fee==='no'?'Kostenlos (laut Quelle)':t.charge?'Preis laut Quelle: '+t.charge:'Preis: nicht hinterlegt';
+  const sr=s.srcs||'',R=sr.includes('r'),O=sr.includes('o'),ttl=t.name||t.brand||s.op;
+  const conf=!sr?null:R&&O?['var(--lime)','✔ Amtlich gemeldet und in OpenStreetMap bestätigt']
+    :R?['var(--lime)','✔ Amtlich gemeldet (Bundesnetzagentur). Die Position stammt vom Betreiber und kann leicht abweichen.']
+    :O?['var(--orange)','Nicht im amtlichen Register, nur in OpenStreetMap. Kann privat, ganz neu oder nicht mehr vorhanden sein.']
+    :['var(--orange)','Nur in Open Charge Map eingetragen, nicht amtlich bestätigt.'];
+  const price=t.fee==='no'?'Kostenlos (laut OpenStreetMap)':t.charge?'Preis laut '+(s.src==='ocm'?'Open Charge Map':'OpenStreetMap')+': '+t.charge
+    :t.price?'Preisangabe aus Open Charge Map'+(ymT(t.price_date)?' von '+ymT(t.price_date):'')+': '+t.price:'Preis: nicht hinterlegt';
   const sock=s.known?s.socks.map(x=>`${x.fit?'✅':'❌'} <b>${esc(x.n)}</b> <span class="tag ${x.dc?'dc':'ac'}">${x.dc?'DC':'AC'}</span>${x.c?' ×'+x.c:''}${x.kw?' · '+nf(x.kw,0)+' kW':''}`).join('<br>'):'❔ Stecker in den Daten nicht hinterlegt';
   const fit=!s.known?'Ob der Dolphin Surf hier passt, ist unbekannt. Die meisten öffentlichen Säulen haben Typ 2 oder CCS.'
     :!s.fit?'Kein passender Anschluss für den Dolphin Surf.'
     :'Passt für den Dolphin Surf: '+[s.fitAc?'AC über Typ 2 (das Auto lädt mit max. 11 kW)':'',s.fitDc?'DC über CCS (das Auto lädt je nach Variante mit max. 65 oder 85 kW)':''].filter(Boolean).join(' und ')+'.';
-  return `<div class="pp"><b class="t">${esc(t.name&&t.name!==s.op?t.name:s.op)}</b>
-   <div class="s">${esc(s.op)} ${s.ac?'<span class="tag ac">AC</span>':''}${s.dc?'<span class="tag dc">DC</span>':''}<span class="tag ${f.t}">${f.t==='eco'?'ÖKO':'NETZ'}</span></div>
+  const det=[t.capacity?esc(t.capacity)+(t.capacity==='1'?' Ladepunkt':' Ladepunkte')+(t.posts?' an '+esc(t.posts)+' Säulen':''):'',ymT(t.start)?'in Betrieb seit '+ymT(t.start):'',t.opening_hours?'geöffnet: '+esc(t.opening_hours):'',t.access?'nur für Kunden oder Gäste':''].filter(Boolean).join(' · ');
+  const stand=[t.osm?'OpenStreetMap zuletzt bearbeitet '+ymT(t.osm):(s.edited&&!isNaN(new Date(s.edited))?SRCN[s.src]+', zuletzt bearbeitet '+new Date(s.edited).toLocaleDateString('de-DE',{month:'2-digit',year:'numeric'}):''),t.check_date?'vor Ort geprüft '+esc(t.check_date):''].filter(Boolean).join(' · ');
+  return `<div class="pp"><b class="t">${esc(ttl)}</b>
+   <div class="s">${[s.op!==ttl?esc(s.op):'',t.brand&&t.brand!==ttl?esc(t.brand):''].filter(Boolean).join(' · ')} ${s.ac?'<span class="tag ac">AC</span>':''}${s.dc?'<span class="tag dc">DC</span>':''}<span class="tag ${f.t}">${f.t==='eco'?'ÖKO':'NETZ'}</span></div>
    ${addr?`<div class="s">${esc(addr)}</div>`:''}${t.off?'<div class="own" style="border-color:var(--danger)">⚠️ Laut Quelle derzeit außer Betrieb</div>':''}
+   ${conf?`<div class="s" style="color:${conf[0]}">${conf[1]}</div>`:''}
    <div style="margin-top:4px">${sock}</div>
    <div class="own" style="border-color:${s.fit?'var(--lime)':s.known?'var(--danger)':'var(--line)'}">${fit}</div>
-   <div class="s">${t.capacity?esc(t.capacity)+' Ladeplätze · ':''}${esc(price)}${t.opening_hours?' · '+esc(t.opening_hours):''}</div>
-   <div class="s">Quelle: ${SRCN[s.src]||'OpenStreetMap'}${s.edited?' · zuletzt bearbeitet: '+esc(new Date(s.edited).toLocaleDateString('de-DE',{month:'long',year:'numeric'})):''}${t.check_date?' · vor Ort geprüft: '+esc(t.check_date):''}</div>
+   ${det?`<div class="s">${det}</div>`:''}
+   <div class="s">${esc(price)}${t.payment?'<br>Bezahlen: '+esc(t.payment):''}</div>
+   ${stand?`<div class="s">${stand}</div>`:''}
    ${own?`<div class="own">Dein Schnitt hier: <b>${own.ct===null?'–':own.ct===0?'gratis':nf(own.ct,1)+' ct/kWh'}</b> (${own.n}× geladen)</div>`:''}
    <div class="lk"><a href="https://maps.apple.com/?daddr=${s.lat},${s.lng}" target="_blank" rel="noopener">Apple Karten</a><a href="https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}" target="_blank" rel="noopener">Google Maps</a><button type="button" data-log="${esc(s.id)}">Hier loggen</button></div></div>`;
 }
@@ -1426,24 +1438,27 @@ const mShow=s=>{
   return true;
 };
 function drawStations(){
-  if(!map)return{n:0,u:0};mLayer.clearLayers();let n=0,u=0;const b=map.getBounds();
+  if(!map)return{n:0,u:0,l:0};mLayer.clearLayers();let n=0,u=0,l=0;const b=map.getBounds();
   mSeen.forEach(s=>{
     if(!mShow(s))return;
     const A=mFitOnly?s.fitAc:s.ac,D=mFitOnly?s.fitDc:s.dc,col=!s.known?'#8a8f8a':A&&D?'#ff3df2':D?'#ff7a1a':A?'#b6ff00':'#555';
-    window.L.circleMarker([s.lat,s.lng],{radius:D?7:5,color:'#000',weight:1,fillColor:col,fillOpacity:.9}).bindPopup(()=>popupHtml(s),{maxWidth:290}).addTo(mLayer);
-    if(b.contains([s.lat,s.lng])){n++;if(!s.known)u++}
+    const loose=!!s.srcs&&!s.srcs.includes('r');
+    window.L.circleMarker([s.lat,s.lng],loose?{radius:D?7:5,color:col,weight:2,fillColor:col,fillOpacity:.15}:{radius:D?7:5,color:'#000',weight:1,fillColor:col,fillOpacity:.9}).bindPopup(()=>popupHtml(s),{maxWidth:290}).addTo(mLayer);
+    if(b.contains([s.lat,s.lng])){n++;if(!s.known)u++;if(loose)l++}
   });
-  return{n,u};
+  return{n,u,l};
 }
 function mapStatus(){
-  const r=drawStations(),dot=(c,l)=>`<span style="color:${c}">●</span> ${l}`;
-  $('#mStat').innerHTML='<b>'+nf(r.n,0)+' Ladestationen</b> im Ausschnitt'+(mFitOnly?', passend für den Dolphin Surf':'')+(mDcOnly?', nur DC':'')+'<br>'+dot('#b6ff00','AC (Typ 2)')+' '+dot('#ff7a1a','DC (CCS)')+' '+dot('#ff3df2','AC + DC')+(r.u?' '+dot('#8a8f8a','Stecker unbekannt ('+r.u+')'):'')
-    +(mFetched?'<br>Quelle: '+(SRCN[mSrcNow]||'')+' · Datenstand <b>'+(mDate(mStamp)||mDate(mFetched))+'</b> · Aktualisierung höchstens einmal täglich':'');
+  const r=drawStations(),dot=(c,l)=>`<span style="color:${c}">●</span> ${l}`,v2=mSrcNow==='snap'&&snap&&snap.v===2;
+  const src=v2?[snap.reg?'Bundesnetzagentur (Stand '+esc(snap.reg.stand||'?')+')':'',snap.osm?'OpenStreetMap (Stand '+(mDate(snap.osm.date).slice(0,10)||'?')+')':'',snap.prices?'Preise: Open Charge Map':''].filter(Boolean).join(' + ')+' · abgeglichen am <b>'+mDate(snap.t)+'</b>'
+    :(SRCN[mSrcNow]||'')+' · Datenstand <b>'+(mDate(mStamp)||mDate(mFetched))+'</b>';
+  $('#mStat').innerHTML='<b>'+nf(r.n,0)+' Ladestandorte</b> im Ausschnitt'+(mFitOnly?', passend für den Dolphin Surf':'')+(mDcOnly?', nur DC':'')+'<br>'+dot('#b6ff00','AC (Typ 2)')+' '+dot('#ff7a1a','DC (CCS)')+' '+dot('#ff3df2','AC + DC')+(r.u?' '+dot('#8a8f8a','Stecker unbekannt ('+r.u+')'):'')+(r.l?' ○ nicht im amtlichen Register ('+r.l+')':'')
+    +(mFetched?'<br>'+src:'');
 }
 // Quellen der Reihe nach: 1. eigene Tagesdaten im Repo, 2. Zwischenspeicher im Browser (24 h),
 // 3. OpenStreetMap live (drei Server), 4. Open Charge Map (mit eigenem Schlüssel).
 const MCACHE='ladelog.mapcache',OCM_KEY='ladelog.ocm',DAY=864e5;
-const mSt={snap:'noch nicht geprüft',cache:'leer',o0:'–',o1:'–',o2:'–',ocm:''};
+const mSt={reg:'',osmb:'',snap:'noch nicht geprüft',cache:'leer',o0:'–',o1:'–',o2:'–',ocm:''};
 let mReq=0,mBox=null,mStamp='',mFetched=0,mSrcNow='',mTick=null,snap=null,snapTiles=new Set(),ocmKey='';
 try{ocmKey=localStorage.getItem(OCM_KEY)||''}catch(e){}
 const mDate=iso=>{const d=new Date(iso);return isNaN(d)?'':d.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})};
@@ -1468,7 +1483,10 @@ function ovpRace(q){
 }
 async function snapCheck(){
   if(snap!==null)return snap;
-  try{const j=await getJson('ladepunkte/stand.json?d='+new Date().toISOString().slice(0,10),8000);if(!j||!j.t)throw new Error('Format');snap=j;mSt.snap='✓ aktiv, Stand '+mDate(j.t)+' · '+(j.ok||'?')+' von '+(j.tiles||j.boxes||'?')+' Kacheln erneuert'+(j.ocm?', davon '+j.ocm+' über Open Charge Map':'')+(j.missing&&j.missing.length?' · nicht erneuert: '+j.missing.length:'')}
+  try{const j=await getJson('ladepunkte/stand.json?d='+new Date().toISOString().slice(0,10),8000);if(!j||!j.t)throw new Error('Format');snap=j;mSt.snap=j.v===2?'✓ aktiv, abgeglichen am '+mDate(j.t)+' · '+nf(j.n||0,0)+' Standorte: '+nf(j.both||0,0)+' amtlich und in OpenStreetMap, '+nf(j.r_only||0,0)+' nur amtlich, '+nf(j.o_only||0,0)+' nur OpenStreetMap'+(j.c_only?', '+nf(j.c_only,0)+' nur Open Charge Map':'')+(j.prices?' · Preisangaben: '+nf(j.prices,0):'')
+      :'✓ aktiv (altes Format), Stand '+mDate(j.t)+'. Bitte die neue ladekarte.yml einspielen.';
+    mSt.reg=j.v===2?(j.reg?'✓ '+nf(j.reg.posts||0,0)+' Ladesäulen an '+nf(j.reg.n||0,0)+' Standorten, Stand '+(j.reg.stand||'?')+' ('+(j.reg.file||'')+')':'✗ fehlt in den Tagesdaten. Im Log der Action stehen die Meldungen mit „Register:“.'):'';
+    mSt.osmb=j.v===2?(j.osm?'✓ '+nf(j.osm.n||0,0)+' Stationen, Datenstand '+(mDate(j.osm.date)||j.osm.t||'?')+', wird wöchentlich erneuert':'✗ fehlt in den Tagesdaten'):''}
   catch(e){snap=false;mSt.snap=e&&e.message==='HTTP 404'?'nicht eingerichtet (Datei ladekarte.yml fehlt im Repo oder lief noch nicht)':'✗ '+errTxt(e)}
   return snap;
 }
@@ -1499,14 +1517,15 @@ const inBox=(b,x)=>!!x&&b.getSouth()>=x[0]&&b.getWest()>=x[1]&&b.getNorth()<=x[2
 function renderSrc(){
   const el=$('#mSrc');if(!el)return;
   const row=(n,s,u)=>`<div><b>${n}</b>${u?` <a href="${u}" target="_blank" rel="noopener">↗</a>`:''}<br>${esc(s)}</div>`;
-  el.innerHTML=row('1 · Eigene Tagesdaten im GitHub-Repo',mSt.snap)
+  el.innerHTML=row('1 · Eigene Tagesdaten im GitHub-Repo (abgeglichen)',mSt.snap)
+   +(mSt.reg?row('   darin: Ladesäulenregister der Bundesnetzagentur (amtlich)',mSt.reg,'https://www.bundesnetzagentur.de/DE/Fachthemen/ElektrizitaetundGas/E-Mobilitaet/start.html'):'')
+   +(mSt.osmb?row('   darin: OpenStreetMap, Gesamtabzug Deutschland',mSt.osmb,'https://download.geofabrik.de/europe/germany.html'):'')
    +row('2 · Zwischenspeicher in diesem Browser',mSt.cache)
-   +row('3 · OpenStreetMap live, overpass-api.de',mSt.o0,'https://overpass-api.de')
-   +row('3 · OpenStreetMap live, private.coffee',mSt.o1,'https://overpass.private.coffee')
-   +row('3 · OpenStreetMap live, kumi.systems',mSt.o2,'https://overpass.kumi.systems')
-   +row('4 · Open Charge Map',ocmKey?(mSt.ocm||'bereit, wird genutzt, wenn 1 und 3 ausfallen'):'kein Schlüssel hinterlegt','https://openchargemap.org')
+   +row('3 · Ersatz: OpenStreetMap live, overpass-api.de',mSt.o0,'https://overpass-api.de')
+   +row('3 · Ersatz: OpenStreetMap live, private.coffee',mSt.o1,'https://overpass.private.coffee')
+   +row('3 · Ersatz: OpenStreetMap live, kumi.systems',mSt.o2,'https://overpass.kumi.systems')
+   +row('4 · Ersatz: Open Charge Map',ocmKey?(mSt.ocm||'bereit, wird genutzt, wenn 1 und 3 ausfallen'):'kein Schlüssel in diesem Browser (für die Tagesdaten nicht nötig)','https://openchargemap.org')
    +row('Kartenbild','OpenStreetMap-Kacheln, laufend aktuell','https://www.openstreetmap.org/copyright')
-   +row('Amtliches Register (nur Link, nicht automatisch abrufbar)','Ladesäulenkarte der Bundesnetzagentur','https://www.bundesnetzagentur.de/Ladesaeulenkarte')
    +row('Angezeigt werden gerade',nf(mSeen.size,0)+' geladene Stationen'+(mSrcNow?' aus '+SRCN[mSrcNow]:''));
   $('#ocmKey').placeholder=ocmKey?'Gespeichert. Zum Ändern neu einfügen.':'Schlüssel von openchargemap.org';
 }
@@ -1519,7 +1538,7 @@ async function loadStations(force){
   // 1. eigene Tagesdaten
   if(await snapCheck()){
     if(my!==mReq)return;
-    try{show();mTick=setInterval(show,1000);await snapLoad(view);if(my!==mReq)return;mStamp=snap.osm||snap.t;mFetched=new Date(snap.t).getTime();mSrcNow='snap';done();return}
+    try{show();mTick=setInterval(show,1000);await snapLoad(view);if(my!==mReq)return;mSeen.forEach((s,k)=>{if(s.src!=='snap')mSeen.delete(k)});mStamp=typeof snap.osm==='string'&&snap.osm?snap.osm:snap.t;mFetched=new Date(snap.t).getTime();mSrcNow='snap';done();return}
     catch(e){mSt.snap='✗ Kachel nicht ladbar: '+errTxt(e)}
   }
   if(my!==mReq)return;
@@ -1587,7 +1606,8 @@ $('#dMap').addEventListener('click',e=>{if(e.target.id==='mRetry'||e.target.id==
 $('#ocmKey').addEventListener('change',e=>{const v=e.target.value.trim();if(v){ocmKey=v;try{localStorage.setItem(OCM_KEY,v)}catch(x){}e.target.value='';renderSrc()}});
 $('#mapBox').addEventListener('click',e=>{
   const b=e.target.closest('[data-log]');if(!b)return;const s=mSeen.get(b.dataset.log);if(!s)return;
-  dMap.close();openAdd();$('#fPlace').value=s.t.name&&s.t.name!==s.op?s.t.name:s.op+(s.t['addr:city']?' '+s.t['addr:city']:'');$('#fProv').value=s.op==='Unbekannter Betreiber'?'':s.op;
+  dMap.close();openAdd();$('#fPlace').value=s.t.name&&s.t.name!==s.op?s.t.name:s.op+(s.t['addr:city']?' '+s.t['addr:city']:'');const stx=(s.op+' '+(s.t.brand||'')+' '+(s.t.name||'')).toLowerCase(),mine=[...new Set(state.charges.map(e=>(e.provider||'').trim()).filter(p=>p.length>=3))].find(p=>stx.includes(p.toLowerCase()));
+  $('#fProv').value=mine||s.t.brand||(s.op==='Unbekannter Betreiber'?'':s.op.replace(/\s+(GmbH|AG|SE|KG|mbH|UG|eG|Co\.?|&|und)\b.*$/,''));
   $('#fType').value=s.dc&&!s.ac?'Schnellladen (DC)':'Wechselstrom (AC)';prev();
 });
 
