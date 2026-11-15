@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Ladelog">
-<title>LADELOG 2.0 · Reaktor</title>
+<title>LADELOG · Reaktor</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2306080a'/%3E%3Cpath d='M36 6 16 36h13l-4 22 23-33H34z' fill='%23b6ff00'/%3E%3C/svg%3E">
@@ -292,6 +292,11 @@ body.rainbow main,body.rainbow .aurora{animation:hue 3s linear infinite}
 .toast{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-140%);z-index:80;background:var(--lime);color:#000;font:700 13px ui-monospace,Menlo,monospace;padding:10px 16px;border-radius:12px;transition:.4s cubic-bezier(.2,1.3,.4,1);max-width:90vw;text-align:center}
 .toast.show{transform:translate(-50%,0)}
 footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute);padding:30px 0 10px;line-height:1.7}
+.verbtn{appearance:none;background:none;border:0;border-bottom:1px dotted var(--lime);color:var(--lime);font:inherit;cursor:pointer;padding:0}
+.vlog>div{padding:9px 0;border-bottom:1px solid rgba(182,255,0,.1);font-size:13px;line-height:1.45}
+.vlog b{color:var(--lime);font-family:ui-monospace,Menlo,monospace}
+.vlog small{color:var(--mute);font:11px ui-monospace,Menlo,monospace;margin-left:6px}
+.vlog .maj b{font-size:15px}
 @media(hover:none){.acts button{opacity:.9}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
 </style>
@@ -311,7 +316,7 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
 
 <main class="wrap">
   <div class="top">
-    <div class="logo disp" id="logo"><span>Lade<b>log</b></span><small>2.0</small></div>
+    <div class="logo disp" id="logo"><span>Lade<b>log</b></span><small id="verShort">2.4</small></div>
     <div class="tools">
       <button class="chip" id="bSync" title="Synchronisation">SYNC</button>
       <button class="chip" id="bSound" title="Sound">SND</button>
@@ -403,7 +408,7 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
     <div class="log" id="log"></div>
   </section>
 
-  <footer>LADELOG 2.0 · Daten liegen in diesem Browser und, wenn verbunden, im privaten GitHub-Repo (⚙ → Synchronisation)<br>Copyright by GrizzBln</footer>
+  <footer>LADELOG · <button type="button" class="verbtn" id="verBtn">Version 2.4.2</button> · <span id="verDate">15.11.2026</span><br>Daten liegen in diesem Browser und, wenn verbunden, im privaten GitHub-Repo (⚙ → Synchronisation)<br>Copyright by GrizzBln</footer>
 </main>
 
 <button class="fab disp" id="fab" aria-label="Ladung loggen">
@@ -464,6 +469,8 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
       </div>
       <label>Benzin (g CO₂ pro Liter)<input type="number" id="sPetrol" step="10" inputmode="decimal"></label>
       <label>Heimstrom<span class="sw"><input type="checkbox" id="sHomeGreen"><i></i><span>Zuhause mit Ökostrom-Tarif</span></span></label>
+      <label>PS5 + Fernseher beim Spielen (Watt)<input type="number" id="sGame" step="10" min="50" inputmode="numeric"></label>
+      <p class="note">Für die Reaktor-Einheit „Stunden PS5“. Voreingestellt sind 610 W: PS5 rund 220 W plus ein 85-Zoll-TCL in HDR mit 390 W (EU-Label des C7K). Der HDR-Wert steht auf dem Energielabel deines Fernsehers, je nach Modell 260 bis 500 W.</p>
     </form>
     <details>
       <summary>Benzinpreis: Ersatzquelle <small>optional</small></summary>
@@ -549,6 +556,16 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
   </div>
 </dialog>
 
+<!-- Versionsverlauf -->
+<dialog id="dVer">
+  <div class="dlg">
+    <h3 class="disp">Versionsverlauf</h3>
+    <p class="note">Erste Zahl: neues Design. Zweite Zahl: größere neue Funktionen. Dritte Zahl: kleine Ergänzungen und Korrekturen.</p>
+    <div class="vlog" id="verLog"></div>
+    <div class="btns" style="margin-top:14px"><button class="btn pri" id="verClose" type="button">Schließen</button></div>
+  </div>
+</dialog>
+
 <!-- Rückfrage -->
 <dialog id="dAsk">
   <div class="dlg">
@@ -567,9 +584,30 @@ const eur=n=>new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).fo
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
+/* ---------- Version: bei JEDEM Update eine Zeile oben ergänzen ----------
+   Erste Zahl:  neues Design oder Bruch mit alten Daten.
+   Zweite Zahl: größere neue Funktionen (nur dann erhöhen, dritte Zahl zurück auf 0).
+   Dritte Zahl: kleine Ergänzungen und Korrekturen.
+   Der Kopf zeigt nur die ersten zwei Stellen, die Fußzeile die volle Nummer mit Datum. */
+const CHANGELOG=[
+ ['2.4.2','15.11.2026','Versionsnummer in der Fußzeile und Versionsverlauf'],
+ ['2.4.1','15.11.2026','Reaktor-Einheiten PlayStation 5 und Berliner S-Bahn'],
+ ['2.4.0','14.11.2026','Ladekarte mit amtlichem Ladesäulenregister, abgeglichen mit OpenStreetMap'],
+ ['2.3.2','13.11.2026','Ladekarte: mehrere Quellen, Tagesdaten und Quellenanzeige'],
+ ['2.3.1','13.11.2026','Ladekarte: stabileres Laden und Datenstand'],
+ ['2.3.0','13.11.2026','54 Trophäen mit Detailansicht'],
+ ['2.2.1','13.11.2026','Ladekarte: eigener Standort, AC/DC und Filter für den Dolphin Surf'],
+ ['2.2.0','13.11.2026','Ladekarte, automatischer Benzinpreis, Runterziehen zum Aktualisieren, Kilometer nach Kilometerstand, Duell-Balken nach Kosten'],
+ ['2.1.1','12.11.2026','Zielflagge im Duell entfernt'],
+ ['2.1.0','12.11.2026','Winter-Malus, Ladetyp, Hall of Fame, Wrapped, neue Reaktor-Einheiten, Vollbild-Layout'],
+ ['2.0.1','12.11.2026','App-Icon für den Homescreen'],
+ ['2.0.0','12.11.2026','Neues Reaktor-Design, CO₂-Bilanz, Historie und GitHub-Sync aus Version 1 übernommen'],
+];
+const VERSION=CHANGELOG[0][0],VER_DATE=CHANGELOG[0][1],VER_SHORT=VERSION.split('.').slice(0,2).join('.');
+
 /* ---------- Datenmodell (kompatibel zu Ladelog 1.0) ---------- */
 const KEY='ladelog.v1',SOUND_KEY='ladelog.sound',HYPER_KEY='ladelog.hyper',SYNC_KEY='ladelog.sync';
-const DEFAULTS={evKwh:16,fuelL:6.5,fuelPrice:1.98,useMeasured:true,grid:344,green:20,petrol:2320,homeGreen:false,co2mode:'markt',fuelAuto:true};
+const DEFAULTS={evKwh:16,fuelL:6.5,fuelPrice:1.98,useMeasured:true,grid:344,green:20,petrol:2320,homeGreen:false,co2mode:'markt',fuelAuto:true,gameW:610};
 let demo=false,state=loadReal(),newId=null,editingId=null;
 function loadReal(){
   const st={charges:[],settings:{...DEFAULTS},deleted:{},settingsUpdated:0};
@@ -657,6 +695,9 @@ function co2(mode){
 }
 
 /* ---------- Render ---------- */
+// S-Bahn Berlin: rund 400 GWh Bahnstrom pro Jahr bei 32,52 Mio. Zugkilometern = 12,3 kWh je Zugkilometer;
+// je Fahrgast 9,16 kWh auf 100 km (393.203 MWh bei 4,289 Mrd. Personenkilometern).
+const SBAHN_ZUG=400e6/32.52e6,SBAHN_PKM=0.0916;
 let unitIdx=0;
 const UNITS=[
  {u:'€ gespart vs. Ibiza',f:c=>c.saved,fmt:v=>nf(v,0)},
@@ -669,6 +710,9 @@ const UNITS=[
  {u:'Stunden Toast 🍞 geröstet',f:c=>c.kwh,fmt:v=>nf(v,0)},
  {u:'Tage Haushaltsstrom 🏠',f:c=>c.kwh/9.6,fmt:v=>nf(v,1)},
  {u:'Pizzen 🍕 gespart',f:c=>c.saved/12,fmt:v=>nf(Math.max(v,0),0)},
+ {u:'Stunden PS5 in HDR 🎮 auf dem 85″-TCL',f:c=>c.kwh/((state.settings.gameW>0?state.settings.gameW:610)/1000),fmt:v=>nf(v,v<100?1:0)},
+ {u:'km als Fahrgast in der Berliner S-Bahn 🚆',f:c=>c.kwh/SBAHN_PKM,fmt:v=>nf(v,0)},
+ {u:'km mit einem ganzen Berliner S-Bahn-Zug 🚆',f:c=>c.kwh/SBAHN_ZUG,fmt:v=>nf(v,1)},
  {u:'Ibiza-Tankfüllungen ⛽ gespart',f:c=>c.litres/40,fmt:v=>nf(v,1)},
  {u:'Baumjahre 🌳 CO₂ gebunden (Spielerei)',f:()=>Math.max(co2().saved,0)/10,fmt:v=>nf(v,1)},
  {u:'× Hamburg–München 🚗',f:c=>c.kmEq/780,fmt:v=>nf(v,1)},
@@ -681,7 +725,7 @@ function tickInit(){
 }
 function countTo(el,to,fmt,dur=1300,from=0){
   const t0=performance.now();
-  (function step(t){const p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,4);el.textContent=fmt(from+(to-from)*e);if(p<1)requestAnimationFrame(step)})(t0);
+  (function step(t){const p=Math.max(0,Math.min(1,(t-t0)/dur)),e=1-Math.pow(1-p,4);el.textContent=fmt(from+(to-from)*e);if(p<1)requestAnimationFrame(step)})(t0);
 }
 function renderHero(c,animate){
   const U=UNITS[unitIdx],v=U.f(c),big=$('#coreBig');
@@ -1032,7 +1076,7 @@ function drawWrap(list,label){
   g.strokeStyle='rgba(182,255,0,.3)';g.lineWidth=2;g.beginPath();g.moveTo(90,880);g.lineTo(990,880);g.stroke();
   const rows=[['LIEBLINGSORT',R.place?R.place[0]+' ('+R.place[1]+'×)':'–'],['LIEBLINGSANBIETER',R.prov?R.prov[0]+' ('+R.prov[1]+'×)':'–'],['LIEBLINGS-WOCHENTAG',R.day||'–'],['LADETYP',R.pers?R.pers.p.i+' '+R.pers.p.n:'–']];
   rows.forEach((r,i)=>{const y=950+i*70;txt(r[0],90,y,22,'#7f9772','left','m');txt(r[1],990,y+2,40,'#b6ff00','right','i',560)});
-  txt('LADELOG 2.0 · Copyright by GrizzBln',540,1300,22,'#7f9772','center','m');
+  txt('LADELOG '+VER_SHORT+' · Copyright by GrizzBln',540,1300,22,'#7f9772','center','m');
   return cv2;
 }
 $('#wGo').onclick=()=>{
@@ -1149,7 +1193,7 @@ function fillSettings(){
   const s=state.settings;
   $('#sMeasured').checked=s.useMeasured!==false;$('#sEv').value=s.evKwh;$('#sFuel').value=s.fuelL;$('#sPrice').value=s.fuelPrice;
   $('#sFuelAuto').checked=s.fuelAuto!==false;$('#sPrice').disabled=s.fuelAuto!==false&&!demo;fuelUI();
-  $('#sGrid').value=s.grid;$('#sGreen').value=s.green;$('#sPetrol').value=s.petrol;$('#sHomeGreen').checked=!!s.homeGreen;
+  $('#sGrid').value=s.grid;$('#sGreen').value=s.green;$('#sPetrol').value=s.petrol;$('#sHomeGreen').checked=!!s.homeGreen;$('#sGame').value=s.gameW>0?s.gameW:DEFAULTS.gameW;
 }
 $('#bSet').onclick=()=>{fillSettings();provTable();renderMeasured();fillSyncFields();tick();dSet.showModal()};
 $('#sClose').onclick=()=>dSet.close();
@@ -1157,12 +1201,16 @@ $('#setForm').addEventListener('input',()=>{
   const s=state.settings,f=(id,d)=>{const v=parseFloat($(id).value);return v>=0?v:d};
   const wasAuto=s.fuelAuto!==false;s.fuelAuto=$('#sFuelAuto').checked;$('#sPrice').disabled=s.fuelAuto;
   s.useMeasured=$('#sMeasured').checked;s.evKwh=f('#sEv',0);s.fuelL=f('#sFuel',0);if(!s.fuelAuto)s.fuelPrice=f('#sPrice',0);
-  s.grid=f('#sGrid',DEFAULTS.grid);s.green=f('#sGreen',DEFAULTS.green);s.petrol=f('#sPetrol',DEFAULTS.petrol);s.homeGreen=$('#sHomeGreen').checked;
+  s.grid=f('#sGrid',DEFAULTS.grid);s.green=f('#sGreen',DEFAULTS.green);s.petrol=f('#sPetrol',DEFAULTS.petrol);s.homeGreen=$('#sHomeGreen').checked;s.gameW=f('#sGame',0)>=50?f('#sGame',0):DEFAULTS.gameW;
   state.settingsUpdated=Date.now();save();render(false);scheduleSync(2500);
   if(s.fuelAuto&&!wasAuto)updateFuel(true);fuelUI();
 });
 $('#bdClose').onclick=()=>$('#dBadge').close();
-[dAdd,dSet,dAsk,dWrap,$('#dBadge')].forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));
+$('#verShort').textContent=VER_SHORT;$('#verBtn').textContent='Version '+VERSION;$('#verDate').textContent=VER_DATE;
+$('#verLog').innerHTML=CHANGELOG.map(v=>`<div class="${/\.0$/.test(v[0])?'maj':''}"><b>${esc(v[0])}</b><small>${esc(v[1])}</small><br>${esc(v[2])}</div>`).join('');
+$('#verBtn').onclick=()=>{tick();$('#dVer').showModal()};
+$('#verClose').onclick=()=>$('#dVer').close();
+[dAdd,dSet,dAsk,dWrap,$('#dBadge'),$('#dVer')].forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));
 
 /* ---------- Sicherung ---------- */
 function msg2(t){$('#msg2').textContent=t}
