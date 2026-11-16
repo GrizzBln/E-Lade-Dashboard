@@ -20,7 +20,8 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:var(--bg);color-scheme:dark;-webkit-text-size-adjust:100%}
-html,body{width:100%;max-width:100%;overflow-x:hidden}
+html,body{width:100%;max-width:100%}
+@supports(overflow:clip){body{overflow-x:clip!important}}
 html{overscroll-behavior-y:none}
 body{margin:0;min-height:100vh;color:var(--ink);font-family:ui-rounded,"SF Pro Rounded",system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:hidden;padding-bottom:calc(110px + var(--safe-b))}
 .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
@@ -193,12 +194,12 @@ body.hyper .spin1{animation-duration:6s}body.hyper .spin2{animation-duration:3s}
 .wv{font:700 10px ui-monospace,Menlo,monospace;font-style:normal}
 
 /* ---------- Pull-to-Refresh ---------- */
-#ptr{position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:50%;width:46px;height:46px;margin-left:-23px;border-radius:50%;background:#0c140a;border:2px solid var(--line);display:grid;place-items:center;z-index:75;transform:translateY(-90px);pointer-events:none;box-shadow:0 0 20px #000}
+#ptr{position:fixed;top:0;left:50%;width:46px;height:46px;margin-left:-23px;border-radius:50%;background:#0c140a;border:2px solid var(--line);display:grid;place-items:center;z-index:75;pointer-events:none;box-shadow:0 0 20px #000;opacity:0;visibility:hidden;transform:translateY(-80px) scale(.3)}
 #ptr svg{width:24px;height:24px}
-#ptr.ready{border-color:var(--lime);box-shadow:0 0 22px #b6ff0088}
-#ptr.spin{transform:translateY(14px)!important;transition:transform .2s;border-color:var(--lime)}
+#ptr.pull,#ptr.spin{visibility:visible}
+#ptr.ready{border-color:var(--lime);box-shadow:0 0 26px #b6ff00aa}
+#ptr.spin{opacity:1;transform:translateY(calc(env(safe-area-inset-top,0px) + 56px)) scale(1.25);border-color:var(--lime);transition:transform .2s}
 #ptr.spin svg{animation:spin .7s linear infinite}
-#ptr.back{transition:transform .25s}
 
 /* ---------- Ladekarte ---------- */
 #dMap{width:100vw;max-width:100vw;height:100vh;height:100dvh;max-height:100dvh;margin:0;border:0;border-radius:0;background:#06080a}
@@ -207,6 +208,7 @@ body.hyper .spin1{animation-duration:6s}body.hyper .spin2{animation-duration:3s}
 .mapbar b{flex:1;min-width:0;overflow:hidden;font-size:22px;color:var(--lime)}
 @media(max-width:420px){.mapbar b{font-size:0}}
 #mapBox{flex:1;min-height:0;background:#0a0f0a}
+#mStat{display:block;min-height:4.6em}
 .mapfoot{max-height:55vh;overflow:auto;padding:8px 12px calc(8px + var(--safe-b));font:11px/1.5 ui-monospace,Menlo,monospace;color:var(--mute);border-top:1px solid var(--line)}
 .mapfoot a{color:var(--lime)}
 .mapfoot details{margin:8px 0 0;padding:8px 10px}
@@ -289,8 +291,8 @@ body.hyper .logo b{animation:glitch .6s steps(2) infinite}
 body.hyper .aurora{animation:hue 5s linear infinite}
 body.rainbow main,body.rainbow .aurora{animation:hue 3s linear infinite}
 @keyframes hue{to{filter:hue-rotate(360deg)}}
-.toast{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-140%);z-index:80;background:var(--lime);color:#000;font:700 13px ui-monospace,Menlo,monospace;padding:10px 16px;border-radius:12px;transition:.4s cubic-bezier(.2,1.3,.4,1);max-width:90vw;text-align:center}
-.toast.show{transform:translate(-50%,0)}
+.toast{position:fixed;top:0;left:50%;transform:translate(-50%,-130%);opacity:0;visibility:hidden;z-index:80;background:var(--lime);color:#000;font:700 13px ui-monospace,Menlo,monospace;padding:10px 16px;border-radius:12px;transition:transform .4s cubic-bezier(.2,1.3,.4,1),opacity .3s,visibility 0s .4s;max-width:90vw;text-align:center}
+.toast.show{transform:translate(-50%,calc(14px + env(safe-area-inset-top,0px)));opacity:1;visibility:visible;transition:transform .4s cubic-bezier(.2,1.3,.4,1),opacity .2s}
 footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute);padding:30px 0 10px;line-height:1.7}
 .verbtn{appearance:none;background:none;border:0;border-bottom:1px dotted var(--lime);color:var(--lime);font:inherit;cursor:pointer;padding:0}
 .vlog>div{padding:9px 0;border-bottom:1px solid rgba(182,255,0,.1);font-size:13px;line-height:1.45}
@@ -408,7 +410,7 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
     <div class="log" id="log"></div>
   </section>
 
-  <footer>LADELOG · <button type="button" class="verbtn" id="verBtn">Version 2.4.2</button> · <span id="verDate">15.11.2026</span><br>Daten liegen in diesem Browser und, wenn verbunden, im privaten GitHub-Repo (⚙ → Synchronisation)<br>Copyright by GrizzBln</footer>
+  <footer>LADELOG · <button type="button" class="verbtn" id="verBtn">Version 2.4.3</button> · <span id="verDate">16.11.2026</span><br>Daten liegen in diesem Browser und, wenn verbunden, im privaten GitHub-Repo (⚙ → Synchronisation)<br>Copyright by GrizzBln</footer>
 </main>
 
 <button class="fab disp" id="fab" aria-label="Ladung loggen">
@@ -436,7 +438,7 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
     </div>
     <datalist id="dlPlace"></datalist><datalist id="dlProv"></datalist>
     <div class="grid2">
-      <label>Geladene kWh<input type="number" id="fKwh" step="0.01" min="0" inputmode="decimal" placeholder="z. B. 24,5"></label>
+      <label>Geladene kWh<input type="number" id="fKwh" step="0.001" min="0" inputmode="decimal" placeholder="z. B. 24,537"></label>
       <label>Kosten in €<input type="number" id="fCost" step="0.01" min="0" inputmode="decimal" placeholder="z. B. 12,80"></label>
     </div>
     <div class="grid2">
@@ -470,7 +472,7 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
       <label>Benzin (g CO₂ pro Liter)<input type="number" id="sPetrol" step="10" inputmode="decimal"></label>
       <label>Heimstrom<span class="sw"><input type="checkbox" id="sHomeGreen"><i></i><span>Zuhause mit Ökostrom-Tarif</span></span></label>
       <label>PS5 + Fernseher beim Spielen (Watt)<input type="number" id="sGame" step="10" min="50" inputmode="numeric"></label>
-      <p class="note">Für die Reaktor-Einheit „Stunden PS5“. Voreingestellt sind 610 W: PS5 rund 220 W plus ein 85-Zoll-TCL in HDR mit 390 W (EU-Label des C7K). Der HDR-Wert steht auf dem Energielabel deines Fernsehers, je nach Modell 260 bis 500 W.</p>
+      <p class="note">Für die Reaktor-Einheit „Stunden Zocken“. Voreingestellt sind 580 W: PS5 rund 220 W plus ein 75-Zoll-TCL in 4K HDR mit rund 360 W (EU-Label von C7K und C8K). Der HDR-Wert steht auf dem Energielabel deines Fernsehers, bei 75 Zoll je nach Modell etwa 165 bis 365 W.</p>
     </form>
     <details>
       <summary>Benzinpreis: Ersatzquelle <small>optional</small></summary>
@@ -580,6 +582,7 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
 "use strict";
 const $=(s,r=document)=>r.querySelector(s);
 const nf=(n,d=2)=>new Intl.NumberFormat('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d}).format(n);
+const nfk=n=>new Intl.NumberFormat('de-DE',{minimumFractionDigits:1,maximumFractionDigits:3}).format(n);
 const eur=n=>new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(n);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
@@ -590,6 +593,7 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
    Dritte Zahl: kleine Ergänzungen und Korrekturen.
    Der Kopf zeigt nur die ersten zwei Stellen, die Fußzeile die volle Nummer mit Datum. */
 const CHANGELOG=[
+ ['2.4.3','16.11.2026','Aktualisieren-Symbol erscheint erst beim Runterziehen und wächst mit, Hinweise bleiben oben. Ladekarte mit größeren Punkten und stabilen Popups. kWh mit drei Nachkommastellen. PS5-Einheit auf 75 Zoll in 4K HDR korrigiert'],
  ['2.4.2','15.11.2026','Versionsnummer in der Fußzeile und Versionsverlauf'],
  ['2.4.1','15.11.2026','Reaktor-Einheiten PlayStation 5 und Berliner S-Bahn'],
  ['2.4.0','14.11.2026','Ladekarte mit amtlichem Ladesäulenregister, abgeglichen mit OpenStreetMap'],
@@ -607,7 +611,7 @@ const VERSION=CHANGELOG[0][0],VER_DATE=CHANGELOG[0][1],VER_SHORT=VERSION.split('
 
 /* ---------- Datenmodell (kompatibel zu Ladelog 1.0) ---------- */
 const KEY='ladelog.v1',SOUND_KEY='ladelog.sound',HYPER_KEY='ladelog.hyper',SYNC_KEY='ladelog.sync';
-const DEFAULTS={evKwh:16,fuelL:6.5,fuelPrice:1.98,useMeasured:true,grid:344,green:20,petrol:2320,homeGreen:false,co2mode:'markt',fuelAuto:true,gameW:610};
+const DEFAULTS={evKwh:16,fuelL:6.5,fuelPrice:1.98,useMeasured:true,grid:344,green:20,petrol:2320,homeGreen:false,co2mode:'markt',fuelAuto:true,gameW:580};
 let demo=false,state=loadReal(),newId=null,editingId=null;
 function loadReal(){
   const st={charges:[],settings:{...DEFAULTS},deleted:{},settingsUpdated:0};
@@ -698,6 +702,8 @@ function co2(mode){
 // S-Bahn Berlin: rund 400 GWh Bahnstrom pro Jahr bei 32,52 Mio. Zugkilometern = 12,3 kWh je Zugkilometer;
 // je Fahrgast 9,16 kWh auf 100 km (393.203 MWh bei 4,289 Mrd. Personenkilometern).
 const SBAHN_ZUG=400e6/32.52e6,SBAHN_PKM=0.0916;
+// 610 war die alte Voreinstellung für 85 Zoll und gilt als „nicht selbst eingestellt“.
+const gameW=()=>{const g=state.settings.gameW;return g>=50&&g!==610?g:DEFAULTS.gameW};
 let unitIdx=0;
 const UNITS=[
  {u:'€ gespart vs. Ibiza',f:c=>c.saved,fmt:v=>nf(v,0)},
@@ -710,7 +716,7 @@ const UNITS=[
  {u:'Stunden Toast 🍞 geröstet',f:c=>c.kwh,fmt:v=>nf(v,0)},
  {u:'Tage Haushaltsstrom 🏠',f:c=>c.kwh/9.6,fmt:v=>nf(v,1)},
  {u:'Pizzen 🍕 gespart',f:c=>c.saved/12,fmt:v=>nf(Math.max(v,0),0)},
- {u:'Stunden PS5 in HDR 🎮 auf dem 85″-TCL',f:c=>c.kwh/((state.settings.gameW>0?state.settings.gameW:610)/1000),fmt:v=>nf(v,v<100?1:0)},
+ {u:'Stunden Zocken 🎮 PS5 in 4K HDR auf 75 Zoll',f:c=>c.kwh/(gameW()/1000),fmt:v=>nf(v,v<100?1:0)},
  {u:'km als Fahrgast in der Berliner S-Bahn 🚆',f:c=>c.kwh/SBAHN_PKM,fmt:v=>nf(v,0)},
  {u:'km mit einem ganzen Berliner S-Bahn-Zug 🚆',f:c=>c.kwh/SBAHN_ZUG,fmt:v=>nf(v,1)},
  {u:'Ibiza-Tankfüllungen ⛽ gespart',f:c=>c.litres/40,fmt:v=>nf(v,1)},
@@ -899,7 +905,7 @@ function renderLog(){
       <div class="acts"><button data-edit="${esc(e.id)}">EDIT</button><button class="del" data-del="${esc(e.id)}">LÖSCHEN</button></div>
       <div class="t">${esc(e.place)}<span class="tag ${k}">${TLAB[k]}</span>${free?'<span class="tag free">GRATIS</span>':''}<span class="tag ${f.t}">${f.t==='eco'?'ÖKO':'NETZ'}</span></div>
       <div class="d">${esc(isNaN(d)?e.date:d.toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'2-digit'})+' · '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}))}${e.provider?' · '+esc(e.provider):''}${e.note?' · '+esc(e.note):''}</div>
-      <div class="r"><span>${e.kwh>0?nf(e.kwh,1)+' kWh':'– kWh'}</span><span>${free?'0,00 €':eur(e.cost)}${e.kwh>0&&!free?'<small> · '+nf(e.cost/e.kwh*100,0)+' ct/kWh</small>':''}</span></div>
+      <div class="r"><span>${e.kwh>0?nfk(e.kwh)+' kWh':'– kWh'}</span><span>${free?'0,00 €':eur(e.cost)}${e.kwh>0&&!free?'<small> · '+nf(e.cost/e.kwh*100,0)+' ct/kWh</small>':''}</span></div>
       <div class="cell"><i style="width:${(+e.kwh||0)/mx*100}%"></i></div>
       <div class="d">${meta?meta+' · ':''}${e.kwh>0?nf(sv,1)+' kg CO₂ gespart':''}</div></div>`}).join('')
     +(E.length>12?`<button class="chip more" id="bMore">${showAll?'WENIGER':'ALLE '+E.length+' ANZEIGEN'}</button>`:'');
@@ -1193,7 +1199,7 @@ function fillSettings(){
   const s=state.settings;
   $('#sMeasured').checked=s.useMeasured!==false;$('#sEv').value=s.evKwh;$('#sFuel').value=s.fuelL;$('#sPrice').value=s.fuelPrice;
   $('#sFuelAuto').checked=s.fuelAuto!==false;$('#sPrice').disabled=s.fuelAuto!==false&&!demo;fuelUI();
-  $('#sGrid').value=s.grid;$('#sGreen').value=s.green;$('#sPetrol').value=s.petrol;$('#sHomeGreen').checked=!!s.homeGreen;$('#sGame').value=s.gameW>0?s.gameW:DEFAULTS.gameW;
+  $('#sGrid').value=s.grid;$('#sGreen').value=s.green;$('#sPetrol').value=s.petrol;$('#sHomeGreen').checked=!!s.homeGreen;$('#sGame').value=gameW();
 }
 $('#bSet').onclick=()=>{fillSettings();provTable();renderMeasured();fillSyncFields();tick();dSet.showModal()};
 $('#sClose').onclick=()=>dSet.close();
@@ -1485,15 +1491,27 @@ const mShow=s=>{
   if(mDcOnly&&!(mFitOnly?s.fitDc:s.dc))return false;
   return true;
 };
+// Punktgröße je Zoomstufe. Die Tippfläche ist zusätzlich 14 px größer (tolerance im Canvas-Renderer).
+const mRad=D=>{const z=map.getZoom();return z>=14?(D?12:10):z>=12?(D?10:8):(D?8:7)};
+const mMarks=new Map();
 function drawStations(){
-  if(!map)return{n:0,u:0,l:0};mLayer.clearLayers();let n=0,u=0,l=0;const b=map.getBounds();
+  if(!map)return{n:0,u:0,l:0};let n=0,u=0,l=0;const b=map.getBounds(),keep=new Set();
   mSeen.forEach(s=>{
     if(!mShow(s))return;
     const A=mFitOnly?s.fitAc:s.ac,D=mFitOnly?s.fitDc:s.dc,col=!s.known?'#8a8f8a':A&&D?'#ff3df2':D?'#ff7a1a':A?'#b6ff00':'#555';
-    const loose=!!s.srcs&&!s.srcs.includes('r');
-    window.L.circleMarker([s.lat,s.lng],loose?{radius:D?7:5,color:col,weight:2,fillColor:col,fillOpacity:.15}:{radius:D?7:5,color:'#000',weight:1,fillColor:col,fillOpacity:.9}).bindPopup(()=>popupHtml(s),{maxWidth:290}).addTo(mLayer);
+    const loose=!!s.srcs&&!s.srcs.includes('r'),key=col+(loose?'o':'f')+(D?'D':'A');
+    let e=mMarks.get(s.id);
+    // Vorhandene Punkte bleiben stehen, damit ein offenes Popup nicht zugeht.
+    if(e&&e.key!==key){mLayer.removeLayer(e.m);mMarks.delete(s.id);e=null}
+    if(!e){
+      const m=window.L.circleMarker([s.lat,s.lng],loose?{radius:mRad(D),color:col,weight:2.5,fillColor:col,fillOpacity:.18}:{radius:mRad(D),color:'#000',weight:1.5,fillColor:col,fillOpacity:.92})
+        .bindPopup(()=>popupHtml(mSeen.get(s.id)||s),{maxWidth:290,autoPanPadding:[14,14]}).addTo(mLayer);
+      mMarks.set(s.id,{m,key,D});
+    }
+    keep.add(s.id);
     if(b.contains([s.lat,s.lng])){n++;if(!s.known)u++;if(loose)l++}
   });
+  mMarks.forEach((e,id)=>{if(!keep.has(id)){mLayer.removeLayer(e.m);mMarks.delete(id)}});
   return{n,u,l};
 }
 function mapStatus(){
@@ -1537,6 +1555,10 @@ async function snapCheck(){
     mSt.osmb=j.v===2?(j.osm?'✓ '+nf(j.osm.n||0,0)+' Stationen, Datenstand '+(mDate(j.osm.date)||j.osm.t||'?')+', wird wöchentlich erneuert':'✗ fehlt in den Tagesdaten'):''}
   catch(e){snap=false;mSt.snap=e&&e.message==='HTTP 404'?'nicht eingerichtet (Datei ladekarte.yml fehlt im Repo oder lief noch nicht)':'✗ '+errTxt(e)}
   return snap;
+}
+function snapMissing(b){
+  for(let la=Math.floor(b.getSouth());la<=Math.floor(b.getNorth());la++)for(let lo=Math.floor(b.getWest());lo<=Math.floor(b.getEast());lo++)if(!snapTiles.has(la+'_'+lo))return true;
+  return false;
 }
 async function snapLoad(b){
   const jobs=[];
@@ -1586,7 +1608,7 @@ async function loadStations(force){
   // 1. eigene Tagesdaten
   if(await snapCheck()){
     if(my!==mReq)return;
-    try{show();mTick=setInterval(show,1000);await snapLoad(view);if(my!==mReq)return;mSeen.forEach((s,k)=>{if(s.src!=='snap')mSeen.delete(k)});mStamp=typeof snap.osm==='string'&&snap.osm?snap.osm:snap.t;mFetched=new Date(snap.t).getTime();mSrcNow='snap';done();return}
+    try{if(snapMissing(view)){show();mTick=setInterval(show,1000)}await snapLoad(view);if(my!==mReq)return;mSeen.forEach((s,k)=>{if(s.src!=='snap')mSeen.delete(k)});mStamp=typeof snap.osm==='string'&&snap.osm?snap.osm:snap.t;mFetched=new Date(snap.t).getTime();mSrcNow='snap';done();return}
     catch(e){mSt.snap='✗ Kachel nicht ladbar: '+errTxt(e)}
   }
   if(my!==mReq)return;
@@ -1632,13 +1654,16 @@ async function openMap(){
   if(map){setTimeout(()=>map.invalidateSize(),60);return}
   let L;try{L=await loadLeaflet()}catch(e){$('#mStat').innerHTML='<b>Die Karte konnte nicht geladen werden.</b> In der Chat-Vorschau ist sie gesperrt, auf deiner echten Seite brauchst du eine Internetverbindung.';return}
   let view=null;try{view=JSON.parse(localStorage.getItem(MAP_KEY))}catch(e){}
-  map=L.map('mapBox',{preferCanvas:true,zoomControl:true}).setView(view&&view.c?view.c:[51.2,10.4],view&&view.z?view.z:6);
+  map=L.map('mapBox',{preferCanvas:true,renderer:L.canvas({padding:.5,tolerance:14}),zoomControl:true,closePopupOnClick:false}).setView(view&&view.c?view.c:[51.2,10.4],view&&view.z?view.z:6);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
   mLayer=L.layerGroup().addTo(map);cacheLoad();renderSrc();
   map.on('moveend',()=>{
     try{const c=map.getCenter();localStorage.setItem(MAP_KEY,JSON.stringify({c:[+c.lat.toFixed(4),+c.lng.toFixed(4)],z:map.getZoom()}))}catch(e){}
     clearTimeout(mTimer);mTimer=setTimeout(()=>loadStations(false),600);
   });
+  map.on('zoomend',()=>mMarks.forEach(e=>e.m.setRadius(mRad(e.D))));
+  // Ein Tipp auf die freie Karte schließt das Popup, aber nicht in der ersten halben Sekunde nach dem Öffnen.
+  let popAt=0;map.on('popupopen',()=>{popAt=Date.now()});map.on('click',()=>{if(Date.now()-popAt>500)map.closePopup()});
   map.on('locationfound',e=>{$('#mLoc').classList.remove('s-busy');$('#mLoc').classList.add('on');if(mMe)mMe.remove();if(mAcc)mAcc.remove();
     mAcc=L.circle(e.latlng,{radius:Math.min(e.accuracy||0,400),color:'#27f0ff',weight:1,fillColor:'#27f0ff',fillOpacity:.12,interactive:false}).addTo(map);
     mMe=L.circleMarker(e.latlng,{radius:8,color:'#fff',weight:3,fillColor:'#27f0ff',fillOpacity:1,interactive:false}).addTo(map)});
@@ -1661,18 +1686,28 @@ $('#mapBox').addEventListener('click',e=>{
 
 /* ---------- Pull-to-Refresh ---------- */
 (()=>{
-  const ptr=$('#ptr');let y0=null,dy=0;
-  addEventListener('touchstart',e=>{y0=(scrollY<=0&&e.touches.length===1&&!document.querySelector('dialog[open]'))?e.touches[0].clientY:null;dy=0;ptr.classList.remove('back')},{passive:true});
+  // Das Symbol ist unsichtbar. Erst ab START Pixeln Zug erscheint es und wächst, ab GO wird neu geladen.
+  const ptr=$('#ptr'),START=45,GO=175;let y0=null,dy=0;
+  const topY=()=>Math.max(window.scrollY||0,document.documentElement.scrollTop||0,document.body.scrollTop||0);
+  const hide=()=>{ptr.classList.remove('pull','ready');ptr.style.transform='';ptr.style.opacity=''};
+  addEventListener('touchstart',e=>{y0=(topY()<=0&&e.touches.length===1&&!document.querySelector('dialog[open]'))?e.touches[0].clientY:null;dy=0},{passive:true});
   addEventListener('touchmove',e=>{
-    if(y0===null)return;dy=e.touches[0].clientY-y0;
-    if(dy<=0||scrollY>0){y0=null;ptr.style.transform='';return}
-    ptr.style.transform='translateY('+(Math.min(dy*.45,80)-66)+'px) rotate('+dy*1.5+'deg)';ptr.classList.toggle('ready',dy>150);
+    if(y0===null||ptr.classList.contains('spin'))return;
+    dy=e.touches[0].clientY-y0;
+    if(dy<=0||topY()>0||e.touches.length>1){y0=null;dy=0;hide();return}
+    if(dy<START){hide();return}
+    const p=Math.min((dy-START)/(GO-START),1);
+    ptr.classList.add('pull');ptr.classList.toggle('ready',p>=1);
+    ptr.style.opacity=Math.min(1,.2+p*1.2);
+    ptr.style.transform='translateY(calc(env(safe-area-inset-top,0px) + '+Math.round(8+p*48)+'px)) scale('+(.45+p*.8).toFixed(2)+') rotate('+Math.round(p*360)+'deg)';
   },{passive:true});
   addEventListener('touchend',()=>{
-    if(y0!==null&&dy>150){ptr.classList.add('spin');try{sessionStorage.setItem('ladelog.force','1')}catch(e){}tick();setTimeout(()=>location.reload(),450)}
-    else{ptr.classList.add('back');ptr.style.transform='';ptr.classList.remove('ready')}
-    y0=null;
+    if(ptr.classList.contains('spin'))return;
+    if(y0!==null&&dy>=GO){ptr.style.transform='';ptr.style.opacity='';ptr.classList.add('spin');try{sessionStorage.setItem('ladelog.force','1')}catch(e){}tick();setTimeout(()=>location.reload(),450)}
+    else hide();
+    y0=null;dy=0;
   });
+  addEventListener('touchcancel',()=>{y0=null;dy=0;if(!ptr.classList.contains('spin'))hide()});
 })();
 
 /* ---------- Eigene Fotos (optional, Ordner „bilder“) ---------- */
