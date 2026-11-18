@@ -2,7 +2,7 @@
 
 Ladelog ist ein persönliches Logbuch für das Laden eines Elektroautos. Die Seite hält jede Ladung fest, vergleicht die Kosten mit einem Benziner und zeigt eine Ladekarte für Deutschland. Sie läuft als einzelne Datei über GitHub Pages und lässt sich auf dem iPhone als App auf den Homescreen legen.
 
-**Aktuelle Version: 2.4.3 vom 16.11.2026**
+**Aktuelle Version: 2.4.4 vom 18.11.2026**
 
 ## Versionsverlauf
 
@@ -10,6 +10,7 @@ Ladelog ist ein persönliches Logbuch für das Laden eines Elektroautos. Die Sei
 
 | Version | Datum | Änderung |
 |---|---|---|
+| 2.4.4 | 18.11.2026 | Diagramme „kWh pro Monat“ und „Winter-Malus“: Balkenhöhen stimmen jetzt mit den Werten überein |
 | 2.4.3 | 16.11.2026 | Aktualisieren-Symbol erscheint erst beim Runterziehen, Hinweise bleiben oben. Ladekarte mit größeren Punkten und stabilen Popups. kWh mit drei Nachkommastellen. PS5-Einheit auf 75 Zoll in 4K HDR korrigiert |
 | 2.4.2 | 15.11.2026 | Versionsnummer in der Fußzeile und Versionsverlauf in der Seite |
 | 2.4.1 | 15.11.2026 | Neue Reaktor-Einheiten: Stunden PlayStation 5 und Kilometer mit der Berliner S-Bahn |

@@ -139,7 +139,8 @@ body.hyper .spin1{animation-duration:6s}body.hyper .spin2{animation-duration:3s}
 /* ---------- Monate ---------- */
 .months{display:flex;align-items:flex-end;gap:8px;height:130px;padding-top:6px}
 .mcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px}
-.mcol .b{width:100%;max-width:54px;border-radius:10px 10px 4px 4px;background:linear-gradient(180deg,var(--lime),#2f6b00);box-shadow:0 0 16px #b6ff0044;height:0;transition:height 1.2s cubic-bezier(.2,.9,.2,1)}
+.mcol .bt{flex:1 1 0;min-height:0;width:100%;position:relative}
+.mcol .b{position:absolute;left:0;right:0;bottom:0;margin:0 auto;max-width:54px;border-radius:10px 10px 4px 4px;background:linear-gradient(180deg,var(--lime),#2f6b00);box-shadow:0 0 16px #b6ff0044;height:0;transition:height 1.2s cubic-bezier(.2,.9,.2,1)}
 .mcol span{font:10px ui-monospace,Menlo,monospace;color:var(--mute)}
 .mcol em{font:700 10px ui-monospace,Menlo,monospace;font-style:normal}
 
@@ -410,7 +411,7 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
     <div class="log" id="log"></div>
   </section>
 
-  <footer>LADELOG · <button type="button" class="verbtn" id="verBtn">Version 2.4.3</button> · <span id="verDate">16.11.2026</span><br>Daten liegen in diesem Browser und, wenn verbunden, im privaten GitHub-Repo (⚙ → Synchronisation)<br>Copyright by GrizzBln</footer>
+  <footer>LADELOG · <button type="button" class="verbtn" id="verBtn">Version 2.4.4</button> · <span id="verDate">18.11.2026</span><br>Daten liegen in diesem Browser und, wenn verbunden, im privaten GitHub-Repo (⚙ → Synchronisation)<br>Copyright by GrizzBln</footer>
 </main>
 
 <button class="fab disp" id="fab" aria-label="Ladung loggen">
@@ -593,6 +594,7 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
    Dritte Zahl: kleine Ergänzungen und Korrekturen.
    Der Kopf zeigt nur die ersten zwei Stellen, die Fußzeile die volle Nummer mit Datum. */
 const CHANGELOG=[
+ ['2.4.4','18.11.2026','Diagramme „kWh pro Monat“ und „Winter-Malus“: Balkenhöhen stimmen jetzt mit den Werten überein, höhere Werte haben immer höhere Balken'],
  ['2.4.3','16.11.2026','Aktualisieren-Symbol erscheint erst beim Runterziehen und wächst mit, Hinweise bleiben oben. Ladekarte mit größeren Punkten und stabilen Popups. kWh mit drei Nachkommastellen. PS5-Einheit auf 75 Zoll in 4K HDR korrigiert'],
  ['2.4.2','15.11.2026','Versionsnummer in der Fußzeile und Versionsverlauf'],
  ['2.4.1','15.11.2026','Reaktor-Einheiten PlayStation 5 und Berliner S-Bahn'],
@@ -813,7 +815,7 @@ function renderMonths(){
   for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);arr.push({y:d.getFullYear(),m:d.getMonth(),kwh:0})}
   state.charges.forEach(e=>{const d=new Date(e.date);const t=arr.find(a=>a.y===d.getFullYear()&&a.m===d.getMonth());if(t)t.kwh+=+e.kwh||0});
   const mx=Math.max(...arr.map(a=>a.kwh),1);
-  $('#months').innerHTML=arr.map(a=>`<div class="mcol"><em>${a.kwh?nf(a.kwh,0):''}</em><div class="b" data-h="${a.kwh/mx*100}"></div><span>${new Date(a.y,a.m,1).toLocaleDateString('de-DE',{month:'short'})}</span></div>`).join('');
+  $('#months').innerHTML=arr.map(a=>`<div class="mcol"><em>${a.kwh?nf(a.kwh,0):''}</em><div class="bt"><div class="b" data-h="${a.kwh/mx*100}"></div></div><span>${new Date(a.y,a.m,1).toLocaleDateString('de-DE',{month:'short'})}</span></div>`).join('');
   requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('.mcol .b').forEach(b=>b.style.height=Math.max(+b.dataset.h,2)+'%')));
 }
 const days=E=>{const t=E.map(ts).filter(x=>x>0);return t.length?(Date.now()-Math.min(...t))/864e5:0};
@@ -1000,7 +1002,7 @@ function renderWinter(){
   const c=calc(),multi=arr[0].y!==arr[arr.length-1].y;
   const lab=a=>new Date(a.y,a.mo,1).toLocaleDateString('de-DE',multi?{month:'short',year:'2-digit'}:{month:'short'});
   el.innerHTML=`<div class="months">${arr.map(a=>{const t=mx>mn?(a.cons-mn)/(mx-mn):0,hue=Math.round(95-t*75);
-    return `<div class="mcol"><em class="wv" style="color:hsl(${hue},100%,60%)">${nf(a.cons,1)}</em><div class="b" data-h="${a.cons/mx*100}" style="background:linear-gradient(180deg,hsl(${hue},100%,58%),hsl(${hue},80%,22%));box-shadow:0 0 16px hsla(${hue},100%,50%,.35)"></div><span>${lab(a)}</span></div>`}).join('')}</div>
+    return `<div class="mcol"><em class="wv" style="color:hsl(${hue},100%,60%)">${nf(a.cons,1)}</em><div class="bt"><div class="b" data-h="${a.cons/mx*100}" style="background:linear-gradient(180deg,hsl(${hue},100%,58%),hsl(${hue},80%,22%));box-shadow:0 0 16px hsla(${hue},100%,50%,.35)"></div></div><span>${lab(a)}</span></div>`}).join('')}</div>
    <div class="verdict">Sparsamster Monat: <b>${lab(best)}</b> mit <b>${nf(mn,1)} kWh/100 km</b>. Durstigster: <b>${lab(worst)}</b> mit <b>${nf(mx,1)}</b>. Das sind <b>+${nf((mx/mn-1)*100,0)} %</b>${c.ok?((mx-mn)/100*c.avg>=0.05?`, also etwa <b>${eur((mx-mn)/100*c.avg)}</b> mehr Strom pro 100 km`:', praktisch kein Kostenunterschied'):''}.<br><span style="color:var(--mute);font-size:12px">Jeder Balken ist der Verbrauch der Strecken, die in diesem Monat zu Ende gingen.</span></div>`;
   requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('#winter .b').forEach(b=>b.style.height=Math.max(+b.dataset.h,2)+'%')));
 }
