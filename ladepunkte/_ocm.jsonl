@@ -1,4 +1,4 @@
-{"t": "2026-11-14"}
+{"t": "2026-11-20"}
 {"city":"Winterberg","cost":"","date":"2018-02-09","id":"c100012","lat":51.161427,"lon":8.484064,"name":"Neuastenberger Straße","ok":true,"plz":"59955","sock":{"type2":[1,11.0]},"street":"Neuastenberger Straße 15"}
 {"city":"Fischach","cost":"","date":"2018-02-09","id":"c100023","lat":48.28611,"lon":10.64963,"name":"E-Bike Station Naturfreibad","ok":true,"plz":"86850","sock":{"schuko":[3,2.3]},"street":"Schmutterweg 6"}
 {"city":"Fischach","cost":"","date":"2018-02-09","id":"c100024","lat":48.290955,"lon":10.657497,"name":"E-Bike Station Gasthof Traube","ok":true,"plz":"86850","sock":{"schuko":[3,2.3]},"street":"Augsburger Straße 6"}
@@ -1492,7 +1492,7 @@
 {"city":"Herne","cost":"","date":"2018-10-11","id":"c108897","lat":51.544424,"lon":7.237738,"name":"Parkhotel Herne","ok":true,"plz":"44623","sock":{"tesla_supercharger":[1,11.0]},"street":"Schaeferstrasse 109"}
 {"city":"","cost":"","date":"2018-10-11","id":"c108904","lat":53.398924,"lon":10.184754,"name":"Hotel Zollenspieker Faehrhaus","ok":true,"plz":"21037","sock":{"tesla_supercharger":[2,22.0]},"street":"Zollenspieker Hauptdeich 141"}
 {"city":"Muenchen","cost":"","date":"2018-10-11","id":"c108936","lat":48.131552,"lon":11.628103,"name":"Holiday Inn Munich - City East","ok":true,"plz":"81673","sock":{"tesla_supercharger":[2,22.0]},"street":"Neumarkter Strasse 85a"}
-{"city":"Frankfurt am Main","cost":"","date":"2018-10-11","id":"c108951","lat":50.115803,"lon":8.679706,"name":"Apcoa Parking, Myzeil-Palaisquartier (C129)","ok":true,"plz":"60313","sock":{"tesla_supercharger":[1,11.0]},"street":"Grosse Eschenheimer Strasse 10"}
+{"city":"Frankfurt am Main","cost":"","date":"2026-11-18","id":"c108951","lat":50.115803,"lon":8.679706,"name":"Apcoa Parking, Myzeil-Palaisquartier (C129)","ok":true,"plz":"60313","sock":{"tesla_supercharger":[1,11.0]},"street":"Grosse Eschenheimer Strasse 10"}
 {"city":"Grainet","cost":"","date":"2018-10-11","id":"c108954","lat":48.794297,"lon":13.667652,"name":"Huettenhof - Wellnesshotel & Luxus-Chalets","ok":true,"plz":"94143","sock":{"tesla_supercharger":[2,11.0]},"street":"Hobelsberg 23"}
 {"city":"","cost":"","date":"2018-10-11","id":"c108987","lat":47.574118,"lon":9.84462,"name":"Hotel Edita","ok":true,"plz":"88175","sock":{"tesla_supercharger":[3,22.0]},"street":"Hotel Edita"}
 {"city":"Garmisch-Partenkirchen","cost":"","date":"2018-10-11","id":"c109026","lat":47.496595,"lon":11.089659,"name":"Werdenfelserei Hotel Betriebs GmbH & Co. KG","ok":true,"plz":"82467","sock":{"tesla_supercharger":[1,11.0]},"street":"Allestrasse 28"}
@@ -2684,7 +2684,7 @@
 {"city":"Ansbach","cost":"","date":"2021-07-12","id":"c176428","lat":49.303923,"lon":10.57613,"name":"Fischstraße","ok":true,"plz":"91522","sock":{"type2":[2,22.0]},"street":"Fischstraße"}
 {"city":"Teublitz","cost":"","date":"2021-07-12","id":"c176429","lat":49.2215,"lon":12.0857,"name":"Platz der Freiheit 7","ok":true,"plz":"93158","sock":{"type2":[2,22.0]},"street":"Platz der Freiheit 7"}
 {"city":"Speyer","cost":"","date":"2021-07-12","id":"c176430","lat":49.317606,"lon":8.440759,"name":"Bauhof 2","ok":true,"plz":"67346","sock":{"type2":[2,22.0]},"street":"Bauhof 2"}
-{"city":"Weil am Rhein","cost":"","date":"2021-07-09","id":"c176431","lat":47.58989,"lon":7.60305,"name":"Hardstraße 4","ok":true,"plz":"79576","sock":{"schuko":[1,22.0],"type2":[1,22.0]},"street":"Hardstraße 4"}
+{"city":"Weil am Rhein","cost":"","date":"2026-11-16","id":"c176431","lat":47.58989,"lon":7.60305,"name":"Hardstraße 4","ok":true,"plz":"79576","sock":{"schuko":[1,22.0],"type2":[2,22.0]},"street":"Hardstraße 4"}
 {"city":"Ettlingen","cost":"","date":"2021-07-12","id":"c176432","lat":48.92437,"lon":8.374777,"name":"Seestr. 40","ok":true,"plz":"76275","sock":{"schuko":[2,22.0],"type2":[2,22.0]},"street":"Seestr. 40"}
 {"city":"Herzogenaurach","cost":"","date":"2021-07-12","id":"c176433","lat":49.57405,"lon":10.91576,"name":"Olympiaring 3","ok":true,"plz":"91704","sock":{"type2":[4,22.0]},"street":"Olympiaring 3"}
 {"city":"Lindau (B)","cost":"","date":"2021-07-09","id":"c176434","lat":47.59358,"lon":9.68269,"name":"Parkweg 8","ok":true,"plz":"88131","sock":{"type2":[2,22.0]},"street":"Parkweg 8"}
@@ -4534,7 +4534,7 @@
 {"city":"Hamburg","cost":"","date":"2021-07-12","id":"c178362","lat":53.53632,"lon":9.87345,"name":"Finksweg 19","ok":true,"plz":"21129","sock":{"schuko":[2,22.0],"type2":[2,22.0]},"street":"Finksweg 19"}
 {"city":"Overath","cost":"","date":"2021-07-12","id":"c178363","lat":50.965209,"lon":7.324162,"name":"Maarweg 1","ok":true,"plz":"51491","sock":{"type2":[2,22.0]},"street":"Maarweg 1"}
 {"city":"Schacht-Audorf","cost":"","date":"2021-07-12","id":"c178364","lat":54.313696,"lon":9.717784,"name":"Kieler Straße 25","ok":true,"plz":"24790","sock":{"type2":[2,22.0]},"street":"Kieler Straße 25"}
-{"city":"Stuttgart","cost":"","date":"2021-07-09","id":"c178365","lat":48.713292,"lon":9.166828,"name":"Schelmenwasenstr. 15","ok":true,"plz":"70567","sock":{"type2_combo":[6,300.0]},"street":"Schelmenwasenstr. 15"}
+{"city":"Stuttgart","cost":"","date":"2026-11-17","id":"c178365","lat":48.713292,"lon":9.166828,"name":"Schelmenwasenstr. 15","ok":true,"plz":"70567","sock":{"type2_combo":[6,300.0]},"street":"Schelmenwasenstr. 15"}
 {"city":"Pullach i. Isartal","cost":"","date":"2021-07-12","id":"c178366","lat":48.059319,"lon":11.52229,"name":"Münchener Str. 14","ok":true,"plz":"82049","sock":{"type2":[2,22.0]},"street":"Münchener Str. 14"}
 {"city":"Büsum","cost":"","date":"2021-07-12","id":"c178367","lat":54.129217,"lon":8.855977,"name":"Hohenzollerstraße 15","ok":true,"plz":"25761","sock":{"type2":[2,22.0]},"street":"Hohenzollerstraße 15"}
 {"city":"Ostfildern","cost":"","date":"2021-07-09","id":"c178368","lat":48.714672,"lon":9.300899,"name":"Esslinger Straße 26","ok":true,"plz":"73760","sock":{"schuko":[2,22.0]},"street":"Esslinger Straße 26"}
@@ -7821,7 +7821,7 @@
 {"city":"Heilbronn","cost":"","date":"2021-07-12","id":"c181759","lat":49.120114,"lon":9.221301,"name":"Ferdinand-Braun-Straße 26","ok":true,"plz":"74074","sock":{"type2":[4,22.0]},"street":"Ferdinand-Braun-Straße 26"}
 {"city":"Dippoldiswalde","cost":"","date":"2025-03-29","id":"c181760","lat":50.90609,"lon":13.6731,"name":"Comfortcharge Ladestation","ok":true,"plz":"01744","sock":{"type2":[1,22.0],"type2_combo":[2,150.0]},"street":"Rabenauer Straße 41"}
 {"city":"Köln","cost":"","date":"2021-07-09","id":"c181761","lat":50.906164,"lon":7.063039,"name":"Maarhäuser Weg 1","ok":true,"plz":"51149","sock":{"type2":[6,11.0]},"street":"Maarhäuser Weg 1"}
-{"city":"Weil am Rhein","cost":"","date":"2021-07-12","id":"c181763","lat":47.594401,"lon":7.60372,"name":"BAB5; Lustgartenstr. 5","ok":true,"plz":"79576","sock":{"type2_cable":[1,43.0],"type2_combo":[1,50.0]},"street":"BAB5; Lustgartenstr. 5"}
+{"city":"Weil am Rhein","cost":"","date":"2026-11-16","id":"c181763","lat":47.594401,"lon":7.60372,"name":"BAB5; Lustgartenstr. 5","ok":true,"plz":"79576","sock":{"type2_cable":[1,43.0],"type2_combo":[1,50.0]},"street":"BAB5; Lustgartenstr. 5"}
 {"city":"Eschweiler","cost":"","date":"2021-07-12","id":"c181764","lat":50.817434,"lon":6.267382,"name":"Martin-Luther-Str. 3","ok":true,"plz":"52249","sock":{"type2":[2,22.0]},"street":"Martin-Luther-Str. 3"}
 {"city":"Willich","cost":"","date":"2021-07-12","id":"c181765","lat":51.277058,"lon":6.517811,"name":"Hans-Martin-Schleyer-Str. 18a","ok":true,"plz":"47877","sock":{"type2":[2,22.0]},"street":"Hans-Martin-Schleyer-Str. 18a"}
 {"city":"Gera","cost":"","date":"2021-07-09","id":"c181766","lat":50.90772,"lon":12.06333,"name":"Siemensstraße 47","ok":true,"plz":"07546","sock":{"type2":[6,22.0],"type2_combo":[2,50.0]},"street":"Siemensstraße 47"}
@@ -13429,7 +13429,7 @@
 {"city":"Auetal","cost":"","date":"2021-12-13","id":"c190546","lat":52.223703,"lon":9.221469,"name":"IONITY Auetal Nord","ok":true,"plz":"31749","sock":{"type2_combo":[4,350.0]},"street":"Rastanlage Auetal Nord, A2"}
 {"city":"Auetal","cost":"","date":"2022-08-13","id":"c190547","lat":52.226977,"lon":9.232545,"name":"IONITY Auetal Süd","ok":true,"plz":"31749","sock":{"type2_combo":[4,350.0]},"street":"Rastanlage Auetal Süd, A2"}
 {"city":"Solingen","cost":"","date":"2024-07-20","id":"c190550","lat":51.156807,"lon":6.964803,"name":"IONITY Ohligser Heide Ost","ok":true,"plz":"42697","sock":{"type2_combo":[4,350.0]},"street":"Rastanlage Ohligser Heide Ost, A3"}
-{"city":"Solingen","cost":"","date":"2022-08-13","id":"c190551","lat":51.1579,"lon":6.961815,"name":"IONITY Ohligser Heide West","ok":true,"plz":"42697","sock":{"type2_combo":[4,350.0]},"street":"Rastanlage Ohligser Heide West, A3"}
+{"city":"Solingen","cost":"","date":"2026-11-16","id":"c190551","lat":51.1579,"lon":6.961815,"name":"IONITY Ohligser Heide West","ok":true,"plz":"42697","sock":{"type2_combo":[4,350.0]},"street":"Rastanlage Ohligser Heide West, A3"}
 {"city":"Eschweiler","cost":"","date":"2022-09-14","id":"c190552","lat":50.817306,"lon":6.216629,"name":"IONITY Aachener Land Süd","ok":true,"plz":"52249","sock":{"type2_combo":[4,350.0]},"street":"Rastanlage Aachener Land Süd, A4"}
 {"city":"Schwerte","cost":"","date":"2022-08-13","id":"c190553","lat":51.467751,"lon":7.596959,"name":"IONITY Lichtendorf Süd","ok":true,"plz":"58239","sock":{"type2_combo":[4,350.0]},"street":"Rastanlage Lichtendorf Süd, A1"}
 {"city":"Landsberg am Lech","cost":"","date":"2022-08-01","id":"c190556","lat":48.059266,"lon":10.846791,"name":"IONITY Lechwiesen Nord","ok":true,"plz":"86899","sock":{"type2_combo":[4,350.0]},"street":"Rastanlage Lechwiesen Nord, A96"}
@@ -17410,9 +17410,9 @@
 {"city":"Stuhr","cost":"","date":"2026-09-20","id":"c509237","lat":52.993737,"lon":8.76874,"name":"Etelser Käsewerk / Delmenhorster Straße","ok":true,"plz":"28816","sock":{"type2":[5,22.0]},"street":"Delmenhorster Str. 22"}
 {"city":"Freiburg","cost":"","date":"2026-09-26","id":"c509274","lat":47.991751,"lon":7.789347,"name":"Aral pulse","ok":true,"plz":"79111","sock":{"type2_combo":[8,300.0]},"street":"Bötzinger Str. 19"}
 {"city":"Weyhe","cost":"","date":"2026-09-19","id":"c509421","lat":52.98376,"lon":8.835404,"name":"Gemeinde Weyhe, Rathaus","ok":true,"plz":"28844","sock":{"type2_combo":[1,22.0]},"street":"Ratausplatz 1"}
-{"city":"Isny im Allgäu","cost":"","date":"2026-11-14","id":"c509602","lat":47.678539,"lon":10.031028,"name":"Waldbad Camping Isny (PowerGo)","ok":true,"plz":"88316","sock":{"type2":[2,22.0]},"street":"Lohbauerstraße 59,"}
-{"city":"Waxweiler","cost":"","date":"2026-11-14","id":"c509603","lat":50.108337,"lon":6.349498,"name":"Campingplatz Heilhauser Mühle (PowerGo)","ok":true,"plz":"54649","sock":{"type2":[2,22.0]},"street":"Heilhausermühle 1"}
-{"city":"Blankenheim","cost":"","date":"2026-11-14","id":"c509604","lat":50.416107,"lon":6.717955,"name":"Eifel-Camp (PowerGo)","ok":true,"plz":"53945","sock":{"type2":[2,22.0]},"street":"Am Freilinger See 1"}
+{"city":"Isny im Allgäu","cost":"","date":"2026-11-20","id":"c509602","lat":47.678539,"lon":10.031028,"name":"Waldbad Camping Isny (PowerGo)","ok":true,"plz":"88316","sock":{"type2":[2,22.0]},"street":"Lohbauerstraße 59,"}
+{"city":"Waxweiler","cost":"","date":"2026-11-20","id":"c509603","lat":50.108337,"lon":6.349498,"name":"Campingplatz Heilhauser Mühle (PowerGo)","ok":true,"plz":"54649","sock":{"type2":[2,22.0]},"street":"Heilhausermühle 1"}
+{"city":"Blankenheim","cost":"","date":"2026-11-20","id":"c509604","lat":50.416107,"lon":6.717955,"name":"Eifel-Camp (PowerGo)","ok":true,"plz":"53945","sock":{"type2":[2,22.0]},"street":"Am Freilinger See 1"}
 {"city":"Rüdenhausen","cost":"","date":"2026-09-24","id":"c510293","lat":49.770109,"lon":10.339823,"name":"mblty Rüdenhausen Truck","ok":true,"plz":"97355","sock":{"type2_combo":[3,400.0]},"street":"Marktstraße 37"}
 {"city":"Schnelldorf","cost":"","date":"2026-09-24","id":"c510294","lat":49.171794,"lon":10.240023,"name":"mblty Schnelldorf Truck","ok":true,"plz":"91625","sock":{"type2_combo":[3,340.0]},"street":"Rudolf-Diesel-Straße 1"}
 {"city":"Niederaula","cost":"","date":"2026-09-24","id":"c510295","lat":50.778125,"lon":9.588028,"name":"mblty Niederaula Truck","ok":true,"plz":"36272","sock":{"type2_combo":[2,340.0]},"street":"Jossastraße"}
@@ -17422,9 +17422,9 @@
 {"city":"Olpenitz","cost":"","date":"2026-10-07","id":"c511104","lat":54.658771,"lon":10.030781,"name":"ORO Ladepunkt","ok":true,"plz":"24376","sock":{},"street":"Strandpromenade"}
 {"city":"Kappeln","cost":"","date":"2026-10-07","id":"c511105","lat":54.665914,"lon":9.932608,"name":"Penny","ok":true,"plz":"24376","sock":{},"street":"Ziegeleiweg"}
 {"city":"Hannover","cost":"0","date":"2015-07-22","id":"c51113","lat":52.380399,"lon":9.681115,"name":"Rollercenter Steinfeld","ok":true,"plz":"30453","sock":{"schuko":[5,3.7]},"street":"Wunstorfer Straße 109"}
-{"city":"Konstanz","cost":"","date":"2026-11-14","id":"c511252","lat":47.677933,"lon":9.147928,"name":"Konstanz DC 40","ok":true,"plz":"78467","sock":{"type2_combo":[1,40.0]},"street":"Macairestraße 5"}
-{"city":"Singen","cost":"","date":"2026-11-14","id":"c511253","lat":47.758823,"lon":8.875456,"name":"Singen DC 240","ok":true,"plz":"78224","sock":{"type2_combo":[2,240.0]},"street":"Pfaffenhäule 58"}
-{"city":"Reutlingen","cost":"","date":"2026-11-14","id":"c511254","lat":48.499823,"lon":9.153312,"name":"Reutlingen MAX 240","ok":true,"plz":"72770","sock":{"type2_combo":[2,240.0]},"street":"Carl-Zeiss-Straße 71"}
+{"city":"Konstanz","cost":"","date":"2026-11-20","id":"c511252","lat":47.677933,"lon":9.147928,"name":"Konstanz DC 40","ok":true,"plz":"78467","sock":{"type2_combo":[1,40.0]},"street":"Macairestraße 5"}
+{"city":"Singen","cost":"","date":"2026-11-20","id":"c511253","lat":47.758823,"lon":8.875456,"name":"Singen DC 240","ok":true,"plz":"78224","sock":{"type2_combo":[2,240.0]},"street":"Pfaffenhäule 58"}
+{"city":"Reutlingen","cost":"","date":"2026-11-20","id":"c511254","lat":48.499823,"lon":9.153312,"name":"Reutlingen MAX 240","ok":true,"plz":"72770","sock":{"type2_combo":[2,240.0]},"street":"Carl-Zeiss-Straße 71"}
 {"city":"Dransfeld","cost":"","date":"2015-07-23","id":"c51157","lat":51.502348,"lon":9.760678,"name":"Gerlandstraße","ok":true,"plz":"37127","sock":{"schuko":[2,3.7],"type2":[2,22.0]},"street":"Gerlandstraße 22"}
 {"city":"Adelebsen","cost":"","date":"2015-07-23","id":"c51158","lat":51.581472,"lon":9.75585,"name":"Rathaus","ok":true,"plz":"37139","sock":{"schuko":[2,3.7],"type2":[2,22.0]},"street":"Angerstraße 2"}
 {"city":"Vaterstetten","cost":"","date":"2026-10-13","id":"c511584","lat":48.14498,"lon":11.790812,"name":"IONITY Parsdorf","ok":true,"plz":"85599","sock":{"type2_combo":[24,400.0]},"street":"Von-Myra-Straße 6"}
@@ -17535,7 +17535,9 @@
 {"city":"München","cost":"","date":"2015-07-27","id":"c51496","lat":48.144631,"lon":11.557714,"name":"Seidlstraße","ok":true,"plz":"80335","sock":{"schuko":[2,3.7],"type2":[2,22.0]},"street":"Seidlstraße 20"}
 {"city":"München","cost":"","date":"2015-07-27","id":"c51497","lat":48.135704,"lon":11.560758,"name":"ezm - Haus der Elektrotechnik","ok":true,"plz":"80336","sock":{"schuko":[1,3.7],"type2":[1,11.0]},"street":"Schillerstraße 38"}
 {"city":"München","cost":"","date":"2018-11-21","id":"c51498","lat":48.13238,"lon":11.57237,"name":"Blumenstraße","ok":true,"plz":"80331","sock":{},"street":"Blumenstraße 19"}
+{"city":"Weil am Rhein","cost":"varies","date":"2026-11-16","id":"c515023","lat":47.589669,"lon":7.593253,"name":"Zollstraße","ok":true,"plz":"79576","sock":{"type2_combo":[12,250.0]},"street":"Zollstraße"}
 {"city":"Drebach","cost":"Spende 30cent/kWh","date":"2016-05-19","id":"c51516","lat":50.68356,"lon":13.02012,"name":"Ladepunkt Walther","ok":true,"plz":"09430","sock":{"type2":[1,11.0]},"street":"Persterstraße 9"}
+{"city":"Kiel","cost":"Kostenpflichtig. Preis abhängig vom Ladeanbieter bzw. Ladetarif.","date":"2026-11-18","id":"c515169","lat":54.298226,"lon":10.130298,"name":"Ladestation 22 KW GORLICKI-IT","ok":true,"plz":"24113","sock":{"type2":[1,22.0]},"street":"Hofteichstr. 23a"}
 {"city":"Mülheim","cost":"","date":"2015-07-28","id":"c51517","lat":51.439694,"lon":6.886808,"name":"Siemens Techno Park","ok":true,"plz":"45473","sock":{"type2":[2,22.0]},"street":"Zinkhüttenstraße 2"}
 {"city":"Hemau","cost":"","date":"2015-07-28","id":"c51518","lat":49.05142,"lon":11.782608,"name":"Stadtplatz","ok":true,"plz":"93155","sock":{"schuko":[3,3.7],"type2":[1,11.0]},"street":"Stadtplatz 10"}
 {"city":"Garching","cost":"","date":"2016-12-13","id":"c51519","lat":48.268419,"lon":11.666048,"name":"UnternehmerTUM Projekt","ok":true,"plz":"85748","sock":{"schuko":[1,3.7],"type2":[1,11.0]},"street":"Lichtenbergstraße 6"}
@@ -21330,7 +21332,7 @@
 {"city":"Geretsried","cost":"Spende 0,30€/kWh","date":"2017-01-02","id":"c77127","lat":47.851582,"lon":11.495189,"name":"Wöhlerweg","ok":true,"plz":"82538","sock":{},"street":"Wöhlerweg 6"}
 {"city":"Wennigsen","cost":"","date":"2017-10-22","id":"c77128","lat":52.27987,"lon":9.57324,"name":"Avacon am S-Bahnhof Wennigsen","ok":true,"plz":"30974","sock":{"type2":[2,22.0]},"street":"Heisterweg 2"}
 {"city":"Hamm","cost":"","date":"2018-07-09","id":"c77133","lat":51.630314,"lon":7.873331,"name":"Rasthof Rhynern Süd","ok":true,"plz":"59069","sock":{"chademo":[1,50.0],"type2_cable":[1,43.0],"type2_combo":[1,50.0]},"street":"A2"}
-{"city":"Weil am Rhein","cost":"","date":"2017-01-03","id":"c77134","lat":47.598727,"lon":7.603297,"name":"Rasthof Weil am Rhein","ok":true,"plz":"79576","sock":{"chademo":[1,50.0],"type2_cable":[2,43.0],"type2_combo":[2,50.0]},"street":"Lustgartenstraße 5"}
+{"city":"Weil am Rhein","cost":"","date":"2026-11-16","id":"c77134","lat":47.598727,"lon":7.603297,"name":"Rasthof Weil am Rhein","ok":true,"plz":"79576","sock":{"chademo":[1,50.0],"type2_cable":[2,43.0],"type2_combo":[4,100.0]},"street":"Lustgartenstraße 5"}
 {"city":"Mitwitz","cost":"","date":"2017-01-03","id":"c77135","lat":50.24808,"lon":11.21044,"name":"Kronacher Straße","ok":true,"plz":"96268","sock":{"type2":[2,22.0]},"street":"Kronacher Straße 4"}
 {"city":"Neumagen-Dhron","cost":"","date":"2017-01-03","id":"c77136","lat":49.84993,"lon":6.89404,"name":"Hotel Restaurant Lekker","ok":true,"plz":"54347","sock":{"schuko":[4,3.7]},"street":"Hinterburg 8"}
 {"city":"Trier","cost":"","date":"2017-01-03","id":"c77137","lat":49.752911,"lon":6.638143,"name":"Viehmarktplatz","ok":true,"plz":"54290","sock":{"type2":[2,22.0]},"street":"Viehmarktplatz 1"}
@@ -21764,7 +21766,7 @@
 {"city":"Pettstadt","cost":"","date":"2017-03-05","id":"c84606","lat":49.830708,"lon":10.925177,"name":"Rathaus","ok":true,"plz":"96175","sock":{"type2":[2,22.0]},"street":"Kirchplatz 10"}
 {"city":"Frensdorf","cost":"","date":"2017-03-05","id":"c84607","lat":49.817699,"lon":10.86304,"name":"Rathaus","ok":true,"plz":"96158","sock":{"type2":[2,22.0]},"street":"Kaulberg 1"}
 {"city":"Markt Erlbach","cost":"0,30€/kWh","date":"2017-03-05","id":"c84608","lat":49.530165,"lon":10.652413,"name":"Ladepunkt","ok":true,"plz":"91459","sock":{"type2_cable":[1,22.0]},"street":"Mosbach 90"}
-{"city":"Siegen","cost":"0,30€/kWh","date":"2017-03-05","id":"c84609","lat":50.852033,"lon":8.028794,"name":"Leimbachstadion","ok":true,"plz":"57074","sock":{"type2_cable":[2,22.0]},"street":"Leimbachstraße 204"}
+{"city":"Siegen","cost":"0,30€/kWh","date":"2026-11-16","id":"c84609","lat":50.852033,"lon":8.028794,"name":"Leimbachstadion","ok":true,"plz":"57074","sock":{"type2_cable":[2,22.0]},"street":"Leimbachstraße 204"}
 {"city":"Mühldorf am Inn","cost":"","date":"2017-03-05","id":"c84610","lat":48.24798,"lon":12.51907,"name":"Bahnhof","ok":true,"plz":"84453","sock":{"schuko":[4,3.7],"type2":[4,22.0]},"street":"Bahnhofplatz 6"}
 {"city":"Frielendorf","cost":"","date":"2017-03-05","id":"c84611","lat":50.975039,"lon":9.319164,"name":"Gemeindeverwaltung","ok":true,"plz":"34621","sock":{"type2":[2,22.0]},"street":"Ziegenhainer Straße 2"}
 {"city":"Duisburg","cost":"","date":"2017-03-05","id":"c84612","lat":51.350923,"lon":6.720787,"name":"Zur Kreienhütt Serm","ok":true,"plz":"47259","sock":{"type2":[1,11.0]},"street":"Zur Kreienhütt 21"}

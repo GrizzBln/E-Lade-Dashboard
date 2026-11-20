@@ -37,6 +37,7 @@
 {"id":"on14201322944","lat":47.861908,"lon":12.366073,"src":"o","tags":{"access":"customers","capacity":"1","osm":"2026-09"}},
 {"id":"on14309359482","lat":47.860423,"lon":12.361213,"src":"o","tags":{"capacity":"1","osm":"2026-10"}},
 {"id":"on14358989519","lat":47.854347,"lon":12.341028,"src":"o","tags":{"capacity":"4","fee":"yes","operator":"Energie Südbayern","osm":"2026-11","socket:type2":"4","socket:type2:output":"22 kW"}},
+{"id":"on14396910056","lat":47.7654,"lon":12.643605,"src":"o","tags":{"capacity":"3","fee":"yes","operator":"EDEKA","osm":"2026-11","socket:type2":"2"}},
 {"id":"on2092338229","lat":47.998205,"lon":12.401101,"src":"o","tags":{"osm":"2014-12"}},
 {"id":"on3479529871","lat":47.592391,"lon":12.988346,"src":"o","tags":{"fee":"no","operator":"Tourist-Information Schönau am Königssee","osm":"2026-08","socket:type2":"12","socket:type2:output":"22 kW"}},
 {"id":"on3959361578","lat":47.820009,"lon":12.953475,"src":"o","tags":{"access":"customers","capacity":"2","fee":"no","osm":"2026-07","socket:type2":"2"}},
