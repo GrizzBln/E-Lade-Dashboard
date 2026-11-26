@@ -411,7 +411,7 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
     <div class="log" id="log"></div>
   </section>
 
-  <footer>LADELOG · <button type="button" class="verbtn" id="verBtn">Version 2.4.4</button> · <span id="verDate">18.11.2026</span><br>Daten liegen in diesem Browser und, wenn verbunden, im privaten GitHub-Repo (⚙ → Synchronisation)<br>Copyright by GrizzBln</footer>
+  <footer>LADELOG · <button type="button" class="verbtn" id="verBtn">Version 2.4.5</button> · <span id="verDate">26.11.2026</span><br>Daten liegen in diesem Browser und, wenn verbunden, im privaten GitHub-Repo (⚙ → Synchronisation)<br>Copyright by GrizzBln</footer>
 </main>
 
 <button class="fab disp" id="fab" aria-label="Ladung loggen">
@@ -465,6 +465,7 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
       <label>Super E10, Ø Deutschland (€/l)<input type="number" id="sPrice" step="0.001" inputmode="decimal"></label>
       <label>Benzinpreis<span class="sw"><input type="checkbox" id="sFuelAuto"><i></i><span>automatisch aktualisieren</span></span></label>
       <p class="note" id="fuelStat"></p>
+      <div class="btns" style="margin:-6px 0 14px"><button type="button" class="btn sm" id="fuelNow">Benzinpreis jetzt abrufen</button></div>
       <p class="note" id="measured"></p>
       <div class="grid2">
         <label>Netzmix (g CO₂/kWh)<input type="number" id="sGrid" step="1" inputmode="decimal"></label>
@@ -475,13 +476,6 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
       <label>PS5 + Fernseher beim Spielen (Watt)<input type="number" id="sGame" step="10" min="50" inputmode="numeric"></label>
       <p class="note">Für die Reaktor-Einheit „Stunden Zocken“. Voreingestellt sind 580 W: PS5 rund 220 W plus ein 75-Zoll-TCL in 4K HDR mit rund 360 W (EU-Label von C7K und C8K). Der HDR-Wert steht auf dem Energielabel deines Fernsehers, bei 75 Zoll je nach Modell etwa 165 bis 365 W.</p>
     </form>
-    <details>
-      <summary>Benzinpreis: Ersatzquelle <small>optional</small></summary>
-      <p class="note">Standard ist der bundesweite E10-Durchschnitt von benzinpreis-aktuell.de (ohne Anmeldung). Nur falls das nicht klappt, kannst du hier einen kostenlosen Schlüssel von <a href="https://creativecommons.tankerkoenig.de" target="_blank" rel="noopener" style="color:var(--lime)">tankerkoenig.de</a> eintragen. Dann nimmt Ladelog den mittleren E10-Preis der Tankstellen im 5-km-Umkreis. Schlüssel und Standort bleiben nur in diesem Browser.</p>
-      <label>Tankerkönig-Schlüssel<input type="password" id="tkKey" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="00000000-0000-..."></label>
-      <div class="btns"><button type="button" class="btn sm" id="tkLoc">Meinen Standort verwenden</button><button type="button" class="btn sm" id="fuelNow">Preis jetzt abrufen</button></div>
-      <p class="msg2" id="tkStat" role="status"></p>
-    </details>
     <details><summary>So rechnet das CO₂ · Quellen</summary><div class="prov" id="provTbl"></div></details>
 
     <details id="syncDet">
@@ -594,6 +588,7 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
    Dritte Zahl: kleine Ergänzungen und Korrekturen.
    Der Kopf zeigt nur die ersten zwei Stellen, die Fußzeile die volle Nummer mit Datum. */
 const CHANGELOG=[
+ ['2.4.5','26.11.2026','Benzinpreis kommt jetzt dreimal täglich über eine GitHub Action, ohne Konto. Tankerkönig-Ersatzquelle entfernt'],
  ['2.4.4','18.11.2026','Diagramme „kWh pro Monat“ und „Winter-Malus“: Balkenhöhen stimmen jetzt mit den Werten überein, höhere Werte haben immer höhere Balken'],
  ['2.4.3','16.11.2026','Aktualisieren-Symbol erscheint erst beim Runterziehen und wächst mit, Hinweise bleiben oben. Ladekarte mit größeren Punkten und stabilen Popups. kWh mit drei Nachkommastellen. PS5-Einheit auf 75 Zoll in 4K HDR korrigiert'],
  ['2.4.2','15.11.2026','Versionsnummer in der Fußzeile und Versionsverlauf'],
@@ -1366,51 +1361,43 @@ function initSync(){
 
 /* ---------- Benzinpreis automatisch ---------- */
 const FUEL_KEY='ladelog.fuel';
-let fuelCfg={last:0,src:'',stamp:'',err:'',key:'',lat:null,lng:null},fuelBusy=false;
+let fuelCfg={last:0,src:'',stamp:'',err:''},fuelBusy=false;
 try{const fr=localStorage.getItem(FUEL_KEY);if(fr)fuelCfg=Object.assign(fuelCfg,JSON.parse(fr))}catch(e){}
+delete fuelCfg.key;delete fuelCfg.lat;delete fuelCfg.lng;
 function fuelSaveCfg(){try{localStorage.setItem(FUEL_KEY,JSON.stringify(fuelCfg))}catch(e){}}
+const fuelStamp=()=>{const d=new Date(fuelCfg.stamp);return isNaN(d)?'':' · Preisstand '+d.toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'})};
 function fuelUI(){
   const el=$('#fuelStat');if(!el)return;const s=state.settings;
   if(s.fuelAuto===false){el.textContent='Automatik aus. Du pflegst den Preis selbst.';return}
-  el.textContent=fuelCfg.last?'Zuletzt aktualisiert: '+new Date(fuelCfg.last).toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'})+' · '+nf(s.fuelPrice,3)+' €/l · '+fuelCfg.src+(fuelCfg.err?' · Letzter Versuch fehlgeschlagen: '+fuelCfg.err:'')
-    :(fuelCfg.err?'Abruf fehlgeschlagen: '+fuelCfg.err:'Der Preis wird beim Öffnen der Seite geholt, höchstens alle 12 Stunden.');
-  const tk=$('#tkKey');if(tk){tk.placeholder=fuelCfg.key?'Gespeichert. Zum Ändern neu einfügen.':'00000000-0000-...';$('#tkStat').textContent=fuelCfg.lat!=null?'Standort gespeichert.':''}
+  el.textContent=fuelCfg.last?'Zuletzt geprüft: '+new Date(fuelCfg.last).toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'})+' · '+nf(s.fuelPrice,3)+' €/l · '+fuelCfg.src+fuelStamp()+(fuelCfg.err?' · Letzter Versuch fehlgeschlagen: '+fuelCfg.err:'')
+    :(fuelCfg.err?'Abruf fehlgeschlagen: '+fuelCfg.err:'Der Preis wird beim Öffnen der Seite geholt, höchstens alle 3 Stunden.');
 }
 const okPrice=p=>p>0.8&&p<4;
-async function fuelNation(){
-  const r=await fetch('https://www.benzinpreis-aktuell.de/api.v2.php?data=nationwide',{cache:'no-store'});
-  if(!r.ok)throw new Error('HTTP '+r.status);
-  const j=await r.json(),p=parseFloat(j.e10);if(!okPrice(p))throw new Error('unplausibel');
-  return{p,src:'Ø Deutschland, benzinpreis-aktuell.de'};
-}
-async function fuelTk(){
-  if(!fuelCfg.key||fuelCfg.lat==null)throw new Error('keine Ersatzquelle');
-  const r=await fetch('https://creativecommons.tankerkoenig.de/json/list.php?lat='+fuelCfg.lat+'&lng='+fuelCfg.lng+'&rad=5&sort=dist&type=all&apikey='+encodeURIComponent(fuelCfg.key),{cache:'no-store'});
-  const j=await r.json();if(!j.ok)throw new Error(j.message||'Tankerkönig');
-  const a=(j.stations||[]).map(x=>+x.e10).filter(okPrice).sort((x,y)=>x-y);if(!a.length)throw new Error('keine Preise');
-  return{p:a[Math.floor(a.length/2)],src:'Median 5 km, tankerkoenig.de (CC BY 4.0)'};
+/* Der Preis kommt aus der Datei benzinpreis.json im eigenen Repo. Die GitHub Action „Benzinpreis“ holt ihn dreimal am Tag
+   bei benzinpreis-aktuell.de (ohne Konto). Direkt aus dem Browser geht das nicht, weil die Quelle fremde Webseiten blockiert. */
+async function fuelFile(){
+  let j;
+  try{j=await getJson('benzinpreis.json?h='+Math.floor(Date.now()/36e5),8000)}
+  catch(e){throw new Error(e&&e.message==='HTTP 404'?'Preisdatei fehlt noch. Auf GitHub unter „Actions“ einmal „Benzinpreis aktualisieren“ starten.':'Preisdatei nicht erreichbar')}
+  const p=parseFloat(j&&j.e10);if(!okPrice(p))throw new Error('Preisdatei enthält keinen gültigen E10-Preis');
+  return{p,src:'Ø Deutschland, '+(j.quelle||'benzinpreis-aktuell.de'),stamp:j.stand||j.abgerufen||''};
 }
 async function updateFuel(force){
   if(demo||fuelBusy||state.settings.fuelAuto===false)return;
-  if(!force&&Date.now()-fuelCfg.last<12*3600e3)return;
+  if(!force&&Date.now()-fuelCfg.last<3*3600e3)return;
   if(navigator.onLine===false)return;
   fuelBusy=true;let res=null;
-  try{res=await fuelNation()}catch(e1){try{res=await fuelTk()}catch(e2){fuelCfg.err=fuelCfg.key?'beide Quellen nicht erreichbar':'Quelle nicht erreichbar (Ersatzquelle unten möglich)'}}
+  try{res=await fuelFile()}catch(e){fuelCfg.err=e.message||'unbekannter Fehler';if(force)toast('Benzinpreis: '+fuelCfg.err)}
   fuelBusy=false;
   if(res&&!demo){
-    const p=Math.round(res.p*1000)/1000;fuelCfg.last=Date.now();fuelCfg.src=res.src;fuelCfg.err='';
+    const p=Math.round(res.p*1000)/1000;fuelCfg.last=Date.now();fuelCfg.src=res.src;fuelCfg.stamp=res.stamp;fuelCfg.err='';
     if(Math.abs(p-state.settings.fuelPrice)>0.0005){state.settings.fuelPrice=p;state.settingsUpdated=Date.now();save();render(false);scheduleSync(2500);if(force)toast('Benzinpreis aktualisiert: '+nf(p,3)+' €/l')}
     else if(force)toast('Benzinpreis ist aktuell: '+nf(p,3)+' €/l');
     $('#sPrice').value=state.settings.fuelPrice;
   }
   fuelSaveCfg();fuelUI();
 }
-$('#tkKey').addEventListener('change',e=>{const v=e.target.value.trim();if(v){fuelCfg.key=v;fuelSaveCfg();e.target.value='';fuelUI();$('#tkStat').textContent='Schlüssel gespeichert.'}});
-$('#tkLoc').onclick=()=>{
-  if(!navigator.geolocation){$('#tkStat').textContent='Standort wird von diesem Browser nicht unterstützt.';return}
-  navigator.geolocation.getCurrentPosition(p=>{fuelCfg.lat=+p.coords.latitude.toFixed(3);fuelCfg.lng=+p.coords.longitude.toFixed(3);fuelSaveCfg();fuelUI()},()=>{$('#tkStat').textContent='Standort nicht freigegeben.'});
-};
-$('#fuelNow').onclick=()=>{if(state.settings.fuelAuto===false){$('#tkStat').textContent='Bitte zuerst „automatisch aktualisieren“ einschalten.';return}updateFuel(true)};
+$('#fuelNow').onclick=()=>{if(state.settings.fuelAuto===false){toast('Bitte zuerst „automatisch aktualisieren“ einschalten.');return}updateFuel(true)};
 
 /* ---------- Ladekarte (Leaflet + OpenStreetMap/Overpass, wird erst beim Öffnen geladen) ---------- */
 const dMap=$('#dMap'),MAP_KEY='ladelog.map';

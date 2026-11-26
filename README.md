@@ -2,7 +2,7 @@
 
 Ladelog ist ein persönliches Logbuch für das Laden eines Elektroautos. Die Seite hält jede Ladung fest, vergleicht die Kosten mit einem Benziner und zeigt eine Ladekarte für Deutschland. Sie läuft als einzelne Datei über GitHub Pages und lässt sich auf dem iPhone als App auf den Homescreen legen.
 
-**Aktuelle Version: 2.4.4 vom 18.11.2026**
+**Aktuelle Version: 2.4.5 vom 26.11.2026**
 
 ## Versionsverlauf
 
@@ -10,6 +10,7 @@ Ladelog ist ein persönliches Logbuch für das Laden eines Elektroautos. Die Sei
 
 | Version | Datum | Änderung |
 |---|---|---|
+| 2.4.5 | 26.11.2026 | Benzinpreis kommt dreimal täglich über die GitHub Action „Benzinpreis aktualisieren“, ohne Konto. Tankerkönig-Ersatzquelle entfernt |
 | 2.4.4 | 18.11.2026 | Diagramme „kWh pro Monat“ und „Winter-Malus“: Balkenhöhen stimmen jetzt mit den Werten überein |
 | 2.4.3 | 16.11.2026 | Aktualisieren-Symbol erscheint erst beim Runterziehen, Hinweise bleiben oben. Ladekarte mit größeren Punkten und stabilen Popups. kWh mit drei Nachkommastellen. PS5-Einheit auf 75 Zoll in 4K HDR korrigiert |
 | 2.4.2 | 15.11.2026 | Versionsnummer in der Fußzeile und Versionsverlauf in der Seite |
@@ -68,17 +69,19 @@ Im Kopf der Seite stehen die ersten zwei Stellen, in der Fußzeile die volle Num
 | `index.html` | Die komplette Seite |
 | `apple-touch-icon.png`, `icon-192.png` | App-Icons für Homescreen und Browser-Tab |
 | `.github/workflows/ladekarte.yml` | Automat, der jede Nacht die Daten für die Ladekarte baut |
+| `.github/workflows/benzinpreis.yml` | Automat, der dreimal täglich den bundesweiten E10-Durchschnitt holt |
+| `benzinpreis.json` | Vom Automaten erzeugter Benzinpreis, den die Seite einliest |
 | `ladepunkte/` | Vom Automaten erzeugte Kartendaten. Die Dateien mit Unterstrich am Anfang sind Zwischenspeicher und bleiben liegen |
 | `README.md` | Diese Übersicht |
 
 Die eigenen Ladedaten liegen nicht in diesem Repo. Sie bleiben im Browser und, wenn der Abgleich eingerichtet ist, in einem separaten privaten Repository.
 
-## Datenquellen der Ladekarte
+## Datenquellen
 
 - Ladesäulenregister: Bundesnetzagentur.de, Lizenz CC BY 4.0
 - Kartenbild und Ladestationen: © OpenStreetMap-Mitwirkende, Lizenz ODbL
 - Preisangaben: Open Charge Map
-- Benzinpreis: benzinpreis-aktuell.de
+- Benzinpreis: bundesweiter Durchschnitt von benzinpreis-aktuell.de, abgerufen über die GitHub Action
 
 ---
 
