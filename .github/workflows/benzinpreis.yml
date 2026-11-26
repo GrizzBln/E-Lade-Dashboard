@@ -1,0 +1,107 @@
+# Holt dreimal täglich den bundesweiten Durchschnittspreis für Super E10 und legt ihn als benzinpreis.json ins Repo.
+# Ablageort dieser Datei im Repo:  .github/workflows/benzinpreis.yml
+#
+# Quelle: benzinpreis-aktuell.de (bundesweiter Durchschnitt, ohne Konto und ohne Schlüssel).
+# Die Ladelog-Seite liest nur die Datei benzinpreis.json. Direkt aus dem Browser geht der Abruf nicht,
+# weil die Quelle Anfragen von fremden Webseiten blockiert.
+# Klappt ein Abruf nicht, bleibt der letzte gute Preis stehen. Erst wenn er älter als 3 Tage ist,
+# schlägt die Action fehl, damit GitHub dich per Mail warnt.
+name: Benzinpreis aktualisieren
+
+on:
+  schedule:
+    - cron: '17 5,11,17 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency: benzinpreis
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preis holen
+        run: |
+          python3 - <<'PY'
+          import datetime, json, sys, time, urllib.request
+          from zoneinfo import ZoneInfo
+
+          OUT = 'benzinpreis.json'
+          URL = 'https://www.benzinpreis-aktuell.de/api.v2.php?data=nationwide'
+          UA = {'User-Agent': 'Mozilla/5.0 (compatible; Ladelog-Benzinpreis/1.0; privates GitHub-Pages-Projekt)'}
+          BER = ZoneInfo('Europe/Berlin')
+          now = datetime.datetime.now(BER).replace(microsecond=0)
+
+          def ok(p):
+              return p is not None and 0.8 < p < 4
+
+          def num(v):
+              try:
+                  return round(float(str(v).replace(',', '.')), 3)
+              except (TypeError, ValueError):
+                  return None
+
+          try:
+              old = json.load(open(OUT, encoding='utf-8'))
+          except Exception:
+              old = None
+
+          data, err = None, ''
+          for attempt in range(3):
+              try:
+                  with urllib.request.urlopen(urllib.request.Request(URL, headers=UA), timeout=30) as r:
+                      j = json.loads(r.read().decode('utf-8'))
+                  e10, sup, die = num(j.get('e10')), num(j.get('super')), num(j.get('diesel'))
+                  if not ok(e10):
+                      raise ValueError('kein plausibler E10-Preis: %r' % j.get('e10'))
+                  stand = now
+                  try:
+                      stand = datetime.datetime.strptime(j.get('date', ''), '%Y-%m-%d %H:%M:%S').replace(tzinfo=BER)
+                  except ValueError:
+                      pass
+                  data = {'e10': e10, 'super': sup if ok(sup) else None, 'diesel': die if ok(die) else None,
+                          'stand': stand.isoformat(), 'abgerufen': now.isoformat(),
+                          'quelle': 'benzinpreis-aktuell.de', 'url': 'https://www.benzinpreis-aktuell.de'}
+                  break
+              except Exception as e:
+                  err = str(e)
+                  print('Versuch %d fehlgeschlagen: %s' % (attempt + 1, err), flush=True)
+                  time.sleep(20)
+
+          if data:
+              with open(OUT, 'w', encoding='utf-8') as f:
+                  json.dump(data, f, ensure_ascii=False, indent=1)
+                  f.write('\n')
+              print('E10 %.3f €/l, Super %s, Diesel %s, Stand %s' % (data['e10'], data['super'], data['diesel'], data['stand']))
+              sys.exit(0)
+
+          print('::warning::Benzinpreis nicht abrufbar (%s), der letzte gute Preis bleibt stehen' % err)
+          try:
+              age = (now - datetime.datetime.fromisoformat(old['abgerufen'])).days
+          except Exception:
+              age = 999
+          if age >= 3:
+              print('::error::Seit %s Tagen kein neuer Benzinpreis' % (age if age < 999 else 'mehreren'))
+              sys.exit(1)
+          PY
+
+      - name: Speichern
+        run: |
+          git config user.name "ladelog-bot"
+          git config user.email "ladelog-bot@users.noreply.github.com"
+          git add benzinpreis.json
+          if git diff --cached --quiet; then
+            echo "Keine Änderung"
+          else
+            git commit -q -m "Benzinpreis $(TZ=Europe/Berlin date +'%F %H:%M')"
+            for i in 1 2 3; do
+              git push && break
+              git pull --rebase -q
+              sleep 5
+            done
+          fi
