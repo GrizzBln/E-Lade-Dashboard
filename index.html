@@ -265,6 +265,15 @@ select option{background:#0e1417}
 .btn{flex:1;min-width:0;height:52px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.5);color:var(--ink);font-weight:800;font-size:15px;cursor:pointer;padding:0 12px}
 .btn.sm{height:44px;font-size:13px}
 .btn.pri{background:linear-gradient(135deg,var(--lime),var(--lime2));color:#041000;border:0;box-shadow:0 0 30px #b6ff0066}
+.scanbar{display:flex;align-items:center;gap:10px;margin:-4px 0 12px}
+.scanbar .btn{flex:none;padding:0 16px;border:1px dashed var(--lime);color:var(--lime);background:rgba(182,255,0,.06)}
+.scanbar .btn:disabled{opacity:.5;cursor:wait}
+.scanbar small{font:11px/1.35 ui-monospace,Menlo,monospace;color:var(--mute)}
+.scanst{display:none;margin:-2px 0 14px;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.35);font:12px/1.5 ui-monospace,Menlo,monospace}
+.scanst.on{display:block}.scanst b{color:var(--lime)}.scanst.err{border-color:var(--orange)}.scanst.err b{color:var(--orange)}
+.scanst .pb{height:4px;border-radius:9px;background:#222;overflow:hidden;margin-top:7px}.scanst .pb i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--lime));transition:width .3s}
+input.scanned,select.scanned{border-color:var(--lime);box-shadow:inset 0 0 0 1px var(--lime),0 0 14px #b6ff0044}
+dialog.drop{box-shadow:0 0 0 3px var(--lime),0 0 90px #b6ff0099}
 .btn.warn{color:#ff9a9a;border-color:#ff9a9a55}
 .note{font-size:12px;color:var(--mute);line-height:1.5;margin:6px 0 14px}
 details{margin:0 0 12px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:rgba(0,0,0,.3)}
@@ -319,7 +328,7 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
 
 <main class="wrap">
   <div class="top">
-    <div class="logo disp" id="logo"><span>Lade<b>log</b></span><small id="verShort">2.4</small></div>
+    <div class="logo disp" id="logo"><span>Lade<b>log</b></span><small id="verShort">2.5</small></div>
     <div class="tools">
       <button class="chip" id="bSync" title="Synchronisation">SYNC</button>
       <button class="chip" id="bSound" title="Sound">SND</button>
@@ -411,7 +420,7 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
     <div class="log" id="log"></div>
   </section>
 
-  <footer>LADELOG · <button type="button" class="verbtn" id="verBtn">Version 2.4.5</button> · <span id="verDate">26.11.2026</span><br>Daten liegen in diesem Browser und, wenn verbunden, im privaten GitHub-Repo (⚙ → Synchronisation)<br>Copyright by GrizzBln</footer>
+  <footer>LADELOG · <button type="button" class="verbtn" id="verBtn">Version 2.5.0</button> · <span id="verDate">27.11.2026</span><br>Daten liegen in diesem Browser und, wenn verbunden, im privaten GitHub-Repo (⚙ → Synchronisation)<br>Copyright by GrizzBln</footer>
 </main>
 
 <button class="fab disp" id="fab" aria-label="Ladung loggen">
@@ -422,6 +431,9 @@ footer{text-align:center;font:11px ui-monospace,Menlo,monospace;color:var(--mute
 <dialog id="dAdd">
   <form class="dlg" id="fAdd" autocomplete="off">
     <h3 class="disp" id="fTitle">Neue Ladung</h3>
+    <div class="scanbar"><button type="button" class="btn sm" id="scanBtn">📷 Screenshot auslesen</button><small>Wird nur auf diesem Gerät gelesen. Am PC geht auch Einfügen oder Hineinziehen.</small></div>
+    <input type="file" id="scanIn" accept="image/*" hidden>
+    <div class="scanst" id="scanSt" aria-live="polite"></div>
     <div class="grid2">
       <label>Datum &amp; Uhrzeit<input type="datetime-local" id="fDate" required></label>
       <label>Art des Ladens
@@ -588,6 +600,7 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
    Dritte Zahl: kleine Ergänzungen und Korrekturen.
    Der Kopf zeigt nur die ersten zwei Stellen, die Fußzeile die volle Nummer mit Datum. */
 const CHANGELOG=[
+ ['2.5.0','27.11.2026','Screenshot auslesen: Datum, kWh, Kosten, Ladeart, Anbieter, Ort und Ladedauer werden aus einem Screenshot der Lade-App übernommen. Die Texterkennung läuft nur auf dem Gerät. Am PC auch per Einfügen oder Hineinziehen'],
  ['2.4.5','26.11.2026','Benzinpreis kommt jetzt dreimal täglich über eine GitHub Action, ohne Konto. Tankerkönig-Ersatzquelle entfernt'],
  ['2.4.4','18.11.2026','Diagramme „kWh pro Monat“ und „Winter-Malus“: Balkenhöhen stimmen jetzt mit den Werten überein, höhere Werte haben immer höhere Balken'],
  ['2.4.3','16.11.2026','Aktualisieren-Symbol erscheint erst beim Runterziehen und wächst mit, Hinweise bleiben oben. Ladekarte mit größeren Punkten und stabilen Popups. kWh mit drei Nachkommastellen. PS5-Einheit auf 75 Zoll in 4K HDR korrigiert'],
@@ -1117,7 +1130,7 @@ function prev(){
 }
 function openAdd(id){
   if(demo)exitDemo();
-  editingId=id||null;$('#fAdd').reset();
+  editingId=id||null;$('#fAdd').reset();scanReset();
   if(id){
     const c=state.charges.find(x=>x.id===id);if(!c){editingId=null}
     else{$('#fDate').value=c.date;$('#fType').value=c.type;$('#fPlace').value=c.place;$('#fProv').value=c.provider||'';
@@ -1133,6 +1146,206 @@ $('#fCancel').onclick=()=>dAdd.close();
 $('#fFree').onchange=e=>{setFree(e.target.checked);prev()};
 ['fKwh','fCost','fProv','fPlace'].forEach(i=>$('#'+i).addEventListener('input',prev));
 $('#fType').addEventListener('change',()=>{if(typeKey($('#fType').value)==='home'&&!$('#fPlace').value)$('#fPlace').value='Zuhause';prev();tick()});
+/* ---------- Screenshot auslesen: Auswertung der erkannten Wörter ---------- */
+const SCAN_MONTHS={jan:1,feb:2,mar:3,mär:3,apr:4,mai:5,may:5,jun:6,jul:7,aug:8,sep:9,okt:10,oct:10,nov:11,dez:12,dec:12};
+const SCAN_PROVS=[['Lidl',/\blidl\b|\*ldl\*/i],['Kaufland',/kaufland/i],['Aldi',/\baldi\b/i],['EnBW',/\benbw\b/i],['Ionity',/ionity|\*ion\*/i],['Tesla',/\btesla\b/i],
+  ['Aral pulse',/aral\s*pulse/i],['Shell Recharge',/shell\s*recharge/i],['EWE Go',/ewe\s*go/i],['Allego',/allego/i],['Fastned',/fastned/i],['Vattenfall',/vattenfall/i],
+  ['E.ON',/\be\.?\s?on\b(?!\w)/i],['Elli',/\belli\b/i],['Maingau',/maingau/i],['Mer',/\bmer\b\s*(germany|deutschland)?/i],['Pfalzwerke',/pfalzwerke/i],['IKEA',/\bikea\b/i],
+  ['Rewe',/\brewe\b/i],['Edeka',/\bedeka\b/i],['Netto',/\bnetto\b/i],['Penny',/\bpenny\b/i],['Hornbach',/hornbach/i],['Ladenetz',/ladenetz/i],['Stromnetz Berlin',/stromnetz\s*berlin/i],
+  ['Berliner Stadtwerke',/berliner\s*stadtwerke/i],['Plugsurfing',/plugsurfing/i],['Chargemap',/chargemap/i],['bp pulse',/bp\s*pulse/i],['Total Energies',/total\s*energies/i],['Electra',/\belectra\b/i]];
+function scanNum(s){
+  s=String(s).replace(/[^\d.,]/g,'');if(!/\d/.test(s))return NaN;
+  if(s.includes('.')&&s.includes(','))s=s.lastIndexOf(',')>s.lastIndexOf('.')?s.replace(/\./g,'').replace(',','.'):s.replace(/,/g,'');
+  else s=s.replace(',','.');
+  return parseFloat(s);
+}
+/* Wörter zu Zeilen bündeln (nach Höhe), damit Spalten-Layouts nicht durcheinandergeraten */
+function scanLines(words){
+  const ws=words.filter(w=>w.t&&w.t.trim()).map(w=>({...w,t:w.t.trim(),cy:(w.y0+w.y1)/2,h:w.y1-w.y0})).sort((a,b)=>a.cy-b.cy);
+  const lines=[];
+  ws.forEach(w=>{const l=lines.find(l=>Math.abs(l.cy-w.cy)<Math.max(l.h,w.h)*.55);if(l){l.w.push(w);l.cy=(l.cy*(l.w.length-1)+w.cy)/l.w.length;l.h=Math.max(l.h,w.h)}else lines.push({cy:w.cy,h:w.h,w:[w]})});
+  lines.sort((a,b)=>a.cy-b.cy).forEach(l=>{l.w.sort((a,b)=>a.x0-b.x0);l.t=l.w.map(w=>w.t).join(' ')});
+  return {ws,lines};
+}
+/* Zahl zu einer Einheit finden: direkt links daneben, im selben Wort oder in der Kachel darüber */
+function scanByUnit(ws,isUnit,numRe){
+  const out=[];
+  ws.forEach((u,i)=>{
+    const m=u.t.match(numRe);
+    if(m&&isUnit(u.t.replace(m[1],''))){out.push(scanNum(m[1]));return}
+    if(!isUnit(u.t))return;
+    const left=ws.filter(w=>w!==u&&Math.abs(w.cy-u.cy)<u.h*.7&&w.x1<=u.x0+4&&u.x0-w.x1<u.h*2.5&&/^\d+([.,]\d+)?$/.test(w.t)).sort((a,b)=>b.x1-a.x1)[0];
+    if(left){out.push(scanNum(left.t));return}
+    const ucx=(u.x0+u.x1)/2,above=ws.filter(w=>w.cy<u.cy&&u.cy-w.cy<u.h*4.5&&Math.abs((w.x0+w.x1)/2-ucx)<Math.max(w.x1-w.x0,u.x1-u.x0)&&/^\d+([.,]\d+)?$/.test(w.t)).sort((a,b)=>b.cy-a.cy)[0];
+    if(above)out.push(scanNum(above.t));
+  });
+  return out.filter(n=>n>=0&&isFinite(n));
+}
+function scanDates(lines){
+  const res=[];
+  lines.forEach((l,i)=>{
+    const t=l.t.replace(/[|]/g,' ');let m,d=null;
+    const prevT=(lines[i-1]||{}).t||'';
+    const time=(t.match(/\b([01]?\d|2[0-3])[:.]([0-5]\d)(?![.,]\d{2,})(?::[0-5]\d)?\s*(uhr)?\b/i)||[]);
+    if((m=t.match(/\b(\d{1,2})\.?\s*([A-Za-zäÄ]{3,})\.?\s*(\d{4})\b/))&&SCAN_MONTHS[m[2].slice(0,3).toLowerCase()])d=[+m[3],SCAN_MONTHS[m[2].slice(0,3).toLowerCase()],+m[1]];
+    else if(m=t.match(/\b(\d{1,2})\.(\d{1,2})\.(\d{2,4})\b/))d=[m[3].length===2?2000+ +m[3]:+m[3],+m[2],+m[1]];
+    else if(m=t.match(/\b(20\d\d)-(\d{2})-(\d{2})\b/))d=[+m[1],+m[2],+m[3]];
+    if(!d||d[1]<1||d[1]>12||d[2]<1||d[2]>31)return;
+    let tm=null;
+    const rest=m?t.replace(m[0],' '):t,tt=rest.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
+    if(tt)tm=[+tt[1],+tt[2]];
+    else{const nx=((lines[i+1]||{}).t||'').match(/^\D{0,12}\b([01]?\d|2[0-3]):([0-5]\d)\b/);if(nx)tm=[+nx[1],+nx[2]]}
+    const lab=(t+' '+prevT).toLowerCase();
+    res.push({d,tm,start:/start|beginn|begonnen|von\b/.test(lab),end:/ende|beendet|bis\b|stop/.test(lab)&&!/start|beginn/.test(t.toLowerCase())});
+  });
+  return res;
+}
+function scanParse(words,known){
+  known=known||{};
+  const {ws,lines}=scanLines(words),text=lines.map(l=>l.t).join('\n'),low=text.toLowerCase();
+  const r={};
+  /* Preis pro kWh */
+  let m=text.match(/(\d+[.,]\d+)\s*(€|EUR|ct|Cent)\s*\/\s*kWh/i);
+  if(m)r.price=scanNum(m[1])/(/ct|cent/i.test(m[2])?100:1);
+  /* kWh: Einheit allein (nicht €/kWh) */
+  const kw=scanByUnit(ws,t=>/^kwh[.,:;)]?$/i.test(t),/^(\d+(?:[.,]\d+)?)kwh$/i);
+  if(kw.length)r.kwh=kw[0];
+  else if(m=text.match(/(?:energie|strommenge|geladen|menge|verbrauch)\D{0,20}(\d+[.,]\d+)\s*kwh/i))r.kwh=scanNum(m[1]);
+  else{const all=[...text.matchAll(/(\d+[.,]?\d*)\s*kwh/gi)].filter(x=>!/[€t]\s*\/\s*$/i.test(text.slice(0,x.index)));if(all.length)r.kwh=scanNum(all[0][1])}
+  /* Kosten: zuerst Zeilen mit Gesamt/Summe/Betrag, dann Einheit EUR/€ */
+  const totalL=lines.find(l=>/(gesamt|summe|betrag|total|endpreis|kosten|zu zahlen|bezahlt)/i.test(l.t)&&/\d+[.,]\d{2}/.test(l.t)&&!/\/\s*kwh/i.test(l.t));
+  if(totalL)r.cost=scanNum(totalL.t.match(/\d+[.,]\d{2}(?!\d)/)[0]);
+  else{
+    const eu=scanByUnit(ws,t=>/^(eur|€)[.,:;)]?$/i.test(t),/^(?:€|eur)?\s*(\d+[.,]\d{2})(?:€|eur)?$/i);
+    if(eu.length)r.cost=eu[0];
+    else{const x=[...text.matchAll(/(\d+[.,]\d{2})\s*(€|EUR)(?!\s*\/)|(?:€|EUR)\s*(\d+[.,]\d{2})(?!\s*\/)/gi)];if(x.length)r.cost=scanNum(x[0][1]||x[0][3])}
+  }
+  if(/kostenlos|gratis|kostenfrei|0[.,]00\s*(€|eur)/i.test(text)&&!(r.cost>0))r.cost=0;
+  /* fehlende Werte aus Preis × Menge */
+  if(r.price>0){
+    if(r.kwh>0&&r.cost==null)r.cost=Math.round(r.kwh*r.price*100)/100;
+    if(r.cost>0&&!(r.kwh>0))r.kwh=Math.round(r.cost/r.price*1000)/1000;
+  }
+  /* Datum und Uhrzeit */
+  const ds=scanDates(lines),st=ds.find(x=>x.start&&x.tm)||ds.find(x=>x.tm&&!x.end)||ds.find(x=>x.tm)||ds[0];
+  const p2=n=>String(n).padStart(2,'0');
+  if(st)r.date=`${st.d[0]}-${p2(st.d[1])}-${p2(st.d[2])}T${st.tm?p2(st.tm[0])+':'+p2(st.tm[1]):'12:00'}`;
+  /* Ladedauer */
+  if(m=text.match(/\b(\d{1,2}):([0-5]\d):([0-5]\d)\b/))r.min=+m[1]*60+ +m[2]+Math.round(+m[3]/60);
+  else if(m=text.match(/(?:(\d+)\s*(?:h|std\.?|stunden?))?\s*(\d+)\s*(?:min|minuten)\b/i))r.min=(+m[1]||0)*60+ +m[2];
+  else{const en=ds.find(x=>x.end&&x.tm);if(st&&st.tm&&en){const a=Date.UTC(st.d[0],st.d[1]-1,st.d[2],st.tm[0],st.tm[1]),b=Date.UTC(en.d[0],en.d[1]-1,en.d[2],en.tm[0],en.tm[1]);if(b>a)r.min=Math.round((b-a)/6e4)}}
+  /* Ladeart */
+  const kwL=[...text.matchAll(/(\d+(?:[.,]\d+)?)\s*kW(?!h)/gi)].map(x=>scanNum(x[1])).filter(n=>n>0&&n<=400);
+  if(/\b(dc|ccs|hpc|chademo)\b|schnelllad/i.test(text)||kwL.some(n=>n>=50))r.type='Schnellladen (DC)';
+  else if(/\b(ac|typ\s*2|type\s*2)\b/i.test(text)||kwL.some(n=>n<=22))r.type='Wechselstrom (AC)';
+  /* Anbieter: bekannte eigene Einträge zuerst, dann bekannte Namen */
+  const norm=s=>String(s).toLowerCase().replace(/[^a-z0-9äöüß]+/g,' ').trim();
+  const nText=' '+norm(text)+' ';
+  const own=(known.provs||[]).filter(p=>p&&nText.includes(' '+norm(p)+' ')).sort((a,b)=>b.length-a.length)[0];
+  const hit=SCAN_PROVS.find(([,re])=>re.test(text));
+  r.prov=own||(hit&&hit[0])||'';
+  /* Ort: Zeile nach „Filiale“, „Standort“ … plus Straße */
+  const labRe=/^(filiale|standort|ladestation|station|ladepunkt|ort|adresse|location|ladesäule|markt)\s*:?$/i;
+  const okLine=t=>t&&/[A-Za-zÄÖÜäöü]{3,}/.test(t)&&!/^(start|ende|typ|type|ac|dc|preis|tarif|rechnung|brauchst|hilfe|angaben|status)\b/i.test(t)&&!/\d{1,2}:\d{2}|kwh|€|\beur\b|de\*/i.test(t);
+  let place='';
+  const li=lines.findIndex(l=>labRe.test(l.t)||/^(filiale|standort|adresse)\s*:/i.test(l.t));
+  if(li>=0){
+    const inl=lines[li].t.replace(/^\w+\s*:\s*/,'');
+    const a=inl&&!labRe.test(lines[li].t)?inl:(okLine((lines[li+1]||{}).t)?lines[li+1].t:'');
+    const b=okLine((lines[li+2]||{}).t)&&/(str\.?|straße|strasse|allee|weg|platz|ring|damm|chaussee|ufer|gasse|markt)\b|\s\d+\s*[a-z]?$/i.test(lines[li+2].t)?lines[li+2].t:'';
+    place=[a.replace(/\bfiliale\b\s*/i,'').replace(/\s{2,}/g,' ').trim(),b].filter(Boolean).join(', ');
+  }
+  /* eigenen, schon benutzten Ortsnamen bevorzugen, wenn er klar wiederzuerkennen ist */
+  let best=null,bs=0;
+  (known.places||[]).forEach(p=>{const tk=norm(p).split(' ').filter(x=>x.length>=3);if(!tk.length)return;const sc=tk.filter(x=>nText.includes(' '+x+' ')||nText.includes(x)).length/tk.length;if(sc>bs||(sc===bs&&best&&p.length>best.length)){bs=sc;best=p}});
+  if(best&&bs>=.8&&(norm(best).split(' ').filter(x=>x.length>=3).length>=2||!place))place=best;
+  if(!place&&r.prov)place=r.prov;
+  r.place=place;
+  r.text=text;
+  return r;
+}
+/* ---------- Screenshot auslesen: Texterkennung im Browser (Tesseract.js) ----------
+   Das Bild verlässt das Gerät nicht. Beim ersten Mal werden Programm und deutsche Sprachdaten
+   von jsDelivr geladen (einige MB) und danach vom Browser zwischengespeichert. */
+let scanWorker=null,scanBusy=false,scanLib=null;
+function scanSt(html,cls,pct){const e=$('#scanSt');e.className='scanst on'+(cls?' '+cls:'');e.innerHTML=html+(pct!=null?`<div class="pb"><i style="width:${Math.round(pct*100)}%"></i></div>`:'')}
+function scanReset(){const e=$('#scanSt');e.className='scanst';e.innerHTML='';document.querySelectorAll('#fAdd .scanned').forEach(x=>x.classList.remove('scanned'))}
+function scanLoadLib(){
+  if(window.Tesseract)return Promise.resolve();
+  return scanLib||(scanLib=new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';s.crossOrigin='anonymous';s.onload=ok;s.onerror=()=>{scanLib=null;no(new Error('lib'))};document.head.appendChild(s)}));
+}
+const SCAN_STEPS={'loading tesseract core':'Lade Texterkennung …','initializing tesseract':'Starte Texterkennung …','initialized tesseract':'Starte Texterkennung …','loading language traineddata':'Lade deutsche Sprachdaten …','loaded language traineddata':'Sprachdaten bereit …','initializing api':'Bereite vor …','initialized api':'Bereite vor …','recognizing text':'Lese Screenshot …'};
+async function scanGetWorker(){
+  await scanLoadLib();
+  if(!scanWorker)scanWorker=Tesseract.createWorker('deu',1,{logger:m=>{if(scanBusy&&m&&m.status)scanSt('⏳ '+(SCAN_STEPS[m.status]||'Arbeite …'),'',m.progress||0)}}).catch(e=>{scanWorker=null;throw e});
+  return scanWorker;
+}
+/* Bild vorbereiten: passende Größe, Graustufen, dunkle Screenshots umkehren */
+async function scanCanvas(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=url});
+    const w=img.naturalWidth,h=img.naturalHeight,sc=Math.min(Math.max(1,1400/w),2.5,2600/w,4200/h)||1;
+    const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*sc);c.height=Math.round(img.naturalHeight*sc);
+    const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0,c.width,c.height);
+    const d=g.getImageData(0,0,c.width,c.height),a=d.data;let sum=0;
+    for(let i=0;i<a.length;i+=4){const y=a[i]*.299+a[i+1]*.587+a[i+2]*.114;a[i]=a[i+1]=a[i+2]=y;sum+=y}
+    if(sum/(a.length/4)<110)for(let i=0;i<a.length;i+=4)a[i]=a[i+1]=a[i+2]=255-a[i];
+    g.putImageData(d,0,0);return c;
+  }finally{URL.revokeObjectURL(url)}
+}
+function scanWords(data){
+  let w=data&&data.words&&data.words.length?data.words:[];
+  if(!w.length&&data&&data.blocks)w=data.blocks.flatMap(b=>(b.paragraphs||[]).flatMap(p=>(p.lines||[]).flatMap(l=>l.words||[])));
+  if(w.length)return w.map(x=>({t:x.text,x0:x.bbox.x0,y0:x.bbox.y0,x1:x.bbox.x1,y1:x.bbox.y1}));
+  return String(data&&data.text||'').split('\n').map((t,i)=>({t,x0:0,y0:i*40,x1:t.length*20,y1:i*40+30}));
+}
+const scanDur=m=>m>=60?Math.floor(m/60)+' h'+(m%60?' '+m%60+' min':''):m+' min';
+async function scanFile(file){
+  if(!file||scanBusy)return;
+  if(!/^image\//.test(file.type||'image/')){scanSt('<b>Das ist kein Bild.</b> Bitte einen Screenshot wählen.','err');return}
+  scanBusy=true;$('#scanBtn').disabled=true;scanReset();scanSt('⏳ Bereite Bild vor …','',0);
+  try{
+    const [cv,wk]=await Promise.all([scanCanvas(file),scanGetWorker()]);
+    const {data}=await wk.recognize(cv,{},{text:true,blocks:true});
+    const uniq=a=>[...new Set(a.filter(Boolean))];
+    const r=scanParse(scanWords(data),{places:uniq(state.charges.map(c=>c.place)),provs:uniq(state.charges.map(c=>c.provider))});
+    scanFill(r);
+  }catch(e){
+    console.warn('Screenshot auslesen',e);
+    scanSt(navigator.onLine===false||(e&&e.message==='lib')?'<b>Texterkennung konnte nicht geladen werden.</b> Beim ersten Mal braucht es Internet, danach geht es schneller.':'<b>Das Bild konnte nicht gelesen werden.</b> Bitte noch einmal versuchen.','err');
+  }finally{scanBusy=false;$('#scanBtn').disabled=false;$('#scanIn').value=''}
+}
+function scanFill(r){
+  const got=[],miss=[];
+  const set=(id,v)=>{const e=$('#'+id);e.value=v;e.classList.add('scanned')};
+  if(r.date){set('fDate',r.date);const[d,t]=r.date.split('T');got.push(d.split('-').reverse().join('.')+' '+t)}else miss.push('Datum');
+  if(r.kwh>0){set('fKwh',r.kwh.toFixed(3));got.push(nf(r.kwh,3)+' kWh')}else miss.push('kWh');
+  if(r.cost===0){setFree(true);got.push('kostenlos')}
+  else if(r.cost>0){setFree(false);set('fCost',r.cost.toFixed(2));got.push(eur(r.cost))}else miss.push('Kosten');
+  if(r.type){set('fType',r.type);got.push(/DC/.test(r.type)?'DC':'AC')}
+  if(r.prov){set('fProv',r.prov);got.push(r.prov)}else miss.push('Anbieter');
+  if(r.place)set('fPlace',r.place);else miss.push('Ort');
+  if(r.min>0&&!$('#fNote').value.trim())set('fNote','Ladedauer '+scanDur(r.min));
+  prev();
+  if(!got.length){scanSt('<b>Keine Ladedaten gefunden.</b> Am besten die Zusammenfassung aus der Lade-App nehmen, auf der kWh und Betrag stehen.','err');return}
+  const price=r.kwh>0&&r.cost>0?` · ${nf(r.cost/r.kwh*100,1)} ct/kWh`:'';
+  scanSt(`✔ <b>Übernommen:</b> ${esc(got.join(' · '))}${price}<br>${miss.length?'Bitte prüfen: '+esc(miss.join(', '))+'. ':''}Kilometerstand bitte selbst eintragen.`);
+  tick();
+  if(!$('#fOdo').value){const o=$('#fOdo');o.scrollIntoView({block:'center',behavior:'smooth'});setTimeout(()=>o.focus({preventScroll:true}),350)}
+}
+$('#scanBtn').onclick=()=>{actx();$('#scanIn').click()};
+$('#scanIn').onchange=e=>scanFile(e.target.files[0]);
+['fDate','fType','fPlace','fProv','fKwh','fCost','fNote'].forEach(i=>$('#'+i).addEventListener('input',function(){this.classList.remove('scanned')}));
+/* Einfügen (Strg/Cmd+V) und Hineinziehen am PC und Mac */
+document.addEventListener('paste',e=>{
+  const it=[...(e.clipboardData&&e.clipboardData.items||[])].find(x=>x.kind==='file'&&/^image\//.test(x.type));if(!it)return;
+  if(!dAdd.open){if(document.querySelector('dialog[open]'))return;openAdd()}
+  e.preventDefault();scanFile(it.getAsFile());
+});
+dAdd.addEventListener('dragover',e=>{if([...(e.dataTransfer&&e.dataTransfer.types||[])].includes('Files')){e.preventDefault();dAdd.classList.add('drop')}});
+dAdd.addEventListener('dragleave',e=>{if(e.target===dAdd||!dAdd.contains(e.relatedTarget))dAdd.classList.remove('drop')});
+dAdd.addEventListener('drop',e=>{e.preventDefault();dAdd.classList.remove('drop');const f=[...(e.dataTransfer&&e.dataTransfer.files||[])].find(x=>/^image\//.test(x.type));if(f)scanFile(f)});
 $('#fOdo').addEventListener('input',function(){this.setCustomValidity('')});
 $('#fDate').addEventListener('input',()=>$('#fOdo').setCustomValidity(''));
 function odoProblem(date,odo,ignoreId){

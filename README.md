@@ -2,9 +2,15 @@
 
 Ladelog ist ein persönliches Logbuch für das Laden eines Elektroautos. Die Seite hält jede Ladung fest, vergleicht die Kosten mit einem Benziner und zeigt eine Ladekarte für Deutschland. Sie läuft als einzelne Datei über GitHub Pages und lässt sich auf dem iPhone als App auf den Homescreen legen.
 
-**Aktuelle Version: 2.4.5 vom 26.11.2026**
+**Aktuelle Version: 2.5.0 vom 27.11.2026**
 
 ## Versionsverlauf
+
+### 2.5 · Screenshot auslesen
+
+| Version | Datum | Änderung |
+|---|---|---|
+| 2.5.0 | 27.11.2026 | Screenshot auslesen: Datum, kWh, Kosten, Ladeart, Anbieter, Ort und Ladedauer werden aus einem Screenshot der Lade-App ins Formular übernommen. Die Texterkennung läuft nur auf dem Gerät. Am PC und Mac auch per Einfügen oder Hineinziehen |
 
 ### 2.4 · Ladekarte mit amtlichen Daten
 
@@ -82,6 +88,7 @@ Die eigenen Ladedaten liegen nicht in diesem Repo. Sie bleiben im Browser und, w
 - Kartenbild und Ladestationen: © OpenStreetMap-Mitwirkende, Lizenz ODbL
 - Preisangaben: Open Charge Map
 - Benzinpreis: bundesweiter Durchschnitt von benzinpreis-aktuell.de, abgerufen über die GitHub Action
+- Texterkennung für Screenshots: Tesseract.js (Apache-2.0), geladen über jsDelivr. Das Bild wird nur im Browser gelesen und nirgends hochgeladen
 
 ---
 
