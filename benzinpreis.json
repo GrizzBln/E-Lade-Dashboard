@@ -1,9 +1,9 @@
 {
- "e10": 1.865,
- "super": 1.923,
- "diesel": 2.104,
- "stand": "2026-11-27T16:00:02+01:00",
- "abgerufen": "2026-11-27T16:03:34+01:00",
+ "e10": 1.828,
+ "super": 1.883,
+ "diesel": 2.06,
+ "stand": "2026-11-28T01:30:01+01:00",
+ "abgerufen": "2026-11-28T01:32:46+01:00",
  "quelle": "benzinpreis-aktuell.de",
  "url": "https://www.benzinpreis-aktuell.de"
 }
